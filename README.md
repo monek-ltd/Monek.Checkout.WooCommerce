@@ -3,6 +3,9 @@
 
 Enhance your online store with the Monek WooCommerce Plugin, a powerful and seamless integration for secure payment processing. Accept payments effortlessly, streamline transactions, and provide a smooth checkout experience for your customers.
 
+
+
+
 # Manual Installation Guide for Monek Gateway in WooCommerce
 
 ## Introduction
@@ -76,6 +79,9 @@ Fill in the required details:
 Save changes to apply the configuration.
 
 If you don't have the necessary information, such as the Monek ID or Echo Check Code, visit [Monek Contact Page](https://monek.com/contact) to get help. Ensure that all information entered is accurate to enable seamless payment processing on your WooCommerce store.
+
+
+
 
 
 # Known Issue: Compatibility with WooCommerce Cart and Checkout Blocks
