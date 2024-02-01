@@ -193,7 +193,8 @@ class TransactDirectGateway extends WC_Payment_Gateway
 
     private function process_payment_callback(){
         $responseCode = $_REQUEST['responsecode'];
-        $order = wc_get_order($$_REQUEST['paymentreference']);
+        $order = wc_get_order($_REQUEST['paymentreference']);
+
 
         if(!$order){
             global $wp_query;
