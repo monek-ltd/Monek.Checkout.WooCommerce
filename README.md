@@ -94,8 +94,8 @@ To resolve this issue and ensure the Monek Gateway appears on the checkout page,
 If you are experiencing this issue, you can revert to the classic checkout shortcode. This step ensures compatibility with the Monek Gateway.
 
 Open the page where you have the checkout, likely titled "Checkout."
-Replace any existing WooCommerce block with the classic shortcode [woocommerce_checkout].
-For more information on managing the Cart and Checkout Blocks, refer to the WooCommerce documentation.
+Replace any existing WooCommerce block with the classic shortcode `[woocommerce_checkout]`.
+For more information on managing the Cart and Checkout Blocks, refer to the [WooCommerce documentation](https://woo.com/document/cart-checkout-blocks-status/#section-11).
 
 ### Note: 
 If your site is already using the classic checkout shortcode or is updating from an older version of WooCommerce, this issue does not apply.
