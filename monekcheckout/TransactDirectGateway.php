@@ -140,51 +140,66 @@ class TransactDirectGateway extends WC_Payment_Gateway
         );
     }
 
-    public function process_payment($order_id) {
+     public function process_payment($order_id) {
         $order = wc_get_order($order_id);
         $amount = $order->get_total();
         $return_plugin_url = (new WooCommerce)->api_request_url(self::GATEWAY_ID);
 
-        $billing_name = $_POST['billing_first_name'].' '.$_POST['billing_last_name'];
-        $billing_address = $_POST['billing_address_1'].' '.$_POST['billing_address_2'].' '.$_POST['billing_city'].' '.$_POST['billing_state'].' '.$_POST['billing_country'];
+        $parsed_url = parse_url($return_plugin_url);
 
-        $body_data = array(
-            'MerchantID' => $this->get_option('merchant_id'),
-            'MessageType' => 'ESALE_KEYED',
-            'Amount' => $this->convert_decimal_to_flat($amount),
-            'CurrencyCode' => $this->get_iso4217_currency_code(),
-            'CountryCode' => $this->get_iso4217_numeric_country_code(),
-            'Dispatch' => 'NOW',
-            'ResponseAction' => 'REDIRECT',
-            'RetOKAddress' => $return_plugin_url,
-            'RetNotOKAddress' => $return_plugin_url,
-            'PaymentReference' => $order_id,
-            'QAName' => $billing_name,
-            'QAAddress' => $billing_address,
-            'QAPostcode' => isset($_POST['billing_postcode']) ? $_POST['billing_postcode'] : '',
-            'QAEmailAddress' => isset($_POST['billing_email']) ? $_POST['billing_email'] : '',
-            'QAPhoneNumber' => isset($_POST['billing_phone']) ? $_POST['billing_phone'] : '',
-            'ShowPayPal' => 'YES',
-            'ThreeDSAction' => 'ACSDIRECT',
-            'IdempotencyToken' => uniqid(null, true),
-        );
+        if (isset($parsed_url['port'])) {
+            $note = 'Invalid Return URL : Port Detected';
+            wc_add_notice( $note,'error');
 
-        $body_data_query_string = http_build_query($body_data);
-        $prepared_payment_url = 'https://staging.monek.com/Secure/iPayPrepare.ashx';
+            $order->add_order_note(__($note, 'woocommerce'));
+            $order->update_status('failed');
 
-        $response = wp_remote_post($prepared_payment_url, array(
-            'body' => $body_data_query_string,
-        ));
+            wp_redirect(wc_get_cart_url());
+            exit;
 
-        if (is_wp_error($response) || wp_remote_retrieve_response_code($response) >= 300) {
-            $error_message = is_wp_error($response) ? $response->get_error_message() : wp_remote_retrieve_response_message($response);
-            echo 'Error: ' . esc_html($error_message);
         } else {
-            $body = wp_remote_retrieve_body($response);
+            $billing_name = $_POST['billing_first_name'].' '.$_POST['billing_last_name'];
+            $billing_address = $_POST['billing_address_1'].' '.$_POST['billing_address_2'].' '.$_POST['billing_city'].' '.$_POST['billing_state'].' '.$_POST['billing_country'];
+
+            $body_data = array(
+                'MerchantID' => $this->get_option('merchant_id'),
+                'MessageType' => 'ESALE_KEYED',
+                'Amount' => $this->convert_decimal_to_flat($amount),
+                'CurrencyCode' => $this->get_iso4217_currency_code(),
+                'CountryCode' => $this->get_iso4217_numeric_country_code(),
+                'Dispatch' => 'NOW',
+                'ResponseAction' => 'REDIRECT',
+                'RetOKAddress' => $return_plugin_url,
+                'RetNotOKAddress' => $return_plugin_url,
+                'PaymentReference' => $order_id,
+                'QAName' => $billing_name,
+                'QAAddress' => $billing_address,
+                'QAPostcode' => isset($_POST['billing_postcode']) ? $_POST['billing_postcode'] : '',
+                'QAEmailAddress' => isset($_POST['billing_email']) ? $_POST['billing_email'] : '',
+                'QAPhoneNumber' => isset($_POST['billing_phone']) ? $_POST['billing_phone'] : '',
+                'ShowPayPal' => 'YES',
+                'ThreeDSAction' => 'ACSDIRECT',
+                'IdempotencyToken' => uniqid(null, true),
+            );
+
+            $body_data_query_string = http_build_query($body_data);
+            $prepared_payment_url = 'https://staging.monek.com/Secure/iPayPrepare.ashx';
+
+            $response = wp_remote_post($prepared_payment_url, array(
+                'body' => $body_data_query_string,
+            ));
+
+            if (is_wp_error($response) || wp_remote_retrieve_response_code($response) >= 300) {
+                $error_message = is_wp_error($response) ? $response->get_error_message() : wp_remote_retrieve_response_message($response);
+                echo 'Error: ' . esc_html($error_message);
+            } else {
+                $body = wp_remote_retrieve_body($response);
+            }
+
+            $url = $this->get_url().'?PreparedPayment='.$body;
+
         }
-
-        $url = $this->get_url().'?PreparedPayment='.$body;
-
+        
         return array(
             'result' => 'success',
             'redirect' => $url
