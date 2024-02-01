@@ -1,7 +1,9 @@
 # Monek.Checkout.WooCommerce
-Monek WooCommerce Plugin
+## Monek WooCommerce Plugin
 
-# Manual Installation Guide for WooCommerce Monek Gateway in WooCommerce
+Enhance your online store with the Monek WooCommerce Plugin, a powerful and seamless integration for secure payment processing. Accept payments effortlessly, streamline transactions, and provide a smooth checkout experience for your customers.
+
+# Manual Installation Guide for Monek Gateway in WooCommerce
 
 ## Introduction
 This guide provides step-by-step instructions for manually installing the Monek Gateway plugin for WooCommerce. Ensure that you have the necessary permissions and backups before proceeding.
@@ -12,11 +14,11 @@ This guide provides step-by-step instructions for manually installing the Monek 
 - FTP client (e.g., FileZilla) or access to your web server's file manager.
 
 ## Step 1: Download the WooCommerce Monek Gateway Plugin from GitHub
-Visit the GitHub repository (https://github.com/monek-ltd/Monek.Checkout.WooCommerce/) where the WooCommerce Monek Gateway plugin is hosted and download the plugin files. Github should allow you to download the repository as a ZIP archive.
+Visit the [GitHub repository](https://github.com/monek-ltd/Monek.Checkout.WooCommerce/) where the WooCommerce Monek Gateway plugin is hosted and download the plugin files. Github should allow you to download the repository as a ZIP archive.
 
 
 ## Step 2: Extract Plugin Files
-After downloading the WooCommerce Monek Gateway plugin from the GitHub repository, extract the contents of the ZIP file to your local machine. This will reveal the plugin files and folders.
+After downloading the WooCommerce Monek Gateway plugin from the [GitHub repository](https://github.com/monek-ltd/Monek.Checkout.WooCommerce/), extract the contents of the ZIP file to your local machine. This will reveal the plugin files and folders.
 
 
 ## Step 3: Connect to Your WordPress Site
@@ -73,4 +75,27 @@ Fill in the required details:
 
 Save changes to apply the configuration.
 
-If you don't have the necessary information, such as the Monek ID or Echo Check Code, visit Monek Contact Page (https://monek.com/contact) to get help. Ensure that all information entered is accurate to enable seamless payment processing on your WooCommerce store.
+If you don't have the necessary information, such as the Monek ID or Echo Check Code, visit [Monek Contact Page](https://monek.com/contact) to get help. Ensure that all information entered is accurate to enable seamless payment processing on your WooCommerce store.
+
+
+# Known Issue: Compatibility with WooCommerce Cart and Checkout Blocks
+Starting with WooCommerce version 8.3, the Cart and Checkout Blocks become the default for new installations. However, this change may prevent the Monek Gateway from appearing in the checkout section.
+
+## Issue Description:
+### - Affected Versions: 
+WooCommerce 8.3 and later for new installations.
+### - Impact: 
+The Monek Gateway may not be visible in the checkout section due to the default Cart and Checkout Blocks.
+## Solution:
+To resolve this issue and ensure the Monek Gateway appears on the checkout page, follow these steps:
+
+## Revert to Classic Checkout Shortcode:
+
+If you are experiencing this issue, you can revert to the classic checkout shortcode. This step ensures compatibility with the Monek Gateway.
+
+Open the page where you have the checkout, likely titled "Checkout."
+Replace any existing WooCommerce block with the classic shortcode [woocommerce_checkout].
+For more information on managing the Cart and Checkout Blocks, refer to the WooCommerce documentation.
+
+### Note: 
+If your site is already using the classic checkout shortcode or is updating from an older version of WooCommerce, this issue does not apply.
