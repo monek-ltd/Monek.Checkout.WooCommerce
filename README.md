@@ -4,7 +4,7 @@
 Enhance your online store with the Monek WooCommerce Plugin, a powerful and seamless integration for secure payment processing. Accept payments effortlessly, streamline transactions, and provide a smooth checkout experience for your customers.
 
 Contents:
-- Manual Installation Guid
+- Manual Installation Guide
 - Known Issues
 
 
