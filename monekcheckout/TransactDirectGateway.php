@@ -136,69 +136,55 @@ class TransactDirectGateway extends WC_Payment_Gateway
                 'label' => __('Enable trial features', self::TEXT_DOMAIN),
                 'description' => __('Enable this option to access trial features. Trial features provide early access to new functionalities and enhancements that are currently in testing.', self::TEXT_DOMAIN),
                 'desc_tip' => true
-            )
-        );
-    }
-
-     public function process_payment($order_id) {
-        $order = wc_get_order($order_id);
-        $amount = $order->get_total();
-        $return_plugin_url = (new WooCommerce)->api_request_url(self::GATEWAY_ID);
-
-        $parsed_url = parse_url($return_plugin_url);
-
-        if (isset($parsed_url['port'])) {
-            $note = 'Invalid Return URL : Port Detected';
-            wc_add_notice( $note,'error');
-
-            $order->add_order_note(__($note, 'woocommerce'));
-            $order->update_status('failed');
-
-            wp_redirect(wc_get_cart_url());
-            exit;
-
-        } else {
-            $billing_name = $_POST['billing_first_name'].' '.$_POST['billing_last_name'];
-            $billing_address = $_POST['billing_address_1'].' '.$_POST['billing_address_2'].' '.$_POST['billing_city'].' '.$_POST['billing_state'].' '.$_POST['billing_country'];
-
-            $body_data = array(
-                'MerchantID' => $this->get_option('merchant_id'),
-                'MessageType' => 'ESALE_KEYED',
-                'Amount' => $this->convert_decimal_to_flat($amount),
-                'CurrencyCode' => $this->get_iso4217_currency_code(),
-                'CountryCode' => $this->get_iso4217_numeric_country_code(),
-                'Dispatch' => 'NOW',
-                'ResponseAction' => 'REDIRECT',
-                'RetOKAddress' => $return_plugin_url,
-                'RetNotOKAddress' => $return_plugin_url,
-                'PaymentReference' => $order_id,
-                'QAName' => $billing_name,
-                'QAAddress' => $billing_address,
-                'QAPostcode' => isset($_POST['billing_postcode']) ? $_POST['billing_postcode'] : '',
-                'QAEmailAddress' => isset($_POST['billing_email']) ? $_POST['billing_email'] : '',
-                'QAPhoneNumber' => isset($_POST['billing_phone']) ? $_POST['billing_phone'] : '',
-                'ShowPayPal' => 'YES',
-                'ThreeDSAction' => 'ACSDIRECT',
-                'IdempotencyToken' => uniqid(null, true),
+                )
             );
-
-            $body_data_query_string = http_build_query($body_data);
-            $prepared_payment_url = 'https://staging.monek.com/Secure/iPayPrepare.ashx';
-
-            $response = wp_remote_post($prepared_payment_url, array(
-                'body' => $body_data_query_string,
-            ));
-
-            if (is_wp_error($response) || wp_remote_retrieve_response_code($response) >= 300) {
-                $error_message = is_wp_error($response) ? $response->get_error_message() : wp_remote_retrieve_response_message($response);
-                echo 'Error: ' . esc_html($error_message);
-            } else {
-                $body = wp_remote_retrieve_body($response);
-            }
-
-            $url = $this->get_url().'?PreparedPayment='.$body;
-
         }
+        
+    public function process_payment($order_id) {
+        $order = wc_get_order($order_id);
+        $return_plugin_url = (new WooCommerce)->api_request_url(self::GATEWAY_ID);
+        $this->validate_return_url($order, $return_plugin_url);
+
+        $billing_amount = $order->get_total();
+        $billing_name = $_POST['billing_first_name'].' '.$_POST['billing_last_name'];
+        $billing_address = $_POST['billing_address_1'].' '.$_POST['billing_address_2'].' '.$_POST['billing_city'].' '.$_POST['billing_state'].' '.$_POST['billing_country'];
+
+        $body_data = array(
+            'MerchantID' => $this->get_option('merchant_id'),
+            'MessageType' => 'ESALE_KEYED',
+            'Amount' => $this->convert_decimal_to_flat($billing_amount),
+            'CurrencyCode' => $this->get_iso4217_currency_code(),
+            'CountryCode' => $this->get_iso4217_numeric_country_code(),
+            'Dispatch' => 'NOW',
+            'ResponseAction' => 'REDIRECT',
+            'RetOKAddress' => $return_plugin_url,
+            'RetNotOKAddress' => $return_plugin_url,
+            'PaymentReference' => $order_id,
+            'QAName' => $billing_name,
+            'QAAddress' => $billing_address,
+            'QAPostcode' => isset($_POST['billing_postcode']) ? $_POST['billing_postcode'] : '',
+            'QAEmailAddress' => isset($_POST['billing_email']) ? $_POST['billing_email'] : '',
+            'QAPhoneNumber' => isset($_POST['billing_phone']) ? $_POST['billing_phone'] : '',
+            'ShowPayPal' => 'YES',
+            'ThreeDSAction' => 'ACSDIRECT',
+            'IdempotencyToken' => uniqid(null, true),
+        );
+
+        $body_data_query_string = http_build_query($body_data);
+        $prepared_payment_url = 'https://staging.monek.com/Secure/iPayPrepare.ashx';
+
+        $response = wp_remote_post($prepared_payment_url, array(
+            'body' => $body_data_query_string,
+        ));
+
+        if (is_wp_error($response) || wp_remote_retrieve_response_code($response) >= 300) {
+            $error_message = is_wp_error($response) ? $response->get_error_message() : wp_remote_retrieve_response_message($response);
+            echo 'Error: ' . esc_html($error_message);
+        } else {
+            $body = wp_remote_retrieve_body($response);
+        }
+
+        $url = $this->get_url().'?PreparedPayment='.$body;
         
         return array(
             'result' => 'success',
@@ -209,7 +195,6 @@ class TransactDirectGateway extends WC_Payment_Gateway
     private function process_payment_callback(){
         $responseCode = $_REQUEST['responsecode'];
         $order = wc_get_order($_REQUEST['paymentreference']);
-
 
         if(!$order){
             global $wp_query;
@@ -277,5 +262,28 @@ class TransactDirectGateway extends WC_Payment_Gateway
         $this->has_fields = false;
         $this->method_title = __('Monek', self::TEXT_DOMAIN);
         $this->method_description = __('Pay securely with Monek using your credit/debit card.', self::TEXT_DOMAIN);
+    }
+
+    private function validate_return_url($order, $return_plugin_url){
+        $parsed_url = parse_url($return_plugin_url);
+    
+        if ($parsed_url === false) {
+            wc_add_notice('Invalid Return URL: Malformed URL', 'error');
+            $order->add_order_note(__('Invalid Return URL: Malformed URL', self::TEXT_DOMAIN));
+            exit;
+        }
+    
+        if (isset($parsed_url['port']) && $parsed_url['port'] !== null) {
+            wc_add_notice('Invalid Return URL: Port Detected', 'error');
+            $order->add_order_note(__('Invalid Return URL: Port Detected', self::TEXT_DOMAIN));
+            exit;
+        }
+    
+        $current_permalink_structure = get_option('permalink_structure');
+        if ($current_permalink_structure === '/index.php/%postname%/' || $current_permalink_structure === '') {
+            wc_add_notice('Invalid Return URL: Permalink setting "Plain" is not supported', 'error');
+            $order->add_order_note(__('Invalid Return URL: Permalink setting "Plain" is not supported', self::TEXT_DOMAIN));
+            exit;
+        }
     }
 }
