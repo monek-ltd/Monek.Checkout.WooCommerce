@@ -25,7 +25,7 @@ Visit the [GitHub repository](https://github.com/monek-ltd/Monek.Checkout.WooCom
 
 
 ### Step 2: Extract Plugin Files
-After downloading the [latest version](https://github.com/monek-ltd/Monek.Checkout.WooCommerce/releases/tag/v1.0.0-beta.1) WooCommerce Monek Gateway plugin from the [GitHub repository](https://github.com/monek-ltd/Monek.Checkout.WooCommerce/), extract the contents of the ZIP file to your local machine. This will reveal the plugin files and folders. (Look for the monekcheckout folder)
+After downloading the [latest version](https://github.com/monek-ltd/Monek.Checkout.WooCommerce/releases/tag/v1.0.0-beta.1) WooCommerce Monek Gateway plugin from the [GitHub repository](https://github.com/monek-ltd/Monek.Checkout.WooCommerce/), extract the contents of the ZIP file to your local machine. This will reveal the plugin files and folders. (Look for the "monekcheckout" folder)
 
 
 ### Step 3: Connect to Your WordPress Site
@@ -43,7 +43,7 @@ Locate and access the plugins directory to prepare for uploading the WooCommerce
 
 
 ### Step 5: Upload the WooCommerce Monek Gateway Plugin
-With the wp-content/plugins/ directory open, upload the extracted WooCommerce Monek Gateway plugin folder to this location.
+With the wp-content/plugins/ directory open, upload the extracted WooCommerce Monek Gateway plugin folder "monekcheckout" to this location.
 
 If using an FTP client like FileZilla, drag and drop the folder from your local machine to the plugins directory on the server.
 
