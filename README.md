@@ -13,6 +13,7 @@ This guide provides step-by-step instructions for manually installing the Monek 
 
 ### Prerequisites
 - WordPress installed and activated.
+- *Permalink structure setting not set to "plain".
 - WooCommerce plugin installed and activated.
 - FTP client (e.g., FileZilla) or access to your web server's file manager.
 
@@ -84,7 +85,7 @@ If you don't have the necessary information, such as the Monek ID or Echo Check 
 
 
 
-## Known Issue: Compatibility with WooCommerce Cart and Checkout Blocks
+## Known Issue 1: Compatibility with WooCommerce Cart and Checkout Blocks
 Starting with WooCommerce version 8.3, the Cart and Checkout Blocks become the default for new installations. However, this change may prevent the Monek Gateway from appearing in the checkout section.
 
 ### Issue Description:
@@ -105,3 +106,33 @@ For more information on managing the Cart and Checkout Blocks, refer to the [Woo
 
 #### Note: 
 If your site is already using the classic checkout shortcode or is updating from an older version of WooCommerce, this issue does not apply.
+
+
+
+## Known Issue 2: Permalink Structure Conflict Resulting in 3005 Error
+
+When configuring your WooCommerce site, it's crucial to be aware of a known issue related to the permalink structure setting. Specifically, if your permalink structure is set to 'Plain,' it can lead to conflicts with a setting in the transaction call, resulting in a 3005 error from HTTP requests.
+
+### Issue Description:
+#### - Affected Versions:
+All WooCommerce versions may be affected if the permalink structure is set to 'Plain.'
+#### - Impact:
+The 3005 error occurs when the Monek Gateway rejects the return URL passed to it due to the presence of a query string. This issue arises when the permalink structure is set to 'Plain,' affecting the compatibility with the Monek Gateway transaction call.
+
+### Solution:
+To resolve the 3005 error and ensure seamless transactions with the Monek Gateway, it is recommended to update the permalink structure setting. Follow these steps:
+
+### Update Permalink Structure:
+
+1. Navigate to your WordPress admin dashboard.
+2. Go to Settings > Permalinks.
+3. Choose a permalink structure other than 'Plain.' Options like 'Post name' or 'Day and name' are commonly used without causing conflicts.
+4. Save the changes.
+
+#### Warning:
+Updating the permalink structure can potentially cause issues on your site. Ensure that you carefully assess the impact of this change, particularly if your site relies on specific URL structures. It's advisable to test thoroughly in a staging environment before implementing changes on a live site.
+
+By updating the permalink structure, you ensure that the Monek Gateway can handle the return URL correctly, preventing the occurrence of the 3005 error.
+
+#### Note:
+If your permalink structure is already set to a non-'Plain' option, or if your site is using a custom permalink structure, this issue does not apply.
