@@ -21,11 +21,11 @@ This guide provides step-by-step instructions for manually installing the Monek 
 - FTP client (e.g., FileZilla) or access to your web server's file manager.
 
 ### Step 1: Download the WooCommerce Monek Gateway Plugin from GitHub
-Visit the [GitHub repository](https://github.com/monek-ltd/Monek.Checkout.WooCommerce/) where the WooCommerce Monek Gateway plugin is hosted and download the plugin files. Github should allow you to download the repository as a ZIP archive.
+Visit the [GitHub repository](https://github.com/monek-ltd/Monek.Checkout.WooCommerce/) where the WooCommerce Monek Gateway plugin is hosted and download the [latest version](https://github.com/monek-ltd/Monek.Checkout.WooCommerce/releases/tag/v1.0.0-beta.1) of the plugin files. Github should allow you to download the repository as a ZIP archive.
 
 
 ### Step 2: Extract Plugin Files
-After downloading the WooCommerce Monek Gateway plugin from the [GitHub repository](https://github.com/monek-ltd/Monek.Checkout.WooCommerce/), extract the contents of the ZIP file to your local machine. This will reveal the plugin files and folders.
+After downloading the [latest version](https://github.com/monek-ltd/Monek.Checkout.WooCommerce/releases/tag/v1.0.0-beta.1) WooCommerce Monek Gateway plugin from the [GitHub repository](https://github.com/monek-ltd/Monek.Checkout.WooCommerce/), extract the contents of the ZIP file to your local machine. This will reveal the plugin files and folders.
 
 
 ### Step 3: Connect to Your WordPress Site
