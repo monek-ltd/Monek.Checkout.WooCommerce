@@ -49,7 +49,7 @@ If using an FTP client like FileZilla, drag and drop the folder from your local 
 
 If using a web server's file manager, look for an "Upload" or "Import" option and select the WooCommerce Monek Gateway plugin folder from your local machine.
 
-Ensure that all files and folders within the WooCommerce Monek Gateway plugin are successfully uploaded to the wp-content/plugins/ directory.
+Ensure that folder "monekcheckout" are successfully uploaded to the wp-content/plugins/ directory.
 
 
 
@@ -62,8 +62,6 @@ In the list of plugins, find "WooCommerce Monek Gateway."
 
 Click the "Activate" link below the plugin name.
 
-
-Once activated, you should see a success message indicating that the WooCommerce Monek Gateway plugin is now active.
 
 
 ### Step 7: Configure the WooCommerce Monek Gateway
