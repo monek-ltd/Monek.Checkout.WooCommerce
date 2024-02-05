@@ -226,7 +226,7 @@ class TransactDirectGateway extends WC_Payment_Gateway
     private function process_transaction_response_echo($transaction_response_echo_data){
         if($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-            $order = wc_get_order($transaction_response_echo_data['paymentreference']);
+            $order = wc_get_order($transaction_response_echo_data['paymentReference']);
             if(!$order){
                 header('HTTP/1.1 400 Bad Request');
                 echo json_encode(array('error' => 'Bad Request'));
@@ -234,7 +234,7 @@ class TransactDirectGateway extends WC_Payment_Gateway
             }
 
             $saved_echo_check_code = $this->get_option('echo_check_code');
-            $transmited_echo_check_code = $transaction_response_echo_data['echocheckcode'];
+            $transmited_echo_check_code = $transaction_response_echo_data['echoCheckCode'];
             if(!isset($saved_echo_check_code) || $saved_echo_check_code == '' || !isset($transmited_echo_check_code)){
                 header('HTTP/1.1 400 Bad Request');
                 echo json_encode(array('error' => 'Bad Request'));
