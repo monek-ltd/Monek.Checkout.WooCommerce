@@ -23,59 +23,11 @@ class TransactDirectGateway extends WC_Payment_Gateway
         return $flat_number;
     }
 
-    //TODO: Find better way than listing all
     private function get_iso4217_currency_code() {
+        $country_codes = include('CurrencyCodes.php');
         $currency_code = get_woocommerce_currency();
 
-        $iso4217_mapping = array(
-            'USD' => '840',  // US Dollar
-            'EUR' => '978',  // Euro
-            'GBP' => '826',  // British Pound
-            'CAD' => '124',  // Canadian Dollar
-            'AUD' => '036',  // Australian Dollar
-            'CZK' => '203',  // Czech Koruna
-            'DKK' => '208',  // Danish Krone
-            'HKD' => '344',  // Hong Kong Dollar
-            'ISK' => '352',  // Icelandic Krona
-            'JPY' => '392',  // Japanese Yen
-            'NOK' => '578',  // Norwegian Krone
-            'SGD' => '702',  // Singapore Dollar
-            'SEK' => '752',  // Swedish Krona
-            'CHF' => '756',  // Swiss Franc
-        );
-
-        return isset($iso4217_mapping[$currency_code]) ? $iso4217_mapping[$currency_code] : '';
-    }
-
-    //TODO: Find better way than listing all
-    private function get_iso4217_numeric_country_code() {
-        $iso4217_country_code = WC()->countries->get_base_country();
-    
-        $iso4217_numeric_mapping = array(
-            'US' => '840',  // United States
-            'CA' => '124',  // Canada
-            'AU' => '036',  // Australia
-            'CZ' => '203',  // Czech Republic
-            'DK' => '208',  // Denmark
-            'HK' => '344',  // Hong Kong
-            'IS' => '352',  // Iceland
-            'JP' => '392',  // Japan
-            'NO' => '578',  // Norway
-            'SG' => '702',  // Singapore
-            'SE' => '752',  // Sweden
-            'CH' => '756',  // Switzerland
-            'GB' => '826',  // United Kingdom
-            'DE' => '276',  // Germany
-            'FR' => '250',  // France
-            'IT' => '380',  // Italy
-            'ES' => '724',  // Spain
-            'NL' => '528',  // Netherlands
-            'BE' => '056',  // Belgium
-            'AT' => '040',  // Austria
-            'PT' => '620',  // Portugal
-        );
-    
-        return isset($iso4217_numeric_mapping[$iso4217_country_code]) ? $iso4217_numeric_mapping[$iso4217_country_code] : '';
+        return isset($country_codes[$currency_code]) ? $country_codes[$currency_code] : '';
     }
 
     private function get_settings() {
@@ -84,6 +36,7 @@ class TransactDirectGateway extends WC_Payment_Gateway
         $this->merchant_id = $this->get_option( 'merchant_id' );
         $this->echo_check_code = $this->get_option('echo_check_code');
         $this->test_mode = isset($this->settings['test_mode']) && $this->settings['test_mode'] == 'yes';
+        $this->country_dropdown = $this->get_option('country_dropdown');
     }
     
     private function get_url()
@@ -107,6 +60,7 @@ class TransactDirectGateway extends WC_Payment_Gateway
     }
 
     public function init_form_fields() {
+        $country_codes= include('CountryCodes.php');
         $this->form_fields = array(
 
             'enabled' => array(
@@ -128,6 +82,15 @@ class TransactDirectGateway extends WC_Payment_Gateway
                 'description'=> __("Configure the Response Echo Code to directly confirm all transactions. If you plan to use this feature, ensure it's set up with Monek to avoid any disruptions in order completion.", self::TEXT_DOMAIN),
                 'default'=> '',
                 'desc_tip'=> true
+            ),
+            'country_dropdown' => array(
+                'name'        => __('Country', self::TEXT_DOMAIN),
+                'type'        => 'select',
+                'options'     => $country_codes,
+                'default'     => '826', // Set default to United Kingdom
+                'description' => __('Choose an option from the dropdown', self::TEXT_DOMAIN),
+                'id'          => 'country_dropdown_field',
+                'desc_tip'    => true
             ),
             'test_mode' => array(
                 'title' => __('Trial Features', self::TEXT_DOMAIN),
