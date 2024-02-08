@@ -117,7 +117,7 @@ class TransactDirectGateway extends WC_Payment_Gateway
             'MessageType' => 'ESALE_KEYED',
             'Amount' => $this->convert_decimal_to_flat($billing_amount),
             'CurrencyCode' => $this->get_iso4217_currency_code(),
-            'CountryCode' => $this->get_iso4217_numeric_country_code(),
+            'CountryCode' => $this->get_option('country_dropdown'),
             'Dispatch' => 'NOW',
             'ResponseAction' => 'REDIRECT',
             'RetOKAddress' => $return_plugin_url,
