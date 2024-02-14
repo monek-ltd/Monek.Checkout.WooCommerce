@@ -5,7 +5,8 @@ class TransactDirectGateway extends WC_Payment_Gateway
     private const GATEWAY_ID = 'transactdirect';
     private const TEXT_DOMAIN = 'monek-woo-commerce';
 
-    private $test_mode;
+    private $is_test_mode_active;
+    private $payment_processor;
 
     public function __construct() {
         $this->setup_properties();
@@ -15,19 +16,16 @@ class TransactDirectGateway extends WC_Payment_Gateway
 
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) ); 
         add_action('woocommerce_api_'.self::GATEWAY_ID, array(&$this, 'handle_callback'));
+
+        $this->payment_processor = new PaymentProcessor($this->is_test_mode_active);
     }
 
-    private function convert_decimal_to_flat($decimal_number) {
-        $flat_number = (int) str_replace('.', '', $decimal_number);
-    
-        return $flat_number;
-    }
+    private function get_ipay_url()
+    {
+        $testUrl = 'https://staging.monek.com/Secure/bootstrap/iPay.aspx';
+        $liveUrl = 'https://elite.monek.com/Secure/bootstrap/iPay.aspx';
 
-    private function get_iso4217_currency_code() {
-        $country_codes = include('CurrencyCodes.php');
-        $currency_code = get_woocommerce_currency();
-
-        return isset($country_codes[$currency_code]) ? $country_codes[$currency_code] : '';
+        return $this->is_test_mode_active ? $testUrl : $liveUrl;
     }
 
     private function get_settings() {
@@ -35,16 +33,9 @@ class TransactDirectGateway extends WC_Payment_Gateway
 		$this->description = __('Pay securely with Monek.', self::TEXT_DOMAIN);
         $this->merchant_id = $this->get_option( 'merchant_id' );
         $this->echo_check_code = $this->get_option('echo_check_code');
-        $this->test_mode = isset($this->settings['test_mode']) && $this->settings['test_mode'] == 'yes';
+        $this->is_test_mode_active = isset($this->settings['test_mode']) && $this->settings['test_mode'] == 'yes';
         $this->country_dropdown = $this->get_option('country_dropdown');
-    }
-    
-    private function get_url()
-    {
-        $testUrl = 'https://staging.monek.com/Secure/bootstrap/iPay.aspx';
-        $liveUrl = 'https://elite.monek.com/Secure/bootstrap/iPay.aspx';
-
-        return $this->test_mode ? $testUrl : $liveUrl;
+        $this->basket_summary = $this->get_option('basket_summary');
     }
 
     public function handle_callback(){
@@ -61,44 +52,51 @@ class TransactDirectGateway extends WC_Payment_Gateway
 
     public function init_form_fields() {
         $country_codes= include('CountryCodes.php');
-        $this->form_fields = array(
 
-            'enabled' => array(
-                'title' => __( 'Enabled', self::TEXT_DOMAIN),
-                'type' => 'checkbox',
-                'label' => __('Enable this payment gateway', self::TEXT_DOMAIN),
-                'default' => 'no'
-            ),
-            'merchant_id' => array(
-                'title'=> __('Monek ID', self::TEXT_DOMAIN),
-                'type' => 'number',
-                'description'=> __("Your Monek ID, a unique code that connects your business with Monek. This ID helps streamline transactions and communication between your account and Monek's systems.", self::TEXT_DOMAIN),
-                'default'=> '',
-                'desc_tip'=> true
-            ),
-            'echo_check_code' => array(
-                'title'=> __('Echo Check Code', self::TEXT_DOMAIN),
-                'type'=> 'text',
-                'description'=> __("Configure the Response Echo Code to directly confirm all transactions. If you plan to use this feature, ensure it's set up with Monek to avoid any disruptions in order completion.", self::TEXT_DOMAIN),
-                'default'=> '',
-                'desc_tip'=> true
-            ),
-            'country_dropdown' => array(
-                'name'        => __('Country', self::TEXT_DOMAIN),
-                'type'        => 'select',
-                'options'     => $country_codes,
-                'default'     => '826', // Set default to United Kingdom
-                'description' => __('Choose an option from the dropdown', self::TEXT_DOMAIN),
-                'id'          => 'country_dropdown_field',
-                'desc_tip'    => true
-            ),
-            'test_mode' => array(
-                'title' => __('Trial Features', self::TEXT_DOMAIN),
-                'type' => 'checkbox',
-                'default' => 'no',
-                'label' => __('Enable trial features', self::TEXT_DOMAIN),
-                'description' => __('Enable this option to access trial features. Trial features provide early access to new functionalities and enhancements that are currently in testing.', self::TEXT_DOMAIN),
-                'desc_tip' => true
+        $this->form_fields = array(
+                'enabled' => array(
+                    'title' => __( 'Enabled', self::TEXT_DOMAIN),
+                    'type' => 'checkbox',
+                    'label' => __('Enable this payment gateway', self::TEXT_DOMAIN),
+                    'default' => 'no'
+                ),
+                'merchant_id' => array(
+                    'title'=> __('Monek ID', self::TEXT_DOMAIN),
+                    'type' => 'number',
+                    'description'=> __("Your Monek ID, a unique code that connects your business with Monek. This ID helps streamline transactions and communication between your account and Monek's systems.", self::TEXT_DOMAIN),
+                    'default'=> '',
+                    'desc_tip'=> true
+                ),
+                'echo_check_code' => array(
+                    'title'=> __('Echo Check Code', self::TEXT_DOMAIN),
+                    'type'=> 'text',
+                    'description'=> __("Configure the Response Echo Code to directly confirm all transactions. If you plan to use this feature, ensure it's set up with Monek to avoid any disruptions in order completion.", self::TEXT_DOMAIN),
+                    'default'=> '',
+                    'desc_tip'=> true
+                ),
+                'country_dropdown' => array(
+                    'title'        => __('Country', self::TEXT_DOMAIN),
+                    'type'        => 'select',
+                    'options'     => $country_codes,
+                    'default'     => '826', // Set default to United Kingdom
+                    'description' => __('Set your location', self::TEXT_DOMAIN),
+                    'id'          => 'country_dropdown_field',
+                    'desc_tip'    => true
+                ),
+                'test_mode' => array(
+                    'title' => __('Trial Features', self::TEXT_DOMAIN),
+                    'type' => 'checkbox',
+                    'default' => 'no',
+                    'label' => __('Enable trial features', self::TEXT_DOMAIN),
+                    'description' => __('Enable this option to access trial features. Trial features provide early access to new functionalities and enhancements that are currently in testing.', self::TEXT_DOMAIN),
+                    'desc_tip' => true
+                ),
+                'basket_summary' => array(
+                    'title' => __('Basket Summary', self::TEXT_DOMAIN),
+                    'type' => 'text',
+                    'description' => __('This section allows you to customise the basket summary that is required as a purchase summary by PayPal.', self::TEXT_DOMAIN),
+                    'default' => 'Goods',
+                    'desc_tip' => true
                 )
             );
         }
@@ -108,37 +106,7 @@ class TransactDirectGateway extends WC_Payment_Gateway
         $return_plugin_url = (new WooCommerce)->api_request_url(self::GATEWAY_ID);
         $this->validate_return_url($order, $return_plugin_url);
 
-        $billing_amount = $order->get_total();
-        $billing_name = $_POST['billing_first_name'].' '.$_POST['billing_last_name'];
-        $billing_address = $_POST['billing_address_1'].' '.$_POST['billing_address_2'].' '.$_POST['billing_city'].' '.$_POST['billing_state'].' '.$_POST['billing_country'];
-
-        $body_data = array(
-            'MerchantID' => $this->get_option('merchant_id'),
-            'MessageType' => 'ESALE_KEYED',
-            'Amount' => $this->convert_decimal_to_flat($billing_amount),
-            'CurrencyCode' => $this->get_iso4217_currency_code(),
-            'CountryCode' => $this->get_option('country_dropdown'),
-            'Dispatch' => 'NOW',
-            'ResponseAction' => 'REDIRECT',
-            'RetOKAddress' => $return_plugin_url,
-            'RetNotOKAddress' => $return_plugin_url,
-            'PaymentReference' => $order_id,
-            'QAName' => $billing_name,
-            'QAAddress' => $billing_address,
-            'QAPostcode' => isset($_POST['billing_postcode']) ? $_POST['billing_postcode'] : '',
-            'QAEmailAddress' => isset($_POST['billing_email']) ? $_POST['billing_email'] : '',
-            'QAPhoneNumber' => isset($_POST['billing_phone']) ? $_POST['billing_phone'] : '',
-            'ShowPayPal' => 'YES',
-            'ThreeDSAction' => 'ACSDIRECT',
-            'IdempotencyToken' => uniqid(null, true),
-        );
-
-        $body_data_query_string = http_build_query($body_data);
-        $prepared_payment_url = 'https://staging.monek.com/Secure/iPayPrepare.ashx';
-
-        $response = wp_remote_post($prepared_payment_url, array(
-            'body' => $body_data_query_string,
-        ));
+        $response = $this->payment_processor->create_prepared_payment($order, $this->get_option('merchant_id'), $this->get_option('country_dropdown'), $return_plugin_url, $this->get_option('basket_summary'));
 
         if (is_wp_error($response) || wp_remote_retrieve_response_code($response) >= 300) {
             $error_message = is_wp_error($response) ? $response->get_error_message() : wp_remote_retrieve_response_message($response);
@@ -146,12 +114,10 @@ class TransactDirectGateway extends WC_Payment_Gateway
         } else {
             $body = wp_remote_retrieve_body($response);
         }
-
-        $url = $this->get_url().'?PreparedPayment='.$body;
         
         return array(
             'result' => 'success',
-            'redirect' => $url
+            'redirect' => $this->get_ipay_url().'?PreparedPayment='.$body
         );
     }
 

@@ -26,9 +26,22 @@ if (!function_exists('initialise_monek_payment_gateway')) {
         if( !class_exists( 'WC_Payment_Gateway' ) ) {
             return;
         }
+        function monekcheckout_autoloader($class_name) {
+            $class_map = array(
+                'TransactDirectGateway' => 'TransactDirectGateway.php',
+                'TransactionHelper' => 'TransactionHelper.php',
+                'PaymentProcessor' => 'PaymentProcessor.php',
+                'CountryCodes' => 'CountryCodes.php',
+                'CurrencyCodes' => 'CurrencyCodes.php'
+            );
         
-        require_once('TransactDirectGateway.php');
+            if (array_key_exists($class_name, $class_map)) {
+                require_once $class_map[$class_name];
+            }
+        }
         
+        spl_autoload_register('monekcheckout_autoloader');
+
         function add_monek_gateway($gateways) {
             $gateways[] = 'TransactDirectGateway';
             return $gateways;
