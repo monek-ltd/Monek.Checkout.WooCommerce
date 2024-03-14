@@ -8,10 +8,10 @@ class PaymentProcessor {
 
     public function __construct($is_test_mode_active) {
         $this->is_test_mode_active = $is_test_mode_active;
-    }
+    }    
 
-    public function create_prepared_payment($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description) {
-        $body_data = $this->prepare_body_data($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description);
+    public function create_prepared_payment($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description, $integrity_secret) {
+        $body_data = $this->prepare_payment_request_body_data($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description, $integrity_secret);
 
         return $this->send_payment_request($body_data);
     }
@@ -45,12 +45,10 @@ class PaymentProcessor {
         
         return $merged_array;
     }
-    
+
     private function get_ipay_prepare_url() {
-        $testUrl = 'https://staging.monek.com/Secure/iPayPrepare.ashx';
-        $liveUrl = 'https://elite.monek.com/Secure/iPayPrepare.ashx';
-    
-        return $this->is_test_mode_active ? $testUrl : $liveUrl;
+        $ipay_prepare_extension = 'iPayPrepare.ashx';
+        return ($this->is_test_mode_active ? TransactDirectGateway::$staging_url : TransactDirectGateway::$elite_url) . $ipay_prepare_extension;
     }
 
     private function get_item_details($order) {
@@ -80,8 +78,11 @@ class PaymentProcessor {
         return $items_details;
     }
 
-    private function prepare_body_data($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description) {
+    private function prepare_payment_request_body_data($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description, $integrity_secret) {
         $billing_amount = $order->get_total();
+        
+        update_post_meta($order->get_id(), 'idempotency_token', uniqid(null, true));
+        update_post_meta($order->get_id(), 'integrity_secret', $integrity_secret);
 
         $body_data = array(
             'MerchantID' => $merchant_id,
@@ -91,14 +92,15 @@ class PaymentProcessor {
             'CountryCode' => $country_code,
             'Dispatch' => 'NOW',
             'ResponseAction' => 'REDIRECT',
-            'RetOKAddress' => $return_plugin_url,
-            'RetNotOKAddress' => $return_plugin_url,
+            'RedirectUrl' => $return_plugin_url,
+            'WebhookUrl' => $return_plugin_url,
             'PaymentReference' => $order->get_id(),
             'ShowPayPal' => 'YES',
             'ThreeDSAction' => 'ACSDIRECT',
-            'IdempotencyToken' => uniqid(null, true),
+            'IdempotencyToken' => get_post_meta($order->get_id(), 'idempotency_token', true),
             'OriginID' => self::ORIGIN_ID,
-            'PurchaseDescription' => $purchase_description
+            'PurchaseDescription' => $purchase_description,
+            'IntegritySecret' => get_post_meta($order->get_id(), 'integrity_secret', true)
         );
 
         $body_data = $this->generate_qa_information($body_data);

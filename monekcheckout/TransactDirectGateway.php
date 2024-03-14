@@ -4,8 +4,12 @@ class TransactDirectGateway extends WC_Payment_Gateway
 { 
     private const GATEWAY_ID = 'transactdirect';
     private const TEXT_DOMAIN = 'monek-woo-commerce';
-
+    
+    public static $elite_url = 'https://elite.monek.com/Secure/';
+    private $integrity_corroborator;
     private $is_test_mode_active;
+    public static $staging_url = 'https://staging.monek.com/Secure/';
+    //public static $staging_url = 'https://beta.monek.com/Secure/';
     private $payment_processor;
 
     public function __construct() {
@@ -18,21 +22,20 @@ class TransactDirectGateway extends WC_Payment_Gateway
         add_action('woocommerce_api_'.self::GATEWAY_ID, array(&$this, 'handle_callback'));
 
         $this->payment_processor = new PaymentProcessor($this->is_test_mode_active);
+        $this->integrity_corroborator = new IntegrityCorroborator($this->is_test_mode_active);
     }
 
     private function get_ipay_url()
     {
-        $testUrl = 'https://staging.monek.com/Secure/bootstrap/iPay.aspx';
-        $liveUrl = 'https://elite.monek.com/Secure/bootstrap/iPay.aspx';
-
-        return $this->is_test_mode_active ? $testUrl : $liveUrl;
+        $ipay_extension = 'bootstrap/iPay.aspx';
+        return ($this->is_test_mode_active ? self::$staging_url : self::$elite_url) . $ipay_extension;
     }
 
     private function get_settings() {
         $this->title = __('Credit/Debit Card', self::TEXT_DOMAIN);
 		$this->description = __('Pay securely with Monek.', self::TEXT_DOMAIN);
         $this->merchant_id = $this->get_option( 'merchant_id' );
-        $this->echo_check_code = $this->get_option('echo_check_code');
+        $this->integrity_secret = $this->get_option('integrity_secret');
         $this->is_test_mode_active = isset($this->settings['test_mode']) && $this->settings['test_mode'] == 'yes';
         $this->country_dropdown = $this->get_option('country_dropdown');
         $this->basket_summary = $this->get_option('basket_summary');
@@ -40,10 +43,10 @@ class TransactDirectGateway extends WC_Payment_Gateway
 
     public function handle_callback(){
         $json_echo = file_get_contents('php://input');
-        $transaction_response_echo_data = json_decode($json_echo, true);
+        $transaction_webhook_payload_data = json_decode($json_echo, true);
 
-        if(isset($transaction_response_echo_data)){
-            $this->process_transaction_response_echo($transaction_response_echo_data);
+        if(isset($transaction_webhook_payload_data)){
+            $this->process_transaction_webhook_payload($transaction_webhook_payload_data);
         }
         else {
             $this->process_payment_callback();
@@ -67,11 +70,11 @@ class TransactDirectGateway extends WC_Payment_Gateway
                     'default'=> '',
                     'desc_tip'=> true
                 ),
-                'echo_check_code' => array(
-                    'title'=> __('Echo Check Code', self::TEXT_DOMAIN),
+                'integrity_secret' => array(
+                    'title'=> __('Integrity Secret', self::TEXT_DOMAIN),
                     'type'=> 'text',
-                    'description'=> __("Configure the Response Echo Code to directly confirm all transactions. If you plan to use this feature, ensure it's set up with Monek to avoid any disruptions in order completion.", self::TEXT_DOMAIN),
-                    'default'=> '',
+                    'description'=> __("Configure the response integrity secret to directly confirm all transactions.", self::TEXT_DOMAIN),
+                    'default'=> 'My Secret',
                     'desc_tip'=> true
                 ),
                 'country_dropdown' => array(
@@ -106,7 +109,7 @@ class TransactDirectGateway extends WC_Payment_Gateway
         $return_plugin_url = (new WooCommerce)->api_request_url(self::GATEWAY_ID);
         $this->validate_return_url($order, $return_plugin_url);
 
-        $response = $this->payment_processor->create_prepared_payment($order, $this->get_option('merchant_id'), $this->get_option('country_dropdown'), $return_plugin_url, $this->get_option('basket_summary'));
+        $response = $this->payment_processor->create_prepared_payment($order, $this->get_option('merchant_id'), $this->get_option('country_dropdown'), $return_plugin_url, $this->get_option('basket_summary'), $this->get_option('integrity_secret'));
 
         if (is_wp_error($response) || wp_remote_retrieve_response_code($response) >= 300) {
             $error_message = is_wp_error($response) ? $response->get_error_message() : wp_remote_retrieve_response_message($response);
@@ -124,7 +127,7 @@ class TransactDirectGateway extends WC_Payment_Gateway
     private function process_payment_callback(){
         $responseCode = $_REQUEST['responsecode'];
         $order = wc_get_order($_REQUEST['paymentreference']);
-
+        
         if(!$order){
             global $wp_query;
             $wp_query->set_404();
@@ -132,19 +135,23 @@ class TransactDirectGateway extends WC_Payment_Gateway
             include( get_query_template( '404' ) );
             exit;
         }
-
+        
         if(!isset($responseCode) || $responseCode != '00'){
             $note = 'Payment declined: ' . $_REQUEST['message'] ;
             wc_add_notice( $note,'error');
-            $order->add_order_note(__($note, 'woocommerce'));
+            $order->add_order_note(__($note, self::TEXT_DOMAIN));
             $order->update_status('failed');
             wp_redirect(wc_get_cart_url());
             exit;
         }
 
-        $echo_check_code = $this->get_option('echo_check_code');
-        if(!isset($echo_check_code) || $echo_check_code == ''){
+        $integrity_secret = $this->get_option('integrity_secret');
+        if(!isset($integrity_secret) || $integrity_secret == ''){
+            $order->add_order_note(__('Payment confirmation skipped, add an integrity secret in the gateway settings for greater payment security.', self::TEXT_DOMAIN));
             $order->payment_complete();
+        }
+        else {
+            $order->add_order_note(__('Awaiting payment confirmation.', self::TEXT_DOMAIN));
         }
         WC()->cart->empty_cart();
 
@@ -152,30 +159,39 @@ class TransactDirectGateway extends WC_Payment_Gateway
         wp_redirect($thankyou);
     }
 
-    private function process_transaction_response_echo($transaction_response_echo_data){
+    private function process_transaction_webhook_payload($transaction_webhook_payload_data){
         if($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-            $order = wc_get_order($transaction_response_echo_data['paymentReference']);
+            if(!$this->validate_webhook_payload($transaction_webhook_payload_data)){
+                header('HTTP/1.1 400 Bad Request');
+                echo json_encode(array('error' => 'Bad Request'));
+                return;
+            }
+
+            $order = wc_get_order($transaction_webhook_payload_data['paymentReference']);
             if(!$order){
                 header('HTTP/1.1 400 Bad Request');
                 echo json_encode(array('error' => 'Bad Request'));
                 return;
             }
 
-            $saved_echo_check_code = $this->get_option('echo_check_code');
-            $transmited_echo_check_code = $transaction_response_echo_data['echoCheckCode'];
-            if(!isset($saved_echo_check_code) || $saved_echo_check_code == '' || !isset($transmited_echo_check_code)){
-                header('HTTP/1.1 400 Bad Request');
-                echo json_encode(array('error' => 'Bad Request'));
-                return;
-            }
+            if($transaction_webhook_payload_data['responseCode'] == '00'){
+                $saved_integrity_secret = get_post_meta($order->get_id(), 'integrity_secret', true);
+                if(!isset($saved_integrity_secret) || $saved_integrity_secret == ''){
+                    header('HTTP/1.1 500 Internal Server Error');
+                    echo json_encode(array('error' => 'Internal Server Error'));
+                    return;
+                }
 
-            if($saved_echo_check_code == $transmited_echo_check_code){
-                $order->payment_complete();
-            }
-            else {
-                header('HTTP/1.1 500 Internal Server Error');
-                echo json_encode(array('error' => 'Internal Server Error'));
+                $response = $this->integrity_corroborator->confirm_integrity_digest($order, $transaction_webhook_payload_data);
+
+                if (is_wp_error($response) || wp_remote_retrieve_response_code($response) >= 300) {
+                    header('HTTP/1.1 400 Bad Request');
+                    echo json_encode(array('error' => 'Bad Request'));
+                } else {
+                    $order->add_order_note(__('Payment confirmed.', self::TEXT_DOMAIN));
+                    $order->payment_complete();
+                }
             }
         }
         else {
@@ -214,5 +230,16 @@ class TransactDirectGateway extends WC_Payment_Gateway
             $order->add_order_note(__('Invalid Return URL: Permalink setting "Plain" is not supported', self::TEXT_DOMAIN));
             exit;
         }
+    }
+
+    private function validate_webhook_payload($transaction_webhook_payload_data){
+        return isset($transaction_webhook_payload_data['transactionDateTime'])
+        && isset($transaction_webhook_payload_data['paymentReference'])
+        && isset($transaction_webhook_payload_data['crossReference'])
+        && isset($transaction_webhook_payload_data['responseCode'])
+        && isset($transaction_webhook_payload_data['message'])
+        && isset($transaction_webhook_payload_data['amount'])
+        && isset($transaction_webhook_payload_data['currencyCode'])
+        && isset($transaction_webhook_payload_data['integrityDigest']);
     }
 }

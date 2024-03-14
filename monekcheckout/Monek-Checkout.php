@@ -5,7 +5,7 @@
  * Author: Monek Ltd
  * Author URI: http://www.monek.com
  * Description: Take credit/debit card payments with Monek.
- * Version: 1.0.0
+ * Version: 2.0.0
  * text-domain: monek-woo-commerce
  * 
  * NOTE: This header comment is required for WordPress, see https://developer.wordpress.org/plugins/plugin-basics/header-requirements/#header-fields for details.
@@ -32,7 +32,8 @@ if (!function_exists('initialise_monek_payment_gateway')) {
                 'TransactionHelper' => 'TransactionHelper.php',
                 'PaymentProcessor' => 'PaymentProcessor.php',
                 'CountryCodes' => 'CountryCodes.php',
-                'CurrencyCodes' => 'CurrencyCodes.php'
+                'CurrencyCodes' => 'CurrencyCodes.php',
+                'IntegrityCorroborator' => 'IntegrityCorroborator.php'
             );
         
             if (array_key_exists($class_name, $class_map)) {
