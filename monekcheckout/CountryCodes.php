@@ -1,5 +1,4 @@
 <?php
-// country_codes.php
 
 return array(
     '826' => __('United Kingdom', self::TEXT_DOMAIN),

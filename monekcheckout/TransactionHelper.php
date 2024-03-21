@@ -12,5 +12,4 @@ class TransactionHelper {
         $currency_code = get_woocommerce_currency();
         return isset($country_codes[$currency_code]) ? $country_codes[$currency_code] : '';
     }
-
 }

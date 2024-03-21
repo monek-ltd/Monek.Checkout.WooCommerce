@@ -1,5 +1,4 @@
 <?php
-// currency_codes.php
 
 return array(
     'USD' => '840',  // US Dollar
