@@ -79,7 +79,7 @@ Fill in the required details:
   
 Save changes to apply the configuration.
 
-If you don't have the necessary information, such as the Monek ID or Echo Check Code, visit [Monek Contact Page](https://monek.com/contact) to get help. Ensure that all information entered is accurate to enable seamless payment processing on your WooCommerce store.
+If you don't have the necessary information, such as your Monek ID, visit [Monek Contact Page](https://monek.com/contact) to get help. Ensure that all information entered is accurate to enable seamless payment processing on your WooCommerce store.
 
 
 
