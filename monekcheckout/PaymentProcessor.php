@@ -10,8 +10,8 @@ class PaymentProcessor {
         $this->is_test_mode_active = $is_test_mode_active;
     }    
 
-    public function create_prepared_payment($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description, $integrity_secret) {
-        $body_data = $this->prepare_payment_request_body_data($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description, $integrity_secret);
+    public function create_prepared_payment($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description) {
+        $body_data = $this->prepare_payment_request_body_data($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description);
 
         return $this->send_payment_request($body_data);
     }
@@ -78,11 +78,11 @@ class PaymentProcessor {
         return $items_details;
     }
 
-    private function prepare_payment_request_body_data($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description, $integrity_secret) {
+    private function prepare_payment_request_body_data($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description) {
         $billing_amount = $order->get_total();
         
-        update_post_meta($order->get_id(), 'idempotency_token', uniqid(null, true));
-        update_post_meta($order->get_id(), 'integrity_secret', $integrity_secret);
+        update_post_meta($order->get_id(), 'idempotency_token', uniqid($order->get_id(), true));
+        update_post_meta($order->get_id(), 'integrity_secret', uniqid($order->get_id(), true));
 
         $body_data = array(
             'MerchantID' => $merchant_id,

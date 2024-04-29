@@ -35,7 +35,6 @@ class TransactDirectGateway extends WC_Payment_Gateway
         $this->title = __('Credit/Debit Card', self::TEXT_DOMAIN);
 		$this->description = __('Pay securely with Monek.', self::TEXT_DOMAIN);
         $this->merchant_id = $this->get_option( 'merchant_id' );
-        $this->integrity_secret = $this->get_option('integrity_secret');
         $this->is_test_mode_active = isset($this->settings['test_mode']) && $this->settings['test_mode'] == 'yes';
         $this->country_dropdown = $this->get_option('country_dropdown');
         $this->basket_summary = $this->get_option('basket_summary');
@@ -70,13 +69,6 @@ class TransactDirectGateway extends WC_Payment_Gateway
                     'default'=> '',
                     'desc_tip'=> true
                 ),
-                'integrity_secret' => array(
-                    'title'=> __('Integrity Secret', self::TEXT_DOMAIN),
-                    'type'=> 'text',
-                    'description'=> __("Configure the response integrity secret to directly confirm all transactions.", self::TEXT_DOMAIN),
-                    'default'=> 'My Secret',
-                    'desc_tip'=> true
-                ),
                 'country_dropdown' => array(
                     'title'        => __('Country', self::TEXT_DOMAIN),
                     'type'        => 'select',
@@ -109,7 +101,7 @@ class TransactDirectGateway extends WC_Payment_Gateway
         $return_plugin_url = (new WooCommerce)->api_request_url(self::GATEWAY_ID);
         $this->validate_return_url($order, $return_plugin_url);
 
-        $response = $this->payment_processor->create_prepared_payment($order, $this->get_option('merchant_id'), $this->get_option('country_dropdown'), $return_plugin_url, $this->get_option('basket_summary'), $this->get_option('integrity_secret'));
+        $response = $this->payment_processor->create_prepared_payment($order, $this->get_option('merchant_id'), $this->get_option('country_dropdown'), $return_plugin_url, $this->get_option('basket_summary'));
 
         if (is_wp_error($response) || wp_remote_retrieve_response_code($response) >= 300) {
             $error_message = is_wp_error($response) ? $response->get_error_message() : wp_remote_retrieve_response_message($response);
@@ -144,15 +136,8 @@ class TransactDirectGateway extends WC_Payment_Gateway
             wp_redirect(wc_get_cart_url());
             exit;
         }
-
-        $integrity_secret = $this->get_option('integrity_secret');
-        if(!isset($integrity_secret) || $integrity_secret == ''){
-            $order->add_order_note(__('Payment confirmation skipped, add an integrity secret in the gateway settings for greater payment security.', self::TEXT_DOMAIN));
-            $order->payment_complete();
-        }
-        else {
-            $order->add_order_note(__('Awaiting payment confirmation.', self::TEXT_DOMAIN));
-        }
+   
+        $order->add_order_note(__('Awaiting payment confirmation.', self::TEXT_DOMAIN));
         WC()->cart->empty_cart();
 
         $thankyou = WC_Payment_Gateway::get_return_url($order);
