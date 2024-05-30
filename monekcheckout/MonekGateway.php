@@ -9,7 +9,6 @@ class MonekGateway extends WC_Payment_Gateway
     private $integrity_corroborator;
     private $is_test_mode_active;
     public static $staging_url = 'https://staging.monek.com/Secure/';
-    //public static $staging_url = 'https://beta.monek.com/Secure/';
     private $payment_processor;
 
     public function __construct() {
