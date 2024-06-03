@@ -1,7 +1,8 @@
 <?php
 
 class PaymentProcessor {
-    private const ORIGIN_ID = 'WduoskstpMeehosresoen';
+    private const MAXIMUM_ITEMS = 6; //We currently only support 6 items
+    private const ORIGIN_ID = '0b26b731-856c-4925-a799-01c364c78fa6';
 
     private $is_test_mode_active;
 
@@ -15,190 +16,67 @@ class PaymentProcessor {
         return $this->send_payment_request($body_data);
     }
 
-    private function generate_basket_base64($order){
+    private function generate_item_details_body($request_body, $order){
         $order_items = $this->get_item_details($order);
-        $basket = array(
-            'items' => array(),
-            'discounts' => array(),
-            'taxes' => array(),
-            'delivery' => array()
-        );
-
-        foreach ($order_items as $item) {
-            $basket['items'][] = array(
-                'sku' => isset($item['sku']) ? $item['sku'] : '',
-                'description' => $item['product_name'],
-                'quantity' => $item['quantity'],
-                'unitPrice' => $item['price'],
-                'total' => $item['total']
-            );
+        $item_details_array = array();
+    
+        for ($item_index = 0; $item_index < self::MAXIMUM_ITEMS; $item_index++) {
+            $item_number = $item_index + 1;
+            $item_details_array["LIDItem{$item_number}Quantity"] = isset($order_items[$item_index]['quantity']) ? $order_items[$item_index]['quantity'] : '';
+            $item_details_array["LIDItem{$item_number}Description"] = isset($order_items[$item_index]['product_name']) ? $order_items[$item_index]['product_name'] : '';
+            $item_details_array["LIDItem{$item_number}GrossValue"] = isset($order_items[$item_index]['total']) ? TransactionHelper::convert_decimal_to_flat($order_items[$item_index]['total']) : '';
         }
-
-        $order_discounts = $this->get_order_discounts($order);
-        foreach ($order_discounts as $discount) {
-            $basket['discounts'][] = array(
-                'code' => isset($discount['code']) ? $discount['code'] : '',
-                'description' => $discount['description'],
-                'amount' => $discount['amount']
-            );
-        }
-
-        $order_taxes = $this->get_order_taxes($order);
-        foreach ($order_taxes as $tax) {
-            $basket['taxes'][] = array(
-                'code' => isset($tax['code']) ? $tax['code'] : '',
-                'description' => $tax['description'],
-                'rate' => isset($tax['rate']) ? $tax['rate'] : '',
-                'amount' => $tax['amount']
-            );
-        }
-
-        $order_delivery = $this->get_order_delivery($order);
-        if ($order_delivery) {
-            $basket['delivery'] = array(
-                'carrier' => $order_delivery[0]['carrier'],
-                'amount' => $order_delivery[0]['amount']
-            );
-        }
-
-        $basket_json = json_encode($basket);
-        $basket_base64 = base64_encode($basket_json);
-
-        return $basket_base64;
+    
+        $merged_array = array_merge($request_body, $item_details_array);
+    
+        return $merged_array;
     }
 
-    private function generate_cardholder_detail_information($request_body){
-        $countries = WC()->countries->countries;
-    
-        $billing_country_name = isset($_POST['billing_country']) ? $_POST['billing_country'] : '';
-        $billing_country_code = array_search($billing_country_name, $countries);
-        
-        $cardholder_detail_information = array(
-            'BillingName' => $_POST['billing_first_name'] . ' ' . $_POST['billing_last_name'],
-            'BillingCompany' => isset($_POST['billing_company']) ? $_POST['billing_company'] : '',
-            'BillingLine1' => isset($_POST['billing_address_1']) ? $_POST['billing_address_1'] : '',
-            'BillingLine2' => isset($_POST['billing_address_2']) ? $_POST['billing_address_2'] : '',
-            'BillingCity' => isset($_POST['billing_city']) ? $_POST['billing_city'] : '',
-            'BillingCounty' => isset($_POST['billing_state']) ? $_POST['billing_state'] : '',
-            'BillingCountry' => isset($_POST['billing_country']) ? $_POST['billing_country'] : '',
-            'BillingCountryCode' => $billing_country_code,
-            'BillingPostcode' => isset($_POST['billing_postcode']) ? $_POST['billing_postcode'] : '',
-            'EmailAddress' => isset($_POST['billing_email']) ? $_POST['billing_email'] : '',
-            'PhoneNumber' => isset($_POST['billing_phone']) ? $_POST['billing_phone'] : '',
+    private function generate_qa_information($request_body){
+        $qa_information = array(
+            'QAName' => $_POST['billing_first_name'].' '.$_POST['billing_last_name'],
+            'QAAddress' => $_POST['billing_address_1'].' '.$_POST['billing_address_2'].' '.$_POST['billing_city'].' '.$_POST['billing_state'].' '.$_POST['billing_country'],
+            'QAPostcode' => isset($_POST['billing_postcode']) ? $_POST['billing_postcode'] : '',
+            'QAEmailAddress' => isset($_POST['billing_email']) ? $_POST['billing_email'] : '',
+            'QAPhoneNumber' => isset($_POST['billing_phone']) ? $_POST['billing_phone'] : '',
         );
-    
-        if (isset($_POST['ship_to_different_address']) && $_POST['ship_to_different_address'] == 1) {
-            $delivery_country_name = isset($_POST['shipping_country']) ? $_POST['shipping_country'] : '';
-            $delivery_country_code = array_search($delivery_country_name, $countries);    
-
-            $cardholder_detail_information['DeliveryName'] = isset($_POST['shipping_first_name']) ? $_POST['shipping_first_name'] . ' ' . $_POST['shipping_last_name'] : '';
-            $cardholder_detail_information['DeliveryCompany'] = isset($_POST['shipping_company']) ? $_POST['shipping_company'] : '';
-            $cardholder_detail_information['DeliveryLine1'] = isset($_POST['shipping_address_1']) ? $_POST['shipping_address_1'] : '';
-            $cardholder_detail_information['DeliveryLine2'] = isset($_POST['shipping_address_2']) ? $_POST['shipping_address_2'] : '';
-            $cardholder_detail_information['DeliveryCity'] = isset($_POST['shipping_city']) ? $_POST['shipping_city'] : '';
-            $cardholder_detail_information['DeliveryCounty'] = isset($_POST['shipping_state']) ? $_POST['shipping_state'] : '';
-            $cardholder_detail_information['DeliveryCountry'] = isset($_POST['shipping_country']) ? $_POST['shipping_country'] : '';
-            $cardholder_detail_information['DeliveryCountryCode'] = $delivery_country_code;
-            $cardholder_detail_information['DeliveryPostcode'] = isset($_POST['shipping_postcode']) ? $_POST['shipping_postcode'] : '';
-        }
-        else {
-            $cardholder_detail_information['DeliveryIsBilling'] = "YES";
-        }
-
-        $merged_array = array_merge($request_body, $cardholder_detail_information);
+        
+        $merged_array = array_merge($request_body, $qa_information);
         
         return $merged_array;
     }
 
     private function get_ipay_prepare_url() {
         $ipay_prepare_extension = 'iPayPrepare.ashx';
-        return ($this->is_test_mode_active ? MonekGateway::$staging_url : MonekGateway::$elite_url) . $ipay_prepare_extension;
+        return ($this->is_test_mode_active ? TransactDirectGateway::$staging_url : TransactDirectGateway::$elite_url) . $ipay_prepare_extension;
     }
 
     private function get_item_details($order) {
         $line_items = $order->get_items();
         $items_details = array();
-    
+
+        $count = 0;
         foreach ($line_items as $item_id => $item) {
+            $count++;
+
             $product = $item->get_product();
             $product_name = $product->get_name();
-            $product_id = $product->get_id();
-            $sku = $product->get_sku();
             $quantity = $item->get_quantity();
-            $price = $product->get_price();
-            $subtotal = $item->get_subtotal();
             $total = $item->get_total();
-            $total_tax = $item->get_total_tax();
-    
+
             $items_details[] = array(
                 'product_name' => $product_name,
-                'product_id' => $product_id,
-                'sku' => $sku,
                 'quantity' => $quantity,
-                'price' => $price,
-                'subtotal' => $subtotal,
-                'total' => $total,
-                'total_tax' => $total_tax
+                'total' => $total
             );
+
+            if ($count >= self::MAXIMUM_ITEMS) {
+                break;
+            }
         }
-    
+
         return $items_details;
     }
-
-    private function get_order_delivery($order) {
-        $shipping_methods = $order->get_shipping_methods();
-        $delivery = array();
-    
-        if (!empty($shipping_methods)) {
-            foreach ($shipping_methods as $shipping_method) {
-                $delivery[] = array(
-                    'carrier' => $shipping_method->get_method_title(),
-                    'amount' => $shipping_method->get_total()
-                    //TrackingReference and TrackingUrl currently unavailable
-                );
-            }
-        }
-    
-        return $delivery;
-    }
-
-    private function get_order_discounts($order) {
-        $wc_discounts = new WC_Discounts( WC()->cart );
-        $discounts = array();
-    
-        $applied_coupons = $order->get_coupon_codes();
-    
-        foreach ($applied_coupons as $coupon_code) {
-            $coupon = new WC_Coupon($coupon_code);
-    
-            if ($wc_discounts -> is_coupon_valid($coupon)) {
-                $discounts[] = array(
-                    'code' => $coupon_code,
-                    'description' => $coupon->get_description(),
-                    'amount' => $coupon->get_amount()
-                );
-            }
-        }
-    
-        return $discounts;
-    }
-
-    private function get_order_taxes($order) {
-        $taxes = array();
-        $tax_lines = $order->get_taxes();
-    
-        foreach ($tax_lines as $tax) {
-            $data = $tax->get_data();
-            $taxes[] = array(
-                'code' => $data['rate_code'],
-                'description' => $data['label'],
-                'rate' => $data['rate_percent'],
-                'amount' => $data['tax_total']
-            );
-        }
-    
-        return $taxes;
-    }    
 
     private function prepare_payment_request_body_data($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description) {
         $billing_amount = $order->get_total();
@@ -214,19 +92,19 @@ class PaymentProcessor {
             'CountryCode' => $country_code,
             'Dispatch' => 'NOW',
             'ResponseAction' => 'REDIRECT',
-            'RedirectUrl' => $return_plugin_url, 
+            'RedirectUrl' => $return_plugin_url,
             'WebhookUrl' => $return_plugin_url,
             'PaymentReference' => $order->get_id(),
+            'ShowPayPal' => 'YES',
             'ThreeDSAction' => 'ACSDIRECT',
             'IdempotencyToken' => get_post_meta($order->get_id(), 'idempotency_token', true),
-            'OriginID' => self::ORIGIN_ID.'_'.get_monek_plugin_version(),
+            'OriginID' => self::ORIGIN_ID,
             'PurchaseDescription' => $purchase_description,
-            'IntegritySecret' => get_post_meta($order->get_id(), 'integrity_secret', true),
-            'Basket' => $this -> generate_basket_base64($order),
-            'ShowDeliveryAddress' => 'YES'
+            'IntegritySecret' => get_post_meta($order->get_id(), 'integrity_secret', true)
         );
 
-        $body_data = $this->generate_cardholder_detail_information($body_data);
+        $body_data = $this->generate_qa_information($body_data);
+        $body_data = $this->generate_item_details_body($body_data, $order);
 
         return $body_data;
     }
