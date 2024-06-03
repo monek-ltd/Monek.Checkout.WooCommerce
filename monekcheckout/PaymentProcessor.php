@@ -90,119 +90,43 @@ class PaymentProcessor {
             'EmailAddress' => isset($_POST['billing_email']) ? $_POST['billing_email'] : '',
             'PhoneNumber' => isset($_POST['billing_phone']) ? $_POST['billing_phone'] : '',
         );
-    
-        if (isset($_POST['ship_to_different_address']) && $_POST['ship_to_different_address'] == 1) {
-            $delivery_country_name = isset($_POST['shipping_country']) ? $_POST['shipping_country'] : '';
-            $delivery_country_code = array_search($delivery_country_name, $countries);    
-
-            $cardholder_detail_information['DeliveryName'] = isset($_POST['shipping_first_name']) ? $_POST['shipping_first_name'] . ' ' . $_POST['shipping_last_name'] : '';
-            $cardholder_detail_information['DeliveryCompany'] = isset($_POST['shipping_company']) ? $_POST['shipping_company'] : '';
-            $cardholder_detail_information['DeliveryLine1'] = isset($_POST['shipping_address_1']) ? $_POST['shipping_address_1'] : '';
-            $cardholder_detail_information['DeliveryLine2'] = isset($_POST['shipping_address_2']) ? $_POST['shipping_address_2'] : '';
-            $cardholder_detail_information['DeliveryCity'] = isset($_POST['shipping_city']) ? $_POST['shipping_city'] : '';
-            $cardholder_detail_information['DeliveryCounty'] = isset($_POST['shipping_state']) ? $_POST['shipping_state'] : '';
-            $cardholder_detail_information['DeliveryCountry'] = isset($_POST['shipping_country']) ? $_POST['shipping_country'] : '';
-            $cardholder_detail_information['DeliveryCountryCode'] = $delivery_country_code;
-            $cardholder_detail_information['DeliveryPostcode'] = isset($_POST['shipping_postcode']) ? $_POST['shipping_postcode'] : '';
-        }
-        else {
-            $cardholder_detail_information['DeliveryIsBilling'] = "YES";
-        }
-
-        $merged_array = array_merge($request_body, $cardholder_detail_information);
+        
+        $merged_array = array_merge($request_body, $qa_information);
         
         return $merged_array;
     }
 
     private function get_ipay_prepare_url() {
         $ipay_prepare_extension = 'iPayPrepare.ashx';
-        return ($this->is_test_mode_active ? MonekGateway::$staging_url : MonekGateway::$elite_url) . $ipay_prepare_extension;
+        return ($this->is_test_mode_active ? TransactDirectGateway::$staging_url : TransactDirectGateway::$elite_url) . $ipay_prepare_extension;
     }
 
     private function get_item_details($order) {
         $line_items = $order->get_items();
         $items_details = array();
-    
+
+        $count = 0;
         foreach ($line_items as $item_id => $item) {
+            $count++;
+
             $product = $item->get_product();
             $product_name = $product->get_name();
-            $product_id = $product->get_id();
-            $sku = $product->get_sku();
             $quantity = $item->get_quantity();
-            $price = $product->get_price();
-            $subtotal = $item->get_subtotal();
             $total = $item->get_total();
-            $total_tax = $item->get_total_tax();
-    
+
             $items_details[] = array(
                 'product_name' => $product_name,
-                'product_id' => $product_id,
-                'sku' => $sku,
                 'quantity' => $quantity,
-                'price' => $price,
-                'subtotal' => $subtotal,
-                'total' => $total,
-                'total_tax' => $total_tax
+                'total' => $total
             );
+
+            if ($count >= self::MAXIMUM_ITEMS) {
+                break;
+            }
         }
-    
+
         return $items_details;
     }
-
-    private function get_order_delivery($order) {
-        $shipping_methods = $order->get_shipping_methods();
-        $delivery = array();
-    
-        if (!empty($shipping_methods)) {
-            foreach ($shipping_methods as $shipping_method) {
-                $delivery[] = array(
-                    'carrier' => $shipping_method->get_method_title(),
-                    'amount' => $shipping_method->get_total()
-                    //TrackingReference and TrackingUrl currently unavailable
-                );
-            }
-        }
-    
-        return $delivery;
-    }
-
-    private function get_order_discounts($order) {
-        $wc_discounts = new WC_Discounts( WC()->cart );
-        $discounts = array();
-    
-        $applied_coupons = $order->get_coupon_codes();
-    
-        foreach ($applied_coupons as $coupon_code) {
-            $coupon = new WC_Coupon($coupon_code);
-    
-            if ($wc_discounts -> is_coupon_valid($coupon)) {
-                $discounts[] = array(
-                    'code' => $coupon_code,
-                    'description' => $coupon->get_description(),
-                    'amount' => $coupon->get_amount()
-                );
-            }
-        }
-    
-        return $discounts;
-    }
-
-    private function get_order_taxes($order) {
-        $taxes = array();
-        $tax_lines = $order->get_taxes();
-    
-        foreach ($tax_lines as $tax) {
-            $data = $tax->get_data();
-            $taxes[] = array(
-                'code' => $data['rate_code'],
-                'description' => $data['label'],
-                'rate' => $data['rate_percent'],
-                'amount' => $data['tax_total']
-            );
-        }
-    
-        return $taxes;
-    }    
 
     private function prepare_payment_request_body_data($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description) {
         $billing_amount = $order->get_total();
@@ -218,19 +142,19 @@ class PaymentProcessor {
             'CountryCode' => $country_code,
             'Dispatch' => 'NOW',
             'ResponseAction' => 'REDIRECT',
-            'RedirectUrl' => $return_plugin_url, 
+            'RedirectUrl' => $return_plugin_url,
             'WebhookUrl' => $return_plugin_url,
             'PaymentReference' => $order->get_id(),
+            'ShowPayPal' => 'YES',
             'ThreeDSAction' => 'ACSDIRECT',
             'IdempotencyToken' => get_post_meta($order->get_id(), 'idempotency_token', true),
             'OriginID' => self::PARTIAL_ORIGIN_ID . str_replace('.', '', get_monek_plugin_version()) . str_repeat('0', 14 - strlen(get_monek_plugin_version())),
             'PurchaseDescription' => $purchase_description,
-            'IntegritySecret' => get_post_meta($order->get_id(), 'integrity_secret', true),
-            'Basket' => $this -> generate_basket_base64($order),
-            'ShowDeliveryAddress' => 'YES'
+            'IntegritySecret' => get_post_meta($order->get_id(), 'integrity_secret', true)
         );
 
-        $body_data = $this->generate_cardholder_detail_information($body_data);
+        $body_data = $this->generate_qa_information($body_data);
+        $body_data = $this->generate_item_details_body($body_data, $order);
 
         return $body_data;
     }
