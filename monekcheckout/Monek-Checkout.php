@@ -5,7 +5,7 @@
  * Author: Monek Ltd
  * Author URI: http://www.monek.com
  * Description: Take credit/debit card payments with Monek.
- * Version: 2.0.1
+ * Version: 3.0.0
  * text-domain: monek-woo-commerce
  * 
  * NOTE: This header comment is required for WordPress, see https://developer.wordpress.org/plugins/plugin-basics/header-requirements/#header-fields for details.
@@ -16,6 +16,11 @@ if( !in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 }
 
 if (!function_exists('initialise_monek_payment_gateway')) {
+
+    function get_monek_plugin_version() {
+        $plugin_data = get_file_data(__FILE__, array('Version' => 'Version'), false);
+        return $plugin_data['Version'];
+    }
 
     function initialise_monek_payment_gateway(){
         
@@ -28,7 +33,7 @@ if (!function_exists('initialise_monek_payment_gateway')) {
         }
         function monekcheckout_autoloader($class_name) {
             $class_map = array(
-                'TransactDirectGateway' => 'TransactDirectGateway.php',
+                'MonekGateway' => 'MonekGateway.php',
                 'TransactionHelper' => 'TransactionHelper.php',
                 'PaymentProcessor' => 'PaymentProcessor.php',
                 'CountryCodes' => 'CountryCodes.php',
@@ -44,7 +49,7 @@ if (!function_exists('initialise_monek_payment_gateway')) {
         spl_autoload_register('monekcheckout_autoloader');
 
         function add_monek_gateway($gateways) {
-            $gateways[] = 'TransactDirectGateway';
+            $gateways[] = 'MonekGateway';
             return $gateways;
         }
         
@@ -52,10 +57,10 @@ if (!function_exists('initialise_monek_payment_gateway')) {
         
         function add_monek_settings_link($links)
         {
-            $settings_url = admin_url('admin.php?page=wc-settings&tab=checkout&section=transactdirect');
+            $settings_url = admin_url('admin.php?page=wc-settings&tab=checkout&section=monekgateway');
 
             $plugin_links = [
-                '<a href="' . $settings_url . '">' . __('Settings', 'transactdirect') . '</a>'
+                '<a href="' . $settings_url . '">' . __('Settings', 'monekgateway') . '</a>'
             ];
 
             $links = array_merge($plugin_links, $links);
