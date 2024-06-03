@@ -15,49 +15,52 @@ class PaymentProcessor {
         return $this->send_payment_request($body_data);
     }
 
-    private function generate_basket_base64($order){
+   private function generate_basket_base64($order){
         $order_items = $this->get_item_details($order);
         $basket = array(
-            'items' => array(),
-            'discounts' => array(),
-            'taxes' => array(),
-            'delivery' => array()
+            'items' => array()
         );
 
         foreach ($order_items as $item) {
             $basket['items'][] = array(
                 'sku' => isset($item['sku']) ? $item['sku'] : '',
-                'description' => $item['product_name'],
-                'quantity' => $item['quantity'],
-                'unitPrice' => $item['price'],
-                'total' => $item['total']
+                'description' => isset($item['product_name']) ? $item['product_name'] : '',
+                'quantity' => isset($item['quantity']) ? $item['quantity'] : '',
+                'unitPrice' => isset($item['price']) ? $item['price'] : '',
+                'total' => isset($item['total']) ? $item['total'] : ''
             );
         }
 
         $order_discounts = $this->get_order_discounts($order);
-        foreach ($order_discounts as $discount) {
-            $basket['discounts'][] = array(
-                'code' => isset($discount['code']) ? $discount['code'] : '',
-                'description' => $discount['description'],
-                'amount' => $discount['amount']
-            );
+        if (!empty($order_discounts)) {
+            $basket['discounts'] = array();
+            foreach ($order_discounts as $discount) {
+                $basket['discounts'][] = array(
+                    'code' => isset($discount['code']) ? $discount['code'] : '',
+                    'description' => isset($discount['description']) ? $discount['description'] : '',
+                    'amount' => isset($discount['amount']) ? $discount['amount'] : ''
+                );
+            }
         }
 
         $order_taxes = $this->get_order_taxes($order);
-        foreach ($order_taxes as $tax) {
-            $basket['taxes'][] = array(
-                'code' => isset($tax['code']) ? $tax['code'] : '',
-                'description' => $tax['description'],
-                'rate' => isset($tax['rate']) ? $tax['rate'] : '',
-                'amount' => $tax['amount']
-            );
+        if (!empty($order_taxes)) {
+            $basket['taxes'] = array();
+            foreach ($order_taxes as $tax) {
+                $basket['taxes'][] = array(
+                    'code' => isset($tax['code']) ? $tax['code'] : '',
+                    'description' => isset($tax['description']) ? $tax['description'] : '',
+                    'rate' => isset($tax['rate']) ? $tax['rate'] : '',
+                    'amount' => isset($tax['amount']) ? $tax['amount'] : ''
+                );
+            }
         }
 
         $order_delivery = $this->get_order_delivery($order);
-        if ($order_delivery) {
+        if (!empty($order_delivery)) {
             $basket['delivery'] = array(
-                'carrier' => $order_delivery[0]['carrier'],
-                'amount' => $order_delivery[0]['amount']
+                'carrier' => isset($order_delivery[0]['carrier']) ? $order_delivery[0]['carrier'] : '',
+                'amount' => isset($order_delivery[0]['amount']) ? $order_delivery[0]['amount'] : ''
             );
         }
 

@@ -1,7 +1,7 @@
 <?php
 
-/**
- * Plugin Name: WooCommerce Monek Gateway
+/*
+ * Plugin Name: Monek WooCommerce Payment Gateway
  * Author: Monek Ltd
  * Author URI: http://www.monek.com
  * Description: Take credit/debit card payments with Monek.
