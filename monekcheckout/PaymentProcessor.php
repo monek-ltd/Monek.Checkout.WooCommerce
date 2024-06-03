@@ -1,7 +1,8 @@
 <?php
 
 class PaymentProcessor {
-    private const ORIGIN_ID = 'WduoskstpMeehosresoen';
+    // Use version to complete ORIGIN_ID UID
+    private const PARTIAL_ORIGIN_ID = 'a6c921f4-8e00-4b11-99f4-';
 
     private $is_test_mode_active;
 
@@ -222,7 +223,7 @@ class PaymentProcessor {
             'PaymentReference' => $order->get_id(),
             'ThreeDSAction' => 'ACSDIRECT',
             'IdempotencyToken' => get_post_meta($order->get_id(), 'idempotency_token', true),
-            'OriginID' => self::ORIGIN_ID.'_'.get_monek_plugin_version(),
+            'OriginID' => self::PARTIAL_ORIGIN_ID . str_replace('.', '', get_monek_plugin_version()) . str_repeat('0', 14 - strlen(get_monek_plugin_version())),
             'PurchaseDescription' => $purchase_description,
             'IntegritySecret' => get_post_meta($order->get_id(), 'integrity_secret', true),
             'Basket' => $this -> generate_basket_base64($order),
