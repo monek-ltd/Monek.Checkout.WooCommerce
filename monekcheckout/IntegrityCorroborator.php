@@ -36,6 +36,6 @@ class IntegrityCorroborator {
     
     private function get_integrity_check_url(){
         $integrity_check_extension = 'IntegrityCheck.ashx';
-        return ($this->is_test_mode_active ? TransactDirectGateway::$staging_url : TransactDirectGateway::$elite_url) . $integrity_check_extension;
+        return ($this->is_test_mode_active ? MonekGateway::$staging_url : MonekGateway::$elite_url) . $integrity_check_extension;
     }
 }
