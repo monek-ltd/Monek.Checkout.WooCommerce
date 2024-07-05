@@ -3,7 +3,7 @@
 class MonekGateway extends WC_Payment_Gateway
 { 
     private const GATEWAY_ID = 'monekgateway';
-    private const TEXT_DOMAIN = 'monek-woo-commerce';
+    private const TEXT_DOMAIN = 'monek-payment-gateway';
     
     public static $elite_url = 'https://elite.monek.com/Secure/';
     private $integrity_corroborator;
@@ -149,14 +149,14 @@ class MonekGateway extends WC_Payment_Gateway
 
             if(!$this->validate_webhook_payload($transaction_webhook_payload_data)){
                 header('HTTP/1.1 400 Bad Request');
-                echo json_encode(array('error' => 'Bad Request'));
+                echo wp_json_encode(array('error' => 'Bad Request'));
                 return;
             }
 
             $order = wc_get_order($transaction_webhook_payload_data['paymentReference']);
             if(!$order){
                 header('HTTP/1.1 400 Bad Request');
-                echo json_encode(array('error' => 'Bad Request'));
+                echo wp_json_encode(array('error' => 'Bad Request'));
                 return;
             }
 
@@ -164,7 +164,7 @@ class MonekGateway extends WC_Payment_Gateway
                 $saved_integrity_secret = get_post_meta($order->get_id(), 'integrity_secret', true);
                 if(!isset($saved_integrity_secret) || $saved_integrity_secret == ''){
                     header('HTTP/1.1 500 Internal Server Error');
-                    echo json_encode(array('error' => 'Internal Server Error'));
+                    echo wp_json_encode(array('error' => 'Internal Server Error'));
                     return;
                 }
 
@@ -172,7 +172,7 @@ class MonekGateway extends WC_Payment_Gateway
 
                 if (is_wp_error($response) || wp_remote_retrieve_response_code($response) >= 300) {
                     header('HTTP/1.1 400 Bad Request');
-                    echo json_encode(array('error' => 'Bad Request'));
+                    echo wp_json_encode(array('error' => 'Bad Request'));
                 } else {
                     $order->add_order_note(__('Payment confirmed.', self::TEXT_DOMAIN));
                     $order->payment_complete();
@@ -182,7 +182,7 @@ class MonekGateway extends WC_Payment_Gateway
         else {
             header('HTTP/1.1 405 Method Not Allowed');
             header('Allow: POST');
-            echo json_encode(array('error' => 'Method Not Allowed'));
+            echo wp_json_encode(array('error' => 'Method Not Allowed'));
         }
     }
     
@@ -195,7 +195,7 @@ class MonekGateway extends WC_Payment_Gateway
     }
 
     private function validate_return_url($order, $return_plugin_url){
-        $parsed_url = parse_url($return_plugin_url);
+        $parsed_url = wp_parse_url($return_plugin_url);
     
         if ($parsed_url === false) {
             wc_add_notice('Invalid Return URL: Malformed URL', 'error');
