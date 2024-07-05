@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Plugin Name: Monek Checkout Payment Gateway
+ * Plugin Name: Monek Checkout
  * Author: Monek Ltd
  * Author URI: http://www.monek.com
  * Description: Take credit/debit card payments with Monek.
