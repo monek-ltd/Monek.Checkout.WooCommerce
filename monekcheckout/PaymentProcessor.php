@@ -65,7 +65,7 @@ class PaymentProcessor {
             );
         }
 
-        $basket_json = json_encode($basket);
+        $basket_json = wp_json_encode($basket);
         $basket_base64 = base64_encode($basket_json);
 
         return $basket_base64;

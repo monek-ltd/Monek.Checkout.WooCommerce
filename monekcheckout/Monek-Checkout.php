@@ -1,12 +1,12 @@
 <?php
 
 /*
- * Plugin Name: Monek WooCommerce Payment Gateway
+ * Plugin Name: Monek Payment Gateway for WooCommerce
  * Author: Monek Ltd
  * Author URI: http://www.monek.com
  * Description: Take credit/debit card payments with Monek.
  * Version: 3.0.0
- * text-domain: monek-woo-commerce
+ * text-domain: monek-payment-gateway
  * 
  * NOTE: This header comment is required for WordPress, see https://developer.wordpress.org/plugins/plugin-basics/header-requirements/#header-fields for details.
  */
