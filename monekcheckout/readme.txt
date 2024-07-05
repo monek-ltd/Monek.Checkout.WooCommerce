@@ -1,6 +1,9 @@
 === Monek Checkout ===
 Contributors: monek, humberstone83-x
-Tags: ecommerce, payments, e-commerce, payment-method, payment-gateway, gateway
+Tags: ecommerce, e-commerce, payment-method, payment-gateway, gateway
+Stable tag: 3.0.0
+License: GPLv3
+License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
 Take credit and debit card payments seamlessly and easily with Monek.
 
