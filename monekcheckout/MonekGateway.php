@@ -3,7 +3,6 @@
 class MonekGateway extends WC_Payment_Gateway
 { 
     private const GATEWAY_ID = 'monekgateway';
-    private const TEXT_DOMAIN = 'monek-payment-gateway';
     
     public static $elite_url = 'https://elite.monek.com/Secure/';
     private $integrity_corroborator;
@@ -31,8 +30,8 @@ class MonekGateway extends WC_Payment_Gateway
     }
 
     private function get_settings() {
-        $this->title = __('Credit/Debit Card', self::TEXT_DOMAIN);
-		$this->description = __('Pay securely with Monek.', self::TEXT_DOMAIN);
+        $this->title = __('Credit/Debit Card', 'monek-payment-gateway');
+		$this->description = __('Pay securely with Monek.', 'monek-payment-gateway');
         $this->merchant_id = $this->get_option( 'merchant_id' );
         $this->is_test_mode_active = isset($this->settings['test_mode']) && $this->settings['test_mode'] == 'yes';
         $this->country_dropdown = $this->get_option('country_dropdown');
@@ -56,39 +55,39 @@ class MonekGateway extends WC_Payment_Gateway
 
         $this->form_fields = array(
                 'enabled' => array(
-                    'title' => __( 'Enabled', self::TEXT_DOMAIN),
+                    'title' => __( 'Enabled', 'monek-payment-gateway'),
                     'type' => 'checkbox',
-                    'label' => __('Enable this payment gateway', self::TEXT_DOMAIN),
+                    'label' => __('Enable this payment gateway', 'monek-payment-gateway'),
                     'default' => 'no'
                 ),
                 'merchant_id' => array(
-                    'title'=> __('Monek ID', self::TEXT_DOMAIN),
+                    'title'=> __('Monek ID', 'monek-payment-gateway'),
                     'type' => 'number',
-                    'description'=> __("Your Monek ID, a unique code that connects your business with Monek. This ID helps streamline transactions and communication between your account and Monek's systems.", self::TEXT_DOMAIN),
+                    'description'=> __("Your Monek ID, a unique code that connects your business with Monek. This ID helps streamline transactions and communication between your account and Monek's systems.", 'monek-payment-gateway'),
                     'default'=> '',
                     'desc_tip'=> true
                 ),
                 'country_dropdown' => array(
-                    'title'        => __('Country', self::TEXT_DOMAIN),
+                    'title'        => __('Country', 'monek-payment-gateway'),
                     'type'        => 'select',
                     'options'     => $country_codes,
                     'default'     => '826', // Set default to United Kingdom
-                    'description' => __('Set your location', self::TEXT_DOMAIN),
+                    'description' => __('Set your location', 'monek-payment-gateway'),
                     'id'          => 'country_dropdown_field',
                     'desc_tip'    => true
                 ),
                 'test_mode' => array(
-                    'title' => __('Trial Features', self::TEXT_DOMAIN),
+                    'title' => __('Trial Features', 'monek-payment-gateway'),
                     'type' => 'checkbox',
                     'default' => 'no',
-                    'label' => __('Enable trial features', self::TEXT_DOMAIN),
-                    'description' => __('Enable this option to access trial features. Trial features provide early access to new functionalities and enhancements that are currently in testing.', self::TEXT_DOMAIN),
+                    'label' => __('Enable trial features', 'monek-payment-gateway'),
+                    'description' => __('Enable this option to access trial features. Trial features provide early access to new functionalities and enhancements that are currently in testing.', 'monek-payment-gateway'),
                     'desc_tip' => true
                 ),
                 'basket_summary' => array(
-                    'title' => __('Basket Summary', self::TEXT_DOMAIN),
+                    'title' => __('Basket Summary', 'monek-payment-gateway'),
                     'type' => 'text',
-                    'description' => __('This section allows you to customise the basket summary that is required as a purchase summary by PayPal.', self::TEXT_DOMAIN),
+                    'description' => __('This section allows you to customise the basket summary that is required as a purchase summary by PayPal.', 'monek-payment-gateway'),
                     'default' => 'Goods',
                     'desc_tip' => true
                 )
@@ -119,7 +118,7 @@ class MonekGateway extends WC_Payment_Gateway
     private function process_payment_callback(){
         
         if (!wp_verify_nonce($_REQUEST['WPNonce'], 'complete-payment_'.$_REQUEST['paymentreference'])) {
-            return new WP_Error('invalid_nonce', __('Invalid nonce', self::TEXT_DOMAIN));
+            return new WP_Error('invalid_nonce', __('Invalid nonce', 'monek-payment-gateway'));
         }
 
         $responseCode = $_REQUEST['responsecode'];
@@ -136,13 +135,13 @@ class MonekGateway extends WC_Payment_Gateway
         if(!isset($responseCode) || $responseCode != '00'){
             $note = 'Payment declined: ' . $_REQUEST['message'] ;
             wc_add_notice( $note,'error');
-            $order->add_order_note(__($note, self::TEXT_DOMAIN));
+            $order->add_order_note(__($note, 'monek-payment-gateway'));
             $order->update_status('failed');
             wp_redirect(wc_get_cart_url());
             exit;
         }
    
-        $order->add_order_note(__('Awaiting payment confirmation.', self::TEXT_DOMAIN));
+        $order->add_order_note(__('Awaiting payment confirmation.', 'monek-payment-gateway'));
         WC()->cart->empty_cart();
 
         $thankyou = WC_Payment_Gateway::get_return_url($order);
@@ -179,7 +178,7 @@ class MonekGateway extends WC_Payment_Gateway
                     header('HTTP/1.1 400 Bad Request');
                     echo wp_json_encode(array('error' => 'Bad Request'));
                 } else {
-                    $order->add_order_note(__('Payment confirmed.', self::TEXT_DOMAIN));
+                    $order->add_order_note(__('Payment confirmed.', 'monek-payment-gateway'));
                     $order->payment_complete();
                 }
             }
@@ -195,8 +194,8 @@ class MonekGateway extends WC_Payment_Gateway
         $this->id = self::GATEWAY_ID;
         $this->icon = plugins_url('Monek-Logo100x12.png', __FILE__);
         $this->has_fields = false;
-        $this->method_title = __('Monek', self::TEXT_DOMAIN);
-        $this->method_description = __('Pay securely with Monek using your credit/debit card.', self::TEXT_DOMAIN);
+        $this->method_title = __('Monek', 'monek-payment-gateway');
+        $this->method_description = __('Pay securely with Monek using your credit/debit card.', 'monek-payment-gateway');
     }
 
     private function validate_return_url($order, $return_plugin_url){
@@ -204,20 +203,20 @@ class MonekGateway extends WC_Payment_Gateway
     
         if ($parsed_url === false) {
             wc_add_notice('Invalid Return URL: Malformed URL', 'error');
-            $order->add_order_note(__('Invalid Return URL: Malformed URL', self::TEXT_DOMAIN));
+            $order->add_order_note(__('Invalid Return URL: Malformed URL', 'monek-payment-gateway'));
             exit;
         }
     
         if (isset($parsed_url['port']) && $parsed_url['port'] !== null) {
             wc_add_notice('Invalid Return URL: Port Detected', 'error');
-            $order->add_order_note(__('Invalid Return URL: Port Detected', self::TEXT_DOMAIN));
+            $order->add_order_note(__('Invalid Return URL: Port Detected', 'monek-payment-gateway'));
             exit;
         }
     
         $current_permalink_structure = get_option('permalink_structure');
         if ($current_permalink_structure === '/index.php/%postname%/' || $current_permalink_structure === '') {
             wc_add_notice('Invalid Return URL: Permalink setting "Plain" is not supported', 'error');
-            $order->add_order_note(__('Invalid Return URL: Permalink setting "Plain" is not supported', self::TEXT_DOMAIN));
+            $order->add_order_note(__('Invalid Return URL: Permalink setting "Plain" is not supported', 'monek-payment-gateway'));
             exit;
         }
     }
