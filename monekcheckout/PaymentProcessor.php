@@ -1,7 +1,7 @@
 <?php
 
 class PaymentProcessor {
-    // Use version to complete ORIGIN_ID UID
+
     private const PARTIAL_ORIGIN_ID = 'a6c921f4-8e00-4b11-99f4-';
 
     private $is_test_mode_active;
@@ -11,6 +11,9 @@ class PaymentProcessor {
     }    
 
     public function create_prepared_payment($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description) {
+        if (!$this->verify_nonce()) {
+            return new WP_Error('invalid_nonce', __('Invalid nonce', 'monek-payment-gateway'));
+        }
         $body_data = $this->prepare_payment_request_body_data($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description);
 
         return $this->send_payment_request($body_data);
@@ -218,7 +221,7 @@ class PaymentProcessor {
             'CountryCode' => $country_code,
             'Dispatch' => 'NOW',
             'ResponseAction' => 'REDIRECT',
-            'RedirectUrl' => $return_plugin_url, 
+            'RedirectUrl' => $return_plugin_url,
             'WebhookUrl' => $return_plugin_url,
             'PaymentReference' => $order->get_id(),
             'ThreeDSAction' => 'ACSDIRECT',
@@ -227,7 +230,8 @@ class PaymentProcessor {
             'PurchaseDescription' => $purchase_description,
             'IntegritySecret' => get_post_meta($order->get_id(), 'integrity_secret', true),
             'Basket' => $this -> generate_basket_base64($order),
-            'ShowDeliveryAddress' => 'YES'
+            'ShowDeliveryAddress' => 'YES',
+            'WPNonce' =>  wp_create_nonce('complete-payment_'.$order->get_id())
         );
 
         $body_data = $this->generate_cardholder_detail_information($body_data);
@@ -241,6 +245,15 @@ class PaymentProcessor {
         return wp_remote_post($prepared_payment_url, array(
             'body' => http_build_query($body_data),
         ));
+    }
+
+    private function verify_nonce() {
+        if (!isset($_POST["woocommerce-process-checkout-nonce"])) {
+            return false;
+        }
+
+        $nonce = $_POST["woocommerce-process-checkout-nonce"];
+        return wp_verify_nonce($nonce, 'woocommerce-process_checkout');
     }
 }
 
