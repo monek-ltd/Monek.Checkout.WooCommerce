@@ -135,7 +135,7 @@ class MonekGateway extends WC_Payment_Gateway
         if(!isset($responseCode) || $responseCode != '00'){
             $note = 'Payment declined: ' . $_REQUEST['message'] ;
             wc_add_notice( $note,'error');
-            $order->add_order_note(__($note, 'monek-payment-gateway'));
+            $order->add_order_note(__('Payment declined', 'monek-payment-gateway'));
             $order->update_status('failed');
             wp_redirect(wc_get_cart_url());
             exit;
