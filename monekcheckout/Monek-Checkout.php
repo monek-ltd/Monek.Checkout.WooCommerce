@@ -8,8 +8,14 @@
  * Version: 3.0.1
  * text-domain: monek-payment-gateway
  * Requires Plugins: woocommerce
- * 
- * NOTE: This header comment is required for WordPress, see https://developer.wordpress.org/plugins/plugin-basics/header-requirements/#header-fields for details.
+ * License: GPLv3 or later
+ * License URI: https://www.gnu.org/licenses/gpl-3.0.html
+ * Tags: payment, gateway, credit card, debit card, woocommerce
+ * Contributors: Monek Ltd
+ * Requires at least: 5.0
+ * Tested up to: 6.0
+ * Requires PHP: 7.0
+ * Stable tag: 3.0.1
  */
 
  /*
