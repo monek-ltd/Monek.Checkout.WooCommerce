@@ -5,7 +5,7 @@
  * Author: Monek Ltd
  * Author URI: http://www.monek.com
  * Description: Take credit/debit card payments with Monek.
- * Version: 3.0.0
+ * Version: 3.0.1
  * text-domain: monek-payment-gateway
  * Requires Plugins: woocommerce
  * 
