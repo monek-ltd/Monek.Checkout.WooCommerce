@@ -26,9 +26,13 @@ class PaymentProcessor {
         );
 
         foreach ($order_items as $item) {
+            $item_description = isset($item['product_name']) ? $item['product_name'] : '';
+            if (strlen($item_description) > 15) {
+                $item_description = substr($item_description, 0, 15) . '...';
+            }
             $basket['items'][] = array(
                 'sku' => isset($item['sku']) ? $item['sku'] : '',
-                'description' => isset($item['product_name']) ? $item['product_name'] : '',
+                'description' => $item_description,
                 'quantity' => isset($item['quantity']) ? $item['quantity'] : '',
                 'unitPrice' => isset($item['price']) ? $item['price'] : '',
                 'total' => isset($item['total']) ? $item['total'] : ''
@@ -39,9 +43,13 @@ class PaymentProcessor {
         if (!empty($order_discounts)) {
             $basket['discounts'] = array();
             foreach ($order_discounts as $discount) {
+                $discount_description = isset($discount['description']) ? $discount['description'] : '';
+                if (strlen($discount_description) > 15) {
+                    $discount_description = substr($discount_description, 0, 15) . '...';
+                }
                 $basket['discounts'][] = array(
                     'code' => isset($discount['code']) ? $discount['code'] : '',
-                    'description' => isset($discount['description']) ? $discount['description'] : '',
+                    'description' => $discount_description,
                     'amount' => isset($discount['amount']) ? $discount['amount'] : ''
                 );
             }
@@ -51,9 +59,13 @@ class PaymentProcessor {
         if (!empty($order_taxes)) {
             $basket['taxes'] = array();
             foreach ($order_taxes as $tax) {
+                $tax_description = isset($tax['description']) ? $tax['description'] : '';
+                if (strlen($tax_description) > 15) {
+                    $tax_description = substr($tax_description, 0, 15) . '...';
+                }
                 $basket['taxes'][] = array(
                     'code' => isset($tax['code']) ? $tax['code'] : '',
-                    'description' => isset($tax['description']) ? $tax['description'] : '',
+                    'description' => $tax_description,
                     'rate' => isset($tax['rate']) ? $tax['rate'] : '',
                     'amount' => isset($tax['amount']) ? $tax['amount'] : ''
                 );
