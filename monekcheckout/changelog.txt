@@ -1,0 +1,37 @@
+Changelog
+
+[v3.0.2] - Latest
+- SAM-4678/Trim-Basket-Descriptions (#12)
+	* Bug fix: Trim basket descriptions
+
+[v3.0.1] - July 23
+- MON-708/Add-Nonce-Tokens (#11)
+	* Add wordpress nonce tokens 
+
+[v3.0.0] - July 16
+- Mon 708/New-Checkout-Page (#9) 
+	* Implement new checkout page
+	* Use latest thor fields
+- Mon 708/Minor plugin suggestions. (#10)
+	* Fix deprecated or non recommended methods.
+	* Change plugin name
+	* Add readme.txt file
+	* Add reference to license
+
+[v2.0.1] - June 18
+	* Randomise integrity secret
+[v2.0.0] - June 18
+- MON-668/
+	* Remove transaction response echo
+	* Implement webhook
+	* Validate integrity digest
+
+[v1.1.0] - February 14
+- MON-551/
+	* Create country drop down
+	* Alter passed fields
+	* basic code refactor
+
+[v1.0.0] - February 5
+- MON-***/
+	* Initial release
