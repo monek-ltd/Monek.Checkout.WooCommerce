@@ -1,37 +1,30 @@
-Changelog
+*** Monek Checkout Changelog ***
 
-[v3.0.2] - Latest
-- SAM-4678/Trim-Basket-Descriptions (#12)
-	* Bug fix: Trim basket descriptions
+2024-08-14 version 3.0.2
+* Fixed - SAM-4678/Trim-Basket-Descriptions (#12)
 
-[v3.0.1] - July 23
-- MON-708/Add-Nonce-Tokens (#11)
-	* Add wordpress nonce tokens 
+2024-07-23 version 3.0.1
+* Tweak - MON-708/Add-Nonce-Tokens (#11)
 
-[v3.0.0] - July 16
-- Mon 708/New-Checkout-Page (#9) 
-	* Implement new checkout page
-	* Use latest thor fields
-- Mon 708/Minor plugin suggestions. (#10)
-	* Fix deprecated or non recommended methods.
-	* Change plugin name
-	* Add readme.txt file
-	* Add reference to license
+2024-07-16 version 3.0.0
+* Feature - Mon 708/New-Checkout-Page (#9)
+* Remove - Remove deprecated methods (#10)
+* Update - Change plugin name
+* Added - readme.txt file
+* Added - reference to license
 
-[v2.0.1] - June 18
-	* Randomise integrity secret
-[v2.0.0] - June 18
-- MON-668/
-	* Remove transaction response echo
-	* Implement webhook
-	* Validate integrity digest
+2024-06-18 version 2.0.1
+* Update - Randomise integrity secret
 
-[v1.1.0] - February 14
-- MON-551/
-	* Create country drop down
-	* Alter passed fields
-	* basic code refactor
+2024-06-18 version 2.0.0
+* Feature - New security protocol
+* Removed - Removed transaction response echo
+* Added - Validate integrity digest from webhook response
 
-[v1.0.0] - February 5
-- MON-***/
-	* Initial release
+2024-02-14 version 1.1.0
+* Added - Create country drop down
+* Updated - Alter passed fields
+* Updated - Basic code refactor
+
+2024-02-05 v1.0.0
+* Feature Initial release
