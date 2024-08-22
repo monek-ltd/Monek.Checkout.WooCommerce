@@ -116,8 +116,7 @@ class MonekGateway extends WC_Payment_Gateway
     }
 
     private function process_payment_callback(){
-        
-        if (!wp_verify_nonce($_REQUEST['WPNonce'], 'complete-payment_'.$_REQUEST['paymentreference'])) {
+        if (!wp_verify_nonce($_POST['WPNonce'], 'complete-payment_'.POST['paymentreference'])) {
             return new WP_Error('invalid_nonce', __('Invalid nonce', 'monek-payment-gateway'));
         }
 
