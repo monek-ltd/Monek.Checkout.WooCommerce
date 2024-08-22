@@ -5,7 +5,6 @@ class MonekGateway extends WC_Payment_Gateway
     private const GATEWAY_ID = 'monekgateway';
     
     public static $elite_url = 'https://elite.monek.com/Secure/';
-    private $integrity_corroborator;
     private $is_test_mode_active;
     public static $staging_url = 'https://staging.monek.com/Secure/';
     private $payment_processor;
@@ -17,10 +16,11 @@ class MonekGateway extends WC_Payment_Gateway
         $this->get_settings();
 
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) ); 
-        add_action('woocommerce_api_'.self::GATEWAY_ID, array(&$this, 'handle_callback'));
 
         $this->payment_processor = new PaymentProcessor($this->is_test_mode_active);
-        $this->integrity_corroborator = new IntegrityCorroborator($this->is_test_mode_active);
+
+        $callback_controller = new CallbackController($this->is_test_mode_active);
+        $callback_controller->register_routes();
     }
 
     private function get_ipay_url()
@@ -38,20 +38,8 @@ class MonekGateway extends WC_Payment_Gateway
         $this->basket_summary = $this->get_option('basket_summary');
     }
 
-    public function handle_callback(){
-        $json_echo = file_get_contents('php://input');
-        $transaction_webhook_payload_data = json_decode($json_echo, true);
-
-        if(isset($transaction_webhook_payload_data)){
-            $this->process_transaction_webhook_payload($transaction_webhook_payload_data);
-        }
-        else {
-            $this->process_payment_callback();
-        }
-    }
-
     public function init_form_fields() {
-        $country_codes= include('CountryCodes.php');
+        $country_codes= include('Model/CountryCodes.php');
 
         $this->form_fields = array(
                 'enabled' => array(
@@ -114,80 +102,6 @@ class MonekGateway extends WC_Payment_Gateway
             'redirect' => $this->get_ipay_url().'?PreparedPayment='.$body
         );
     }
-
-    private function process_payment_callback(){
-        if (!wp_verify_nonce($_POST['WPNonce'], 'complete-payment_'.POST['paymentreference'])) {
-            return new WP_Error('invalid_nonce', __('Invalid nonce', 'monek-payment-gateway'));
-        }
-
-        $responseCode = $_REQUEST['responsecode'];
-        $order = wc_get_order($_REQUEST['paymentreference']);
-        
-        if(!$order){
-            global $wp_query;
-            $wp_query->set_404();
-            status_header(404, 'Order Not Found');
-            include( get_query_template( '404' ) );
-            exit;
-        }
-        
-        if(!isset($responseCode) || $responseCode != '00'){
-            $note = 'Payment declined: ' . $_REQUEST['message'] ;
-            wc_add_notice( $note,'error');
-            $order->add_order_note(__('Payment declined', 'monek-payment-gateway'));
-            $order->update_status('failed');
-            wp_redirect(wc_get_cart_url());
-            exit;
-        }
-   
-        $order->add_order_note(__('Awaiting payment confirmation.', 'monek-payment-gateway'));
-        WC()->cart->empty_cart();
-
-        $thankyou = WC_Payment_Gateway::get_return_url($order);
-        wp_redirect($thankyou);
-    }
-
-    private function process_transaction_webhook_payload($transaction_webhook_payload_data){
-        if($_SERVER['REQUEST_METHOD'] === 'POST') {
-
-            if(!$this->validate_webhook_payload($transaction_webhook_payload_data)){
-                header('HTTP/1.1 400 Bad Request');
-                echo wp_json_encode(array('error' => 'Bad Request'));
-                return;
-            }
-
-            $order = wc_get_order($transaction_webhook_payload_data['paymentReference']);
-            if(!$order){
-                header('HTTP/1.1 400 Bad Request');
-                echo wp_json_encode(array('error' => 'Bad Request'));
-                return;
-            }
-
-            if($transaction_webhook_payload_data['responseCode'] == '00'){
-                $saved_integrity_secret = get_post_meta($order->get_id(), 'integrity_secret', true);
-                if(!isset($saved_integrity_secret) || $saved_integrity_secret == ''){
-                    header('HTTP/1.1 500 Internal Server Error');
-                    echo wp_json_encode(array('error' => 'Internal Server Error'));
-                    return;
-                }
-
-                $response = $this->integrity_corroborator->confirm_integrity_digest($order, $transaction_webhook_payload_data);
-
-                if (is_wp_error($response) || wp_remote_retrieve_response_code($response) >= 300) {
-                    header('HTTP/1.1 400 Bad Request');
-                    echo wp_json_encode(array('error' => 'Bad Request'));
-                } else {
-                    $order->add_order_note(__('Payment confirmed.', 'monek-payment-gateway'));
-                    $order->payment_complete();
-                }
-            }
-        }
-        else {
-            header('HTTP/1.1 405 Method Not Allowed');
-            header('Allow: POST');
-            echo wp_json_encode(array('error' => 'Method Not Allowed'));
-        }
-    }
     
     protected function setup_properties() {
         $this->id = self::GATEWAY_ID;
@@ -218,16 +132,5 @@ class MonekGateway extends WC_Payment_Gateway
             $order->add_order_note(__('Invalid Return URL: Permalink setting "Plain" is not supported', 'monek-payment-gateway'));
             exit;
         }
-    }
-
-    private function validate_webhook_payload($transaction_webhook_payload_data){
-        return isset($transaction_webhook_payload_data['transactionDateTime'])
-        && isset($transaction_webhook_payload_data['paymentReference'])
-        && isset($transaction_webhook_payload_data['crossReference'])
-        && isset($transaction_webhook_payload_data['responseCode'])
-        && isset($transaction_webhook_payload_data['message'])
-        && isset($transaction_webhook_payload_data['amount'])
-        && isset($transaction_webhook_payload_data['currencyCode'])
-        && isset($transaction_webhook_payload_data['integrityDigest']);
     }
 }

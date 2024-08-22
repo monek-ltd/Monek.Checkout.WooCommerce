@@ -17,15 +17,15 @@ class IntegrityCorroborator {
         return wp_remote_post($integrity_check_url, array(
             'body' => http_build_query(array(
                 'IntegritySecret' => $integrity_secret,
-                'IntegrityDigest' => $transaction_webhook_payload_data['integrityDigest'],
-                'RequestTime' => $transaction_webhook_payload_data['transactionDateTime'],
+                'IntegrityDigest' => $transaction_webhook_payload_data->integrity_digest,
+                'RequestTime' => $transaction_webhook_payload_data->transaction_date_time,
                 'IdempotencyToken' => $idempotency_token,
-                'PaymentReference' => $transaction_webhook_payload_data['paymentReference'],
-                'CrossReference' => $transaction_webhook_payload_data['crossReference'],
-                'ResponseCode' => $transaction_webhook_payload_data['responseCode'],
-                'ResponseMessage' => $transaction_webhook_payload_data['message'],
-                'Amount' => $transaction_webhook_payload_data['amount'],
-                'CurrencyCode' => $transaction_webhook_payload_data['currencyCode']
+                'PaymentReference' => $transaction_webhook_payload_data->payment_reference,
+                'CrossReference' => $transaction_webhook_payload_data->cross_reference,
+                'ResponseCode' => $transaction_webhook_payload_data->response_code,
+                'ResponseMessage' => $transaction_webhook_payload_data->message,
+                'Amount' => $transaction_webhook_payload_data->amount,
+                'CurrencyCode' => $transaction_webhook_payload_data->currency_code
             )),
             'headers' => array(
                 'Content-Type' => 'application/x-www-form-urlencoded'
