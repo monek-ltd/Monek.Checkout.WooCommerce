@@ -49,7 +49,7 @@ class CallbackController {
             wc_add_notice( $note,'error');
             $order->add_order_note(__('Payment declined', 'monek-payment-gateway'));
             $order->update_status('failed');
-            wp_redirect(wc_get_cart_url());
+            wp_safe_redirect(wc_get_cart_url());
             exit;
         }
    
@@ -57,7 +57,7 @@ class CallbackController {
         WC()->cart->empty_cart();
 
         $thankyou = $order->get_checkout_order_received_url();
-        wp_redirect($thankyou);
+        wp_safe_redirect($thankyou);
     }
 
     private function process_transaction_webhook_payload($transaction_webhook_payload_data){
