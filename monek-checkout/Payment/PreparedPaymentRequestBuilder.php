@@ -1,25 +1,42 @@
 <?php
 
-class PaymentProcessor {
-
+class PreparedPaymentRequestBuilder {
+    
     private const PARTIAL_ORIGIN_ID = 'a6c921f4-8e00-4b11-99f4-';
 
-    private $is_test_mode_active;
+	public function build_request($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description) {
+        $billing_amount = $order->get_total();
+        
+        update_post_meta($order->get_id(), 'idempotency_token', uniqid($order->get_id(), true));
+        update_post_meta($order->get_id(), 'integrity_secret', uniqid($order->get_id(), true));
 
-    public function __construct($is_test_mode_active) {
-        $this->is_test_mode_active = $is_test_mode_active;
-    }    
+        $prepared_payment_request = array(
+            'MerchantID' => $merchant_id,
+            'MessageType' => 'ESALE_KEYED',
+            'Amount' => TransactionHelper::convert_decimal_to_flat($billing_amount),
+            'CurrencyCode' => TransactionHelper::get_iso4217_currency_code(),
+            'CountryCode' => $country_code,
+            'Dispatch' => 'NOW',
+            'ResponseAction' => 'REDIRECT',
+            'RedirectUrl' => $return_plugin_url,
+            'WebhookUrl' => $return_plugin_url,
+            'PaymentReference' => $order->get_id(),
+            'ThreeDSAction' => 'ACSDIRECT',
+            'IdempotencyToken' => get_post_meta($order->get_id(), 'idempotency_token', true),
+            'OriginID' => self::PARTIAL_ORIGIN_ID . str_replace('.', '', get_monek_plugin_version()) . str_repeat('0', 14 - strlen(get_monek_plugin_version())),
+            'PurchaseDescription' => $purchase_description,
+            'IntegritySecret' => get_post_meta($order->get_id(), 'integrity_secret', true),
+            'Basket' => $this -> generate_basket_base64($order),
+            'ShowDeliveryAddress' => 'YES',
+            'WPNonce' =>  wp_create_nonce('complete-payment_'.$order->get_id())
+        );
 
-    public function create_prepared_payment($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description) {
-        if (!$this->verify_nonce()) {
-            return new WP_Error('invalid_nonce', __('Invalid nonce', 'monek-payment-gateway'));
-        }
-        $body_data = $this->prepare_payment_request_body_data($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description);
+        $prepared_payment_request = $this->generate_cardholder_detail_information($prepared_payment_request);
 
-        return $this->send_payment_request($body_data);
+        return $prepared_payment_request;
     }
 
-   private function generate_basket_base64($order){
+    private function generate_basket_base64($order){
         $order_items = $this->get_item_details($order);
         $basket = array(
             'items' => array()
@@ -86,52 +103,50 @@ class PaymentProcessor {
         return $basket_base64;
     }
 
-    private function generate_cardholder_detail_information($request_body){
+    private function generate_cardholder_detail_information($prepared_payment_request){
         $countries = WC()->countries->countries;
     
-        $billing_country_name = isset($_POST['billing_country']) ? $_POST['billing_country'] : '';
+        $billing_address = new BillingAddress();
+        $billing_country_name = isset($billing_address->billing_country) ? $billing_address->billing_country : '';
         $billing_country_code = array_search($billing_country_name, $countries);
         
         $cardholder_detail_information = array(
-            'BillingName' => $_POST['billing_first_name'] . ' ' . $_POST['billing_last_name'],
-            'BillingCompany' => isset($_POST['billing_company']) ? $_POST['billing_company'] : '',
-            'BillingLine1' => isset($_POST['billing_address_1']) ? $_POST['billing_address_1'] : '',
-            'BillingLine2' => isset($_POST['billing_address_2']) ? $_POST['billing_address_2'] : '',
-            'BillingCity' => isset($_POST['billing_city']) ? $_POST['billing_city'] : '',
-            'BillingCounty' => isset($_POST['billing_state']) ? $_POST['billing_state'] : '',
-            'BillingCountry' => isset($_POST['billing_country']) ? $_POST['billing_country'] : '',
+            'BillingName' => $billing_address->billing_first_name . ' ' . $billing_address->billing_last_name,
+            'BillingCompany' => isset($billing_address->billing_company) ? $billing_address->billing_company : '',
+            'BillingLine1' => isset($billing_address->billing_address_1) ? $billing_address->billing_address_1 : '',
+            'BillingLine2' => isset($billing_address->billing_address_2) ? $billing_address->billing_address_2 : '',
+            'BillingCity' => isset($billing_address->billing_city) ? $billing_address->billing_city : '',
+            'BillingCounty' => isset($billing_address->billing_state) ? billing_state : '',
+            'BillingCountry' => isset($billing_address->billing_country) ? billing_country : '',
             'BillingCountryCode' => $billing_country_code,
-            'BillingPostcode' => isset($_POST['billing_postcode']) ? $_POST['billing_postcode'] : '',
-            'EmailAddress' => isset($_POST['billing_email']) ? $_POST['billing_email'] : '',
-            'PhoneNumber' => isset($_POST['billing_phone']) ? $_POST['billing_phone'] : '',
+            'BillingPostcode' => isset($billing_address->billing_postcode) ? billing_postcode : '',
+            'EmailAddress' => isset($billing_address->billing_email) ? billing_email : '',
+            'PhoneNumber' => isset($billing_address->billing_phone) ? billing_phone : '',
         );
     
-        if (isset($_POST['ship_to_different_address']) && $_POST['ship_to_different_address'] == 1) {
-            $delivery_country_name = isset($_POST['shipping_country']) ? $_POST['shipping_country'] : '';
+        if (isset($billing_address->ship_to_different_address) && $billing_address->ship_to_different_address == 1) {
+            $shipping_address = new ShippingAddress();
+
+            $delivery_country_name = isset($shipping_address->shipping_country) ? $shipping_address->shipping_country : '';
             $delivery_country_code = array_search($delivery_country_name, $countries);    
 
-            $cardholder_detail_information['DeliveryName'] = isset($_POST['shipping_first_name']) ? $_POST['shipping_first_name'] . ' ' . $_POST['shipping_last_name'] : '';
-            $cardholder_detail_information['DeliveryCompany'] = isset($_POST['shipping_company']) ? $_POST['shipping_company'] : '';
-            $cardholder_detail_information['DeliveryLine1'] = isset($_POST['shipping_address_1']) ? $_POST['shipping_address_1'] : '';
-            $cardholder_detail_information['DeliveryLine2'] = isset($_POST['shipping_address_2']) ? $_POST['shipping_address_2'] : '';
-            $cardholder_detail_information['DeliveryCity'] = isset($_POST['shipping_city']) ? $_POST['shipping_city'] : '';
-            $cardholder_detail_information['DeliveryCounty'] = isset($_POST['shipping_state']) ? $_POST['shipping_state'] : '';
-            $cardholder_detail_information['DeliveryCountry'] = isset($_POST['shipping_country']) ? $_POST['shipping_country'] : '';
+            $cardholder_detail_information['DeliveryName'] = isset($shipping_address->shipping_first_name) && isset($shipping_address->shipping_last_name) ? $shipping_address->shipping_first_name . ' ' . $shipping_address->shipping_last_name : '';
+            $cardholder_detail_information['DeliveryCompany'] = isset($shipping_address->shipping_company) ? $shipping_address->shipping_company : '';
+            $cardholder_detail_information['DeliveryLine1'] = isset($shipping_address->shipping_address_1) ? $shipping_address->shipping_address_1 : '';
+            $cardholder_detail_information['DeliveryLine2'] = isset($shipping_address->shipping_address_2) ? $shipping_address->shipping_address_2 : '';
+            $cardholder_detail_information['DeliveryCity'] = isset($shipping_address->shipping_city) ? $shipping_address->shipping_city : '';
+            $cardholder_detail_information['DeliveryCounty'] = isset($shipping_address->shipping_state) ? $shipping_address->shipping_state : '';
+            $cardholder_detail_information['DeliveryCountry'] = isset($shipping_address->shipping_country) ? $shipping_address->shipping_country : '';
             $cardholder_detail_information['DeliveryCountryCode'] = $delivery_country_code;
-            $cardholder_detail_information['DeliveryPostcode'] = isset($_POST['shipping_postcode']) ? $_POST['shipping_postcode'] : '';
+            $cardholder_detail_information['DeliveryPostcode'] = isset($shipping_address->shipping_postcode) ? $shipping_address->shipping_postcode : '';
         }
         else {
             $cardholder_detail_information['DeliveryIsBilling'] = "YES";
         }
 
-        $merged_array = array_merge($request_body, $cardholder_detail_information);
+        $merged_array = array_merge($prepared_payment_request, $cardholder_detail_information);
         
         return $merged_array;
-    }
-
-    private function get_ipay_prepare_url() {
-        $ipay_prepare_extension = 'iPayPrepare.ashx';
-        return ($this->is_test_mode_active ? MonekGateway::$staging_url : MonekGateway::$elite_url) . $ipay_prepare_extension;
     }
 
     private function get_item_details($order) {
@@ -218,54 +233,4 @@ class PaymentProcessor {
     
         return $taxes;
     }    
-
-    private function prepare_payment_request_body_data($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description) {
-        $billing_amount = $order->get_total();
-        
-        update_post_meta($order->get_id(), 'idempotency_token', uniqid($order->get_id(), true));
-        update_post_meta($order->get_id(), 'integrity_secret', uniqid($order->get_id(), true));
-
-        $body_data = array(
-            'MerchantID' => $merchant_id,
-            'MessageType' => 'ESALE_KEYED',
-            'Amount' => TransactionHelper::convert_decimal_to_flat($billing_amount),
-            'CurrencyCode' => TransactionHelper::get_iso4217_currency_code(),
-            'CountryCode' => $country_code,
-            'Dispatch' => 'NOW',
-            'ResponseAction' => 'REDIRECT',
-            'RedirectUrl' => $return_plugin_url,
-            'WebhookUrl' => $return_plugin_url,
-            'PaymentReference' => $order->get_id(),
-            'ThreeDSAction' => 'ACSDIRECT',
-            'IdempotencyToken' => get_post_meta($order->get_id(), 'idempotency_token', true),
-            'OriginID' => self::PARTIAL_ORIGIN_ID . str_replace('.', '', get_monek_plugin_version()) . str_repeat('0', 14 - strlen(get_monek_plugin_version())),
-            'PurchaseDescription' => $purchase_description,
-            'IntegritySecret' => get_post_meta($order->get_id(), 'integrity_secret', true),
-            'Basket' => $this -> generate_basket_base64($order),
-            'ShowDeliveryAddress' => 'YES',
-            'WPNonce' =>  wp_create_nonce('complete-payment_'.$order->get_id())
-        );
-
-        $body_data = $this->generate_cardholder_detail_information($body_data);
-
-        return $body_data;
-    }
-
-    private function send_payment_request($body_data) {
-        $prepared_payment_url = $this->get_ipay_prepare_url();
-
-        return wp_remote_post($prepared_payment_url, array(
-            'body' => http_build_query($body_data),
-        ));
-    }
-
-    private function verify_nonce() {
-        if (!isset($_POST["woocommerce-process-checkout-nonce"])) {
-            return false;
-        }
-
-        $nonce = $_POST["woocommerce-process-checkout-nonce"];
-        return wp_verify_nonce($nonce, 'woocommerce-process_checkout');
-    }
 }
-

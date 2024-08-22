@@ -1,5 +1,12 @@
 *** Monek Checkout Changelog ***
 
+2024-08-** version 3.0.3
+* Fixed - MON-936/Fixed-Security-Flags, Sanitized input fields (#13)
+* Fixed - MON-936/Fixed-Security-Flags, Changed to use wp_safe_redirect
+* Fixed - Mon-936/Fixed-Security-Flags, Changed root folder to match slug monek-checkout
+* Tweak - Extracted some logic into new classes and created new folder structure to uncrowd the root folder
+* Tweak - Cleaned up some of the naming conventions
+
 2024-08-14 version 3.0.2
 * Fixed - SAM-4678/Trim-Basket-Descriptions (#12)
 

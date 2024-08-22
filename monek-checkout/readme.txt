@@ -15,7 +15,7 @@ Enhance your WooCommerce store with seamless integration from Monek. Our plugin 
 
 == Setup Instructions ==
 
-Install and Activate the Plugin: Download the Monek Checkout plugin from the WordPress Plugin Repository or upload it directly to your site. Activate the plugin from the Plugins menu in WordPress.
+Install and Activate the Plugin: Download the Monek Checkout plugin from the GitHub Plugin Repository and upload it directly to your site. Activate the plugin from the Plugins menu in WordPress.
 
 Configure Monek Settings:
 

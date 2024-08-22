@@ -56,7 +56,7 @@ if (!function_exists('initialise_monek_payment_gateway')) {
         function monekcheckout_autoloader($class_name) {
             $class_map = array(
                 'MonekGateway' => 'MonekGateway.php',
-                'TransactionHelper' => 'TransactionHelper.php',
+                'TransactionHelper' => 'Payment/TransactionHelper.php',
                 'PaymentProcessor' => 'PaymentProcessor.php',
                 'CountryCodes' => 'Model/CountryCodes.php',
                 'CurrencyCodes' => 'Model/CurrencyCodes.php',
@@ -64,6 +64,10 @@ if (!function_exists('initialise_monek_payment_gateway')) {
                 'CallbackController' => 'Callback/CallbackController.php',
                 'Callback' => 'Model/Callback.php',
                 'WebhookPayload' => 'Model/WebhookPayload.php',
+                'PreparedPaymentRequestBuilder' => 'Payment/PreparedPaymentRequestBuilder.php',
+                'PreparedPaymentManager' => 'Payment/PreparedPaymentManager.php',
+                'BillingAddress' => 'Model/BillingAddress.php',
+                'ShippingAddress' => 'Model/ShippingAddress.php',
             );
         
             if (array_key_exists($class_name, $class_map)) {

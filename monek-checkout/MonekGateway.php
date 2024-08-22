@@ -7,7 +7,7 @@ class MonekGateway extends WC_Payment_Gateway
     public static $elite_url = 'https://elite.monek.com/Secure/';
     private $is_test_mode_active;
     public static $staging_url = 'https://staging.monek.com/Secure/';
-    private $payment_processor;
+    private $prepared_payment_manager;
 
     public function __construct() {
         $this->setup_properties();
@@ -17,7 +17,7 @@ class MonekGateway extends WC_Payment_Gateway
 
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) ); 
 
-        $this->payment_processor = new PaymentProcessor($this->is_test_mode_active);
+        $this->prepared_payment_manager = new PreparedPaymentManager($this->is_test_mode_active);
 
         $callback_controller = new CallbackController($this->is_test_mode_active);
         $callback_controller->register_routes();
@@ -87,7 +87,7 @@ class MonekGateway extends WC_Payment_Gateway
         $return_plugin_url = (new WooCommerce)->api_request_url(self::GATEWAY_ID);
         $this->validate_return_url($order, $return_plugin_url);
 
-        $response = $this->payment_processor->create_prepared_payment($order, $this->get_option('merchant_id'), $this->get_option('country_dropdown'), $return_plugin_url, $this->get_option('basket_summary'));
+        $response = $this->prepared_payment_manager->create_prepared_payment($order, $this->get_option('merchant_id'), $this->get_option('country_dropdown'), $return_plugin_url, $this->get_option('basket_summary'));
 
         if (is_wp_error($response) || wp_remote_retrieve_response_code($response) >= 300) {
             $error_message = is_wp_error($response) ? $response->get_error_message() : wp_remote_retrieve_response_message($response);
@@ -105,7 +105,7 @@ class MonekGateway extends WC_Payment_Gateway
     
     protected function setup_properties() {
         $this->id = self::GATEWAY_ID;
-        $this->icon = plugins_url('Monek-Logo100x12.png', __FILE__);
+        $this->icon = plugins_url('img/Monek-Logo100x12.png', __FILE__);
         $this->has_fields = false;
         $this->method_title = __('Monek', 'monek-payment-gateway');
         $this->method_description = __('Pay securely with Monek using your credit/debit card.', 'monek-payment-gateway');
