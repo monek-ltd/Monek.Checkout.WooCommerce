@@ -116,12 +116,12 @@ class PreparedPaymentRequestBuilder {
             'BillingLine1' => isset($billing_address->billing_address_1) ? $billing_address->billing_address_1 : '',
             'BillingLine2' => isset($billing_address->billing_address_2) ? $billing_address->billing_address_2 : '',
             'BillingCity' => isset($billing_address->billing_city) ? $billing_address->billing_city : '',
-            'BillingCounty' => isset($billing_address->billing_state) ? billing_state : '',
-            'BillingCountry' => isset($billing_address->billing_country) ? billing_country : '',
+            'BillingCounty' => isset($billing_address->billing_state) ? $billing_address->billing_state : '',
+            'BillingCountry' => isset($billing_address->billing_country) ? $billing_address->billing_country : '',
             'BillingCountryCode' => $billing_country_code,
-            'BillingPostcode' => isset($billing_address->billing_postcode) ? billing_postcode : '',
-            'EmailAddress' => isset($billing_address->billing_email) ? billing_email : '',
-            'PhoneNumber' => isset($billing_address->billing_phone) ? billing_phone : '',
+            'BillingPostcode' => isset($billing_address->billing_postcode) ? $billing_address->billing_postcode : '',
+            'EmailAddress' => isset($billing_address->billing_email) ? $billing_address->billing_email : '',
+            'PhoneNumber' => isset($billing_address->billing_phone) ? $billing_address->billing_phone : '',
         );
     
         if (isset($billing_address->ship_to_different_address) && $billing_address->ship_to_different_address == 1) {

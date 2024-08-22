@@ -8,7 +8,7 @@ class TransactionHelper {
     }
 
     public static function get_iso4217_currency_code() {
-        $country_codes = include('Model/CurrencyCodes.php');
+        $country_codes = include('Includes/CurrencyCodes.php');
         $currency_code = get_woocommerce_currency();
         return isset($country_codes[$currency_code]) ? $country_codes[$currency_code] : '';
     }

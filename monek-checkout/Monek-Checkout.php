@@ -55,19 +55,18 @@ if (!function_exists('initialise_monek_payment_gateway')) {
         }
         function monekcheckout_autoloader($class_name) {
             $class_map = array(
-                'MonekGateway' => 'MonekGateway.php',
-                'TransactionHelper' => 'Payment/TransactionHelper.php',
-                'PaymentProcessor' => 'PaymentProcessor.php',
-                'CountryCodes' => 'Model/CountryCodes.php',
-                'CurrencyCodes' => 'Model/CurrencyCodes.php',
-                'IntegrityCorroborator' => 'Callback/IntegrityCorroborator.php',
-                'CallbackController' => 'Callback/CallbackController.php',
-                'Callback' => 'Model/Callback.php',
-                'WebhookPayload' => 'Model/WebhookPayload.php',
+                'MonekGateway'                  => 'MonekGateway.php',
+                'CallbackController'            => 'Callback/CallbackController.php',
+                'IntegrityCorroborator'         => 'Callback/IntegrityCorroborator.php',
+                'Callback'                      => 'Model/Callback.php',
+                'CountryCodes'                  => 'Model/CountryCodes.php',
+                'BillingAddress'                => 'Model/BillingAddress.php',
+                'ShippingAddress'               => 'Model/ShippingAddress.php',
+                'WebhookPayload'                => 'Model/WebhookPayload.php',
+                'CurrencyCodes'                 => 'Payment/Includes/CurrencyCodes.php',
+                'TransactionHelper'             => 'Payment/TransactionHelper.php',
                 'PreparedPaymentRequestBuilder' => 'Payment/PreparedPaymentRequestBuilder.php',
-                'PreparedPaymentManager' => 'Payment/PreparedPaymentManager.php',
-                'BillingAddress' => 'Model/BillingAddress.php',
-                'ShippingAddress' => 'Model/ShippingAddress.php',
+                'PreparedPaymentManager'        => 'Payment/PreparedPaymentManager.php',
             );
         
             if (array_key_exists($class_name, $class_map)) {

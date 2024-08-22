@@ -12,7 +12,8 @@ class PreparedPaymentManager {
         if (!$this->verify_nonce()) {
             return new WP_Error('invalid_nonce', __('Invalid nonce', 'monek-payment-gateway'));
         }
-        $prepared_payment_request = new PreparedPaymentRequestBuilder()->build_request($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description);
+        $request_builder = new PreparedPaymentRequestBuilder();
+        $prepared_payment_request = $request_builder->build_request($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description);
 
         return $this->send_prepared_payment_request($prepared_payment_request);
     }
@@ -31,11 +32,12 @@ class PreparedPaymentManager {
     }
 
     private function verify_nonce() {
-        if (!isset($_POST["woocommerce-process-checkout-nonce"])) {
+        $nonce = filter_input(INPUT_POST, "woocommerce-process-checkout-nonce", FILTER_SANITIZE_STRING);
+
+        if (!$nonce) {
             return false;
         }
 
-        $nonce = $_POST["woocommerce-process-checkout-nonce"];
         return wp_verify_nonce($nonce, 'woocommerce-process_checkout');
     }
 }

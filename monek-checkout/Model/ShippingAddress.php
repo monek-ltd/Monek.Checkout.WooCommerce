@@ -1,17 +1,17 @@
 <?php
 
 class ShippingAddress {
-    public shipping_first_name;
-    public shipping_last_name;
-    public shipping_company;
-    public shipping_address_1;
-    public shipping_address_2;
-    public shipping_city;
-    public shipping_state;
-    public shipping_country;
-    public shipping_postcode;
-    public shipping_email;
-    public shipping_phone;
+    public $shipping_first_name;
+    public $shipping_last_name;
+    public $shipping_company;
+    public $shipping_address_1;
+    public $shipping_address_2;
+    public $shipping_city;
+    public $shipping_state;
+    public $shipping_country;
+    public $shipping_postcode;
+    public $shipping_email;
+    public $shipping_phone;
 
     public function __construct() {
         $this->shipping_first_name = filter_input(INPUT_POST, 'shipping_first_name', FILTER_SANITIZE_STRING);

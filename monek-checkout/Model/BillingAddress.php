@@ -1,18 +1,18 @@
 <?php
 
 class BillingAddress {
-    public billing_first_name;
-    public billing_last_name;
-    public billing_company;
-    public billing_address_1;
-    public billing_address_2;
-    public billing_city;
-    public billing_state;
-    public billing_country;
-    public billing_postcode;
-    public billing_email;
-    public billing_phone;
-    public ship_to_different_address;
+    public $billing_first_name;
+    public $billing_last_name;
+    public $billing_company;
+    public $billing_address_1;
+    public $billing_address_2;
+    public $billing_city;
+    public $billing_state;
+    public $billing_country;
+    public $billing_postcode;
+    public $billing_email;
+    public $billing_phone;
+    public $ship_to_different_address;
 
     public function __construct() {
         $this->billing_first_name = filter_input(INPUT_POST, 'billing_first_name', FILTER_SANITIZE_STRING);
