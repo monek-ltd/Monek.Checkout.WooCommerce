@@ -1,9 +1,10 @@
 === Monek Checkout ===
 Contributors: monek, humberstone83-x
 Tags: ecommerce, e-commerce, payment-method, payment-gateway, gateway
-Stable tag: 3.0.0
+Stable tag: 3.1.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
+Tested up to: 6.6.1
 
 Take credit and debit card payments seamlessly and easily with Monek.
 
@@ -15,7 +16,7 @@ Enhance your WooCommerce store with seamless integration from Monek. Our plugin 
 
 == Setup Instructions ==
 
-Install and Activate the Plugin: Download the Monek Checkout plugin from the WordPress Plugin Repository or upload it directly to your site. Activate the plugin from the Plugins menu in WordPress.
+Install and Activate the Plugin: Download the Monek Checkout plugin from the GitHub Plugin Repository and upload it directly to your site. Activate the plugin from the Plugins menu in WordPress.
 
 Configure Monek Settings:
 
@@ -29,4 +30,4 @@ Once configured, Monek Checkout will seamlessly integrate into your checkout pro
 Customers can now securely pay using credit and debit cards via Monek.
 Note: If you do not have a Monek ID, please visit Monek's website to sign up and obtain your ID. For any assistance with setup or integration, contact Monek directly through their website.
 
-Experience the future of payment processing with Monek – where simplicity meets sophistication.
+Experience the future of payment processing with Monek ï¿½ where simplicity meets sophistication.

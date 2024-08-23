@@ -1,6 +1,11 @@
 <?php
 
-return array(
+/**
+ * CountryCodes - represents the available country codes for the payment gateway
+ *
+ * @package Monek
+ */
+return [
     '826' => __('United Kingdom', 'monek-payment-gateway'),
     '036' => __('Australia', 'monek-payment-gateway'),
     '040' => __('Austria', 'monek-payment-gateway'),
@@ -28,4 +33,4 @@ return array(
     '756' => __('Switzerland', 'monek-payment-gateway'),
     '840' => __('United States', 'monek-payment-gateway'),
     '858' => __('Uruguay', 'monek-payment-gateway')
-);
+];
