@@ -7,13 +7,15 @@
  */
 class IntegrityCorroborator 
 {
+    private $is_test_mode_active;
 
     /**
      * @param bool $is_test_mode_active
      */
-    public function __construct(
-        private bool $is_test_mode_active
-        ) {}    
+    public function __construct(bool $is_test_mode_active) 
+    {
+        $this->is_test_mode_active = $is_test_mode_active;
+    }    
     
     /**
      * Confirm the integrity of the transaction data through an HTTP POST request to the Monek API 
@@ -22,7 +24,7 @@ class IntegrityCorroborator
      * @param WebhookPayload $transaction_webhook_payload_data
      * @return array|WP_Error
      */
-    public function confirm_integrity_digest(WC_Order $order, WebhookPayload $transaction_webhook_payload_data) : array|WP_Error
+    public function confirm_integrity_digest(WC_Order $order, WebhookPayload $transaction_webhook_payload_data)
     {
         $idempotency_token = get_post_meta($order->get_id(), 'idempotency_token', true);
         $integrity_secret = get_post_meta($order->get_id(), 'integrity_secret', true);

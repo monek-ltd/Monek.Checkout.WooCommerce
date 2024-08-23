@@ -7,12 +7,15 @@
  */
 class PreparedPaymentManager 
 {
+    private bool $is_test_mode_active;
+
     /**
      * @param bool $is_test_mode_active
      */
-    public function __construct(
-        private bool $is_test_mode_active
-        ) { }    
+    public function __construct(bool $is_test_mode_active) 
+    { 
+        $this->is_test_mode_active = $is_test_mode_active;
+    }    
 
     /**
      * Create a prepared payment request and send it to the payment gateway
@@ -25,7 +28,7 @@ class PreparedPaymentManager
      * @return array|WP_Error
      */
     public function create_prepared_payment(WC_Order $order, string $merchant_id,  string $country_code,  
-        string $return_plugin_url, string $purchase_description) : array|WP_Error
+        string $return_plugin_url, string $purchase_description)
     {
         if (!$this->verify_nonce()) {
             return new WP_Error('invalid_nonce', __('Invalid nonce', 'monek-payment-gateway'));
@@ -53,7 +56,7 @@ class PreparedPaymentManager
      * @param array $prepared_payment_request
      * @return array|WP_Error
      */
-    private function send_prepared_payment_request(array $prepared_payment_request) : array|WP_Error
+    private function send_prepared_payment_request(array $prepared_payment_request)
     {
         $prepared_payment_url = $this->get_ipay_prepare_url();
 
@@ -67,7 +70,8 @@ class PreparedPaymentManager
      *
      * @return bool
      */
-    private function verify_nonce() {
+    private function verify_nonce() : bool
+    {
         $nonce = filter_input(INPUT_POST, "woocommerce-process-checkout-nonce");
 
         if (!$nonce) {

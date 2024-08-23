@@ -10,7 +10,7 @@ class CallbackController
 
     private const GATEWAY_ID = 'monekgateway';
     
-    private IntegrityCorroborator $integrity_corroborator;
+    private $integrity_corroborator;
 
     /**
      * @param bool $is_test_mode_active
