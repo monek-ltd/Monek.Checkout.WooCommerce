@@ -4,6 +4,8 @@
 * Fixed - MON-936/Fixed-Security-Flags, Sanitized input fields (#13)
 * Fixed - MON-936/Fixed-Security-Flags, Changed to use wp_safe_redirect
 * Fixed - Mon-936/Fixed-Security-Flags, Changed root folder to match slug monek-checkout
+* Update - Updated to use new PHP 8.0 features and updated required PHP version
+* Added - Added PHPDoc comments to classes and functions
 * Tweak - Extracted some logic into new classes and created new folder structure to uncrowd the root folder
 * Tweak - Cleaned up some of the naming conventions
 

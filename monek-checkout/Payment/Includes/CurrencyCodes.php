@@ -1,6 +1,9 @@
 <?php
 
-return array(
+/**
+ * Currency Codes - ISO 4217
+ */
+return [
     'USD' => '840',  // US Dollar
     'EUR' => '978',  // Euro
     'GBP' => '826',  // British Pound
@@ -22,4 +25,4 @@ return array(
     'MXN' => '484',  // Mexican Peso
     'RUB' => '643',  // Russian Ruble
     'TRY' => '949',  // Turkish Lira
-);
+];

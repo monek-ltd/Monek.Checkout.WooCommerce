@@ -1,6 +1,12 @@
 <?php
 
-class ShippingAddress {
+/**
+ * Class ShippingAddress - represents the shipping address of the customer 
+ *
+ * @package Monek
+ */
+class ShippingAddress 
+{
     public $shipping_first_name;
     public $shipping_last_name;
     public $shipping_company;
@@ -13,7 +19,8 @@ class ShippingAddress {
     public $shipping_email;
     public $shipping_phone;
 
-    public function __construct() {
+    public function __construct() 
+    {
         $this->shipping_first_name = filter_input(INPUT_POST, 'shipping_first_name', FILTER_SANITIZE_STRING);
         $this->shipping_last_name = filter_input(INPUT_POST, 'shipping_last_name', FILTER_SANITIZE_STRING);
         $this->shipping_company = filter_input(INPUT_POST, 'shipping_company', FILTER_SANITIZE_STRING);

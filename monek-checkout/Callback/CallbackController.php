@@ -1,19 +1,41 @@
 <?php
 
-class CallbackController {
+/**
+ * Controller to handle the callback from Monek after a payment has been processed.
+ *
+ * @package Monek
+ */
+class CallbackController 
+{
+
     private const GATEWAY_ID = 'monekgateway';
     
-    private $integrity_corroborator;
+    private IntegrityCorroborator $integrity_corroborator;
 
-    public function __construct($is_test_mode_active) {
+    /**
+     * @param bool $is_test_mode_active
+     */
+    public function __construct(bool $is_test_mode_active) 
+    {
         $this->integrity_corroborator = new IntegrityCorroborator($is_test_mode_active);
     }
 
-    public function register_routes() {
-        add_action('woocommerce_api_'.self::GATEWAY_ID, array(&$this, 'handle_callback'));
+    /**
+     * register the routes for the callback
+     *
+     * @return void
+     */
+    public function register_routes() : void
+    {
+        add_action('woocommerce_api_'.self::GATEWAY_ID, [&$this, 'handle_callback']);
     }
     
-    public function handle_callback()
+    /**
+     * handle the callback from Monek after a payment has been processed, either from the payment page or from the webhook
+     *
+     * @return void
+     */
+    public function handle_callback() : void
     {
         $json_echo = file_get_contents('php://input');
         $transaction_webhook_payload_data = json_decode($json_echo, true);
@@ -26,12 +48,18 @@ class CallbackController {
         }
     }
 
-    private function process_payment_callback()
+    /**
+     * process the payment callback from Monek after a payment has been processed 
+     *
+     * @return void
+     */
+    private function process_payment_callback() : void
     {
         $callback = new Callback();
 
-        if (!wp_verify_nonce($callback->wp_nonce, 'complete-payment_'.$callback->payment_reference)) {
-            return new WP_Error('invalid_nonce', __('Invalid nonce', 'monek-payment-gateway'));
+        if (!wp_verify_nonce($callback->wp_nonce, "complete-payment_{$callback->payment_reference}")) {
+            new WP_Error('invalid_nonce', __('Invalid nonce', 'monek-payment-gateway'));
+            return;
         }
 
         $order = wc_get_order($callback->payment_reference);
@@ -40,7 +68,7 @@ class CallbackController {
             global $wp_query;
             $wp_query->set_404();
             status_header(404, 'Order Not Found');
-            include( get_query_template( '404' ) );
+            include get_query_template('404');
             exit;
         }
         
@@ -56,25 +84,33 @@ class CallbackController {
         $order->add_order_note(__('Awaiting payment confirmation.', 'monek-payment-gateway'));
         WC()->cart->empty_cart();
 
-        $thankyou = $order->get_checkout_order_received_url();
-        wp_safe_redirect($thankyou);
+        $order_complete_url = $order->get_checkout_order_received_url();
+        wp_safe_redirect($order_complete_url);
+        exit;
     }
 
-    private function process_transaction_webhook_payload($transaction_webhook_payload_data){
+    /**
+     * process the post-transaction confirmation webhook payload from Monek after a payment has been processed 
+     *
+     * @param array $transaction_webhook_payload_data
+     * @return void
+     */
+    private function process_transaction_webhook_payload(array $transaction_webhook_payload_data) : void
+    {
         if(filter_input(INPUT_SERVER, 'REQUEST_METHOD', FILTER_SANITIZE_STRING) === 'POST') {
 
             $payload = new WebhookPayload($transaction_webhook_payload_data);
 
             if(!$payload->validate()){
                 header('HTTP/1.1 400 Bad Request');
-                echo wp_json_encode(array('error' => 'Bad Request'));
+                echo wp_json_encode(['error' => 'Bad Request']);
                 return;
             }
 
             $order = wc_get_order($payload->payment_reference);
             if(!$order){
                 header('HTTP/1.1 400 Bad Request');
-                echo wp_json_encode(array('error' => 'Bad Request'));
+                echo wp_json_encode(['error' => 'Bad Request']);
                 return;
             }
 
@@ -82,7 +118,7 @@ class CallbackController {
                 $saved_integrity_secret = get_post_meta($order->get_id(), 'integrity_secret', true);
                 if(!isset($saved_integrity_secret) || $saved_integrity_secret == ''){
                     header('HTTP/1.1 500 Internal Server Error');
-                    echo wp_json_encode(array('error' => 'Internal Server Error'));
+                    echo wp_json_encode(['error' => 'Internal Server Error']);
                     return;
                 }
 
@@ -90,7 +126,7 @@ class CallbackController {
 
                 if (is_wp_error($response) || wp_remote_retrieve_response_code($response) >= 300) {
                     header('HTTP/1.1 400 Bad Request');
-                    echo wp_json_encode(array('error' => 'Bad Request'));
+                    echo wp_json_encode(['error' => 'Bad Request']);
                 } else {
                     $order->add_order_note(__('Payment confirmed.', 'monek-payment-gateway'));
                     $order->payment_complete();
@@ -100,7 +136,7 @@ class CallbackController {
         else {
             header('HTTP/1.1 405 Method Not Allowed');
             header('Allow: POST');
-            echo wp_json_encode(array('error' => 'Method Not Allowed'));
+            echo wp_json_encode(['error' => 'Method Not Allowed']);
         }
     }
 }

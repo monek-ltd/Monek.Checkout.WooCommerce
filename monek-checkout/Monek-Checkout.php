@@ -14,8 +14,8 @@
  * Contributors: Monek Ltd
  * Requires at least: 5.0
  * Tested up to: 6.0
- * Requires PHP: 7.0
- * Stable tag: 3.0.1
+ * Requires PHP: 8.0
+ * Stable tag: 3.0.3
  */
 
  /*
@@ -39,12 +39,24 @@ if( !in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 if (!function_exists('initialise_monek_payment_gateway')) {
 
-    function get_monek_plugin_version() {
+    /**
+     * Get the version of the plugin 
+     *
+     * @return string
+     */
+    function get_monek_plugin_version() : string
+    {
         $plugin_data = get_file_data(__FILE__, array('Version' => 'Version'), false);
         return $plugin_data['Version'];
     }
 
-    function initialise_monek_payment_gateway(){
+    /**
+     * Initialise the Monek payment gateway
+     * 
+     * @return void
+     */
+    function initialise_monek_payment_gateway() : void
+    {
         
         if (!defined('ABSPATH')) {
             exit;
@@ -53,8 +65,16 @@ if (!function_exists('initialise_monek_payment_gateway')) {
         if( !class_exists( 'WC_Payment_Gateway' ) ) {
             return;
         }
-        function monekcheckout_autoloader($class_name) {
-            $class_map = array(
+
+        /**
+         * Autoload classes 
+         *
+         * @param string $class_name
+         * @return void
+         */
+        function monekcheckout_autoloader($class_name) : void
+        {
+            $class_map = [
                 'MonekGateway'                  => 'MonekGateway.php',
                 'CallbackController'            => 'Callback/CallbackController.php',
                 'IntegrityCorroborator'         => 'Callback/IntegrityCorroborator.php',
@@ -67,7 +87,7 @@ if (!function_exists('initialise_monek_payment_gateway')) {
                 'TransactionHelper'             => 'Payment/TransactionHelper.php',
                 'PreparedPaymentRequestBuilder' => 'Payment/PreparedPaymentRequestBuilder.php',
                 'PreparedPaymentManager'        => 'Payment/PreparedPaymentManager.php',
-            );
+            ];
         
             if (array_key_exists($class_name, $class_map)) {
                 require_once $class_map[$class_name];
@@ -76,14 +96,27 @@ if (!function_exists('initialise_monek_payment_gateway')) {
         
         spl_autoload_register('monekcheckout_autoloader');
 
-        function add_monek_gateway($gateways) {
+        /**
+         * Add the Monek gateway to the list of available payment gateways
+         *
+         * @param array $gateways
+         * @return array
+         */
+        function add_monek_gateway($gateways) : array
+        {
             $gateways[] = 'MonekGateway';
             return $gateways;
         }
         
         add_filter('woocommerce_payment_gateways', 'add_monek_gateway');
         
-        function add_monek_settings_link($links)
+        /**
+         * Add a link to the settings page on the plugins page 
+         *
+         * @param array $links
+         * @return array
+         */
+        function add_monek_settings_link(array $links) : array
         {
             $settings_url = admin_url('admin.php?page=wc-settings&tab=checkout&section=monekgateway');
 
@@ -91,9 +124,7 @@ if (!function_exists('initialise_monek_payment_gateway')) {
                 '<a href="' . $settings_url . '">' . __('Settings', 'monekgateway') . '</a>'
             ];
 
-            $links = array_merge($plugin_links, $links);
-
-            return $links;
+            return array_merge($plugin_links, $links);
         }
 
         add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'add_monek_settings_link');
