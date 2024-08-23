@@ -97,7 +97,7 @@ class CallbackController
      */
     private function process_transaction_webhook_payload(array $transaction_webhook_payload_data) : void
     {
-        if(filter_input(INPUT_SERVER, 'REQUEST_METHOD', FILTER_SANITIZE_STRING) === 'POST') {
+        if(filter_input(INPUT_SERVER, 'REQUEST_METHOD', FILTER_SANITIZE_FULL_SPECIAL_CHARS) === 'POST') {
 
             $payload = new WebhookPayload($transaction_webhook_payload_data);
 
