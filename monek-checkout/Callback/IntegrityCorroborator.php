@@ -26,10 +26,10 @@ class IntegrityCorroborator
      */
     public function confirm_integrity_digest(WC_Order $order, WebhookPayload $transaction_webhook_payload_data)
     {
-        $idempotency_token = get_post_meta($order->get_id(), 'idempotency_token', true);
-        $integrity_secret = get_post_meta($order->get_id(), 'integrity_secret', true);
+        $idempotency_token = sanitize_text_field(get_post_meta($order->get_id(), 'idempotency_token', true));
+        $integrity_secret = sanitize_text_field(get_post_meta($order->get_id(), 'integrity_secret', true));
 
-        $integrity_check_url = $this->get_integrity_check_url();
+        $integrity_check_url = esc_url($this->get_integrity_check_url());
 
         return wp_remote_post($integrity_check_url, [
             'body' => http_build_query([

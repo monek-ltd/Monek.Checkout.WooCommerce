@@ -6,7 +6,7 @@
  * Author URI: http://www.monek.com
  * Description: Take credit/debit card payments with Monek.
  * Version: 3.0.3
- * text-domain: monek-payment-gateway
+ * text-domain: monek-checkout
  * Requires Plugins: woocommerce
  * License: GPLv3 or later
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -118,10 +118,10 @@ if (!function_exists('initialise_monek_payment_gateway')) {
          */
         function add_monek_settings_link(array $links) : array
         {
-            $settings_url = admin_url('admin.php?page=wc-settings&tab=checkout&section=monekgateway');
+            $settings_url = admin_url('admin.php?page=wc-settings&tab=checkout&section=monek-checkout');
 
             $plugin_links = [
-                '<a href="' . $settings_url . '">' . __('Settings', 'monekgateway') . '</a>'
+                '<a href="' . $settings_url . '">' . __('Settings', 'monek-checkout') . '</a>'
             ];
 
             return array_merge($plugin_links, $links);

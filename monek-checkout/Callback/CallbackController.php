@@ -8,7 +8,7 @@
 class CallbackController 
 {
 
-    private const GATEWAY_ID = 'monekgateway';
+    private const GATEWAY_ID = 'monek-checkout';
     
     private $integrity_corroborator;
 
@@ -59,7 +59,7 @@ class CallbackController
         $callback = new Callback();
 
         if (!wp_verify_nonce($callback->wp_nonce, "complete-payment_{$callback->payment_reference}")) {
-            new WP_Error('invalid_nonce', __('Invalid nonce', 'monek-payment-gateway'));
+            new WP_Error('invalid_nonce', __('Invalid nonce', 'monek-checkout'));
             return;
         }
 
@@ -75,17 +75,17 @@ class CallbackController
         
         if(!isset($callback->response_code) || $callback->response_code != '00'){
             $note = 'Payment declined: ' . $callback->message ;
-            wc_add_notice( $note,'error');
-            $order->add_order_note(__('Payment declined', 'monek-payment-gateway'));
+            wc_add_notice($note, 'error');
+            $order->add_order_note(__('Payment declined', 'monek-checkout'));
             $order->update_status('failed');
             wp_safe_redirect(wc_get_cart_url());
             exit;
         }
    
-        $order->add_order_note(__('Awaiting payment confirmation.', 'monek-payment-gateway'));
+        $order->add_order_note(__('Awaiting payment confirmation.', 'monek-checkout'));
         WC()->cart->empty_cart();
 
-        $order_complete_url = $order->get_checkout_order_received_url();
+        $order_complete_url = esc_url($order->get_checkout_order_received_url());
         wp_safe_redirect($order_complete_url);
         exit;
     }
@@ -127,7 +127,7 @@ class CallbackController
                     header('HTTP/1.1 400 Bad Request');
                     echo wp_json_encode(['error' => 'Bad Request']);
                 } else {
-                    $order->add_order_note(__('Payment confirmed.', 'monek-payment-gateway'));
+                    $order->add_order_note(__('Payment confirmed.', 'monek-checkout'));
                     $order->payment_complete();
                 }
             }

@@ -31,7 +31,7 @@ class PreparedPaymentManager
         string $return_plugin_url, string $purchase_description)
     {
         if (!$this->verify_nonce()) {
-            return new WP_Error('invalid_nonce', __('Invalid nonce', 'monek-payment-gateway'));
+            return new WP_Error('invalid_nonce', __('Invalid nonce', 'monek-checkout'));
         }
         $request_builder = new PreparedPaymentRequestBuilder();
         $prepared_payment_request = $request_builder->build_request($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description);
@@ -47,7 +47,7 @@ class PreparedPaymentManager
     private function get_ipay_prepare_url() : string
     {
         $ipay_prepare_extension = 'iPayPrepare.ashx';
-        return ($this->is_test_mode_active ? MonekGateway::$staging_url : MonekGateway::$elite_url) . $ipay_prepare_extension;
+        return esc_url(($this->is_test_mode_active ? MonekGateway::$staging_url : MonekGateway::$elite_url) . $ipay_prepare_extension);
     }
 
     /**
