@@ -72,7 +72,7 @@ class PreparedPaymentManager
      */
     private function verify_nonce() : bool
     {
-        $nonce = filter_input(INPUT_POST, "woocommerce-process-checkout-nonce");
+        $nonce = filter_input(INPUT_POST, "woocommerce-process-checkout-nonce", FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
         if (!$nonce) {
             return false;

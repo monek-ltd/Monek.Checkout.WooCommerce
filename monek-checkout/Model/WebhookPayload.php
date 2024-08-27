@@ -21,14 +21,14 @@ class WebhookPayload
      */
     public function __construct(array $data) 
     {
-        $this->transaction_date_time = filter_var($data['transactionDateTime'] ?? '', FILTER_SANITIZE_STRING);
-        $this->payment_reference = filter_var($data['paymentReference'] ?? '', FILTER_SANITIZE_STRING);
-        $this->cross_reference = filter_var($data['crossReference'] ?? '', FILTER_SANITIZE_STRING);
-        $this->response_code = filter_var($data['responseCode'] ?? '', FILTER_SANITIZE_STRING);
-        $this->message = filter_var($data['message'] ?? '', FILTER_SANITIZE_STRING);
-        $this->amount = filter_var($data['amount'] ?? '', FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
-        $this->currency_code = filter_var($data['currencyCode'] ?? '', FILTER_SANITIZE_STRING);
-        $this->integrity_digest = filter_var($data['integrityDigest'] ?? '', FILTER_SANITIZE_STRING);
+        $this->transaction_date_time = sanitize_text_field($data['transactionDateTime'] ?? '');
+        $this->payment_reference = sanitize_text_field($data['paymentReference'] ?? '');
+        $this->cross_reference = sanitize_text_field($data['crossReference'] ?? '');
+        $this->response_code = sanitize_text_field($data['responseCode'] ?? '');
+        $this->message = sanitize_text_field($data['message'] ?? '');
+        $this->amount = sanitize_text_field($data['amount'] ?? '');
+        $this->currency_code = sanitize_text_field($data['currencyCode'] ?? '');
+        $this->integrity_digest = sanitize_text_field($data['integrityDigest'] ?? '');
     }
 
     /**

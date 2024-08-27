@@ -13,7 +13,7 @@ class Callback
     public $message;
 
     public function __construct() {
-        $this->wp_nonce = filter_input(INPUT_GET, 'WPNonce');
+        $this->wp_nonce = filter_input(INPUT_GET, 'WPNonce', FILTER_SANITIZE_FULL_SPECIAL_CHARS); 
         $this->payment_reference = filter_input(INPUT_GET, 'paymentreference', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
         $this->response_code = filter_input(INPUT_GET, 'responsecode', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
         $this->message = filter_input(INPUT_GET, 'message', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
