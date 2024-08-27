@@ -28,7 +28,7 @@ class WebhookPayload
         $this->message = sanitize_text_field($data['message'] ?? '');
         $this->amount = sanitize_text_field($data['amount'] ?? '');
         $this->currency_code = sanitize_text_field($data['currencyCode'] ?? '');
-        $this->integrity_digest = sanitize_text_field($data['integrityDigest'] ?? '');
+        $this->integrity_digest = $data['integrityDigest'] ?? '';
     }
 
     /**
