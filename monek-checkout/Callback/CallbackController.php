@@ -39,9 +39,10 @@ class CallbackController
     {
         $json_echo = file_get_contents('php://input');
         $transaction_webhook_payload_data = json_decode($json_echo, true);
-
+        
         if(isset($transaction_webhook_payload_data)){
-            $this->process_transaction_webhook_payload($transaction_webhook_payload_data);
+            $payload = new WebhookPayload($transaction_webhook_payload_data);
+            $this->process_transaction_webhook_payload($payload);
         }
         else {
             $this->process_payment_callback();
@@ -95,11 +96,9 @@ class CallbackController
      * @param array $transaction_webhook_payload_data
      * @return void
      */
-    private function process_transaction_webhook_payload(array $transaction_webhook_payload_data) : void
+    private function process_transaction_webhook_payload(WebhookPayload $payload) : void
     {
         if(filter_input(INPUT_SERVER, 'REQUEST_METHOD', FILTER_SANITIZE_FULL_SPECIAL_CHARS) === 'POST') {
-
-            $payload = new WebhookPayload($transaction_webhook_payload_data);
 
             if(!$payload->validate()){
                 header('HTTP/1.1 400 Bad Request');
