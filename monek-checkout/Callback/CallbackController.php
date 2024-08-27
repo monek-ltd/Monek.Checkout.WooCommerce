@@ -74,7 +74,7 @@ class CallbackController
         }
         
         if(!isset($callback->response_code) || $callback->response_code != '00'){
-            $note = 'Payment declined: ' . $_REQUEST['message'] ;
+            $note = 'Payment declined: ' . $callback->message ;
             wc_add_notice( $note,'error');
             $order->add_order_note(__('Payment declined', 'monek-payment-gateway'));
             $order->update_status('failed');
