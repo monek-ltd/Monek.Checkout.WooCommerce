@@ -11,7 +11,7 @@
  */
 
 #[AllowDynamicProperties]
-class MonekGateway extends WC_Payment_Gateway
+class MCWC_MonekGateway extends WC_Payment_Gateway
 { 
     private const GATEWAY_ID = 'monek-checkout';
     
@@ -20,22 +20,22 @@ class MonekGateway extends WC_Payment_Gateway
     public static string $elite_url = 'https://elite.monek.com/Secure/';
     private bool $is_test_mode_active;
     public string $merchant_id;
-    private PreparedPaymentManager $prepared_payment_manager;
+    private MCWC_PreparedPaymentManager $prepared_payment_manager;
     public static string $staging_url = 'https://staging.monek.com/Secure/';
 
     public function __construct() 
     {
-        $this->setup_properties();
-        $this->init_form_fields();
+        $this->mcwc_setup_properties();
+        $this->mcwc_init_form_fields();
         $this->init_settings();
-        $this->get_settings();
+        $this->mcwc_get_settings();
 
         add_action("woocommerce_update_options_payment_gateways_{$this->id}", [$this, 'process_admin_options'] ); 
 
-        $this->prepared_payment_manager = new PreparedPaymentManager($this->is_test_mode_active);
+        $this->prepared_payment_manager = new MCWC_PreparedPaymentManager($this->is_test_mode_active);
 
-        $callback_controller = new CallbackController($this->is_test_mode_active);
-        $callback_controller->register_routes();
+        $callback_controller = new MCWC_CallbackController($this->is_test_mode_active);
+        $callback_controller->mcwc_register_routes();
     }
 
     /**
@@ -43,7 +43,7 @@ class MonekGateway extends WC_Payment_Gateway
      *
      * @return string
      */
-    private function get_ipay_url() : string
+    private function mcwc_get_ipay_url() : string
     {
         $ipay_extension = 'checkout.aspx';
         return ($this->is_test_mode_active ? self::$staging_url : self::$elite_url) . $ipay_extension;
@@ -54,7 +54,7 @@ class MonekGateway extends WC_Payment_Gateway
      *
      * @return void
      */
-    private function get_settings() : void
+    private function mcwc_get_settings() : void
     {
         $this->title = __('Credit/Debit Card', 'monek-checkout');
 		$this->description = __('Pay securely with Monek.', 'monek-checkout');
@@ -69,9 +69,9 @@ class MonekGateway extends WC_Payment_Gateway
      *
      * @return void
      */
-    public function init_form_fields() : void
+    public function mcwc_init_form_fields() : void
     {
-        $country_codes = include 'Model/CountryCodes.php';
+        $country_codes = include 'Model/MCWC_CountryCodes.php';
 
         $this->form_fields = [
             'enabled' => [
@@ -120,13 +120,13 @@ class MonekGateway extends WC_Payment_Gateway
      * @param int $order_id
      * @return array
      */
-    public function process_payment($order_id) : array
+    public function mcwc_process_payment($order_id) : array
     {
         $order = wc_get_order($order_id);
         $return_plugin_url = (new WooCommerce)->api_request_url(self::GATEWAY_ID);
         $this->validate_return_url($order, $return_plugin_url);
 
-        $response = $this->prepared_payment_manager->create_prepared_payment($order, $this->get_option('merchant_id'), 
+        $response = $this->prepared_payment_manager->mcwc_create_prepared_payment($order, $this->get_option('merchant_id'), 
             $this->get_option('country_dropdown'), $return_plugin_url, $this->get_option('basket_summary'));
 
         if (is_wp_error($response) || wp_remote_retrieve_response_code($response) >= 300) {
@@ -139,7 +139,7 @@ class MonekGateway extends WC_Payment_Gateway
         
         return [
             'result' => 'success',
-            'redirect' => $this->get_ipay_url() . '?PreparedPayment=' . $body
+            'redirect' => $this->mcwc_get_ipay_url() . '?PreparedPayment=' . $body
         ];
     }
     
@@ -148,7 +148,7 @@ class MonekGateway extends WC_Payment_Gateway
      *
      * @return void
      */
-    protected function setup_properties() : void
+    protected function mcwc_setup_properties() : void
     {
         $this->id = self::GATEWAY_ID;
         $this->icon = plugins_url('img/Monek-Logo100x12.png', __FILE__);
@@ -164,7 +164,7 @@ class MonekGateway extends WC_Payment_Gateway
      * @param string $return_plugin_url
      * @return void
      */
-    private function validate_return_url(WC_Order $order, string $return_plugin_url) : void
+    private function mcwc_validate_return_url(WC_Order $order, string $return_plugin_url) : void
     {
         $parsed_url = wp_parse_url($return_plugin_url);
     

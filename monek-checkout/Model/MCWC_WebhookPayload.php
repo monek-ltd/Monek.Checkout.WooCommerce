@@ -5,7 +5,7 @@
  *
  * @package Monek
  */
-class WebhookPayload 
+class MCWC_WebhookPayload 
 {
     public string $transaction_date_time;
     public string $payment_reference;
@@ -21,14 +21,14 @@ class WebhookPayload
      */
     public function __construct(array $data) 
     {
-        $this->transaction_date_time = $this->validate_date_time($data['transactionDateTime'] ?? '');
-        $this->payment_reference = $this->validate_string($data['paymentReference'] ?? '', 'Payment Reference');
-        $this->cross_reference = $this->validate_string($data['crossReference'] ?? '', 'Cross Reference');
-        $this->response_code = $this->validate_response_code($data['responseCode'] ?? '');
+        $this->transaction_date_time = $this->mcwc_validate_date_time($data['transactionDateTime'] ?? '');
+        $this->payment_reference = $this->mcwc_validate_string($data['paymentReference'] ?? '', 'Payment Reference');
+        $this->cross_reference = $this->mcwc_validate_string($data['crossReference'] ?? '', 'Cross Reference');
+        $this->response_code = $this->mcwc_validate_response_code($data['responseCode'] ?? '');
         $this->message = sanitize_text_field($data['message'] ?? '');
-        $this->amount = $this->validate_amount($data['amount'] ?? '');
-        $this->currency_code = $this->validate_currency_code($data['currencyCode'] ?? '');
-        $this->integrity_digest = $this->validate_integrity_digest($data['integrityDigest'] ?? '');
+        $this->amount = $this->mcwc_validate_amount($data['amount'] ?? '');
+        $this->currency_code = $this->mcwc_validate_currency_code($data['currencyCode'] ?? '');
+        $this->integrity_digest = $this->mcwc_validate_integrity_digest($data['integrityDigest'] ?? '');
     }
 
     /**
@@ -36,7 +36,7 @@ class WebhookPayload
      *
      * @return bool
      */
-    public function validate() : bool 
+    public function mcwc_validate() : bool 
     {
         return !empty($this->transaction_date_time)
             && !empty($this->payment_reference)
@@ -55,7 +55,7 @@ class WebhookPayload
      * @return string
      * @throws InvalidArgumentException
      */
-    private function validate_date_time(string $dateTime): string 
+    private function mcwc_validate_date_time(string $dateTime): string 
     {
         if (empty($dateTime)) {
             throw new InvalidArgumentException('Transaction date and time is required.');
@@ -80,7 +80,7 @@ class WebhookPayload
      * @return string
      * @throws InvalidArgumentException
      */
-    private function validate_string(string $value, string $fieldName) : string 
+    private function mcwc_validate_string(string $value, string $fieldName) : string 
     {
         $value = sanitize_text_field($value);
 
@@ -98,7 +98,7 @@ class WebhookPayload
      * @return string
      * @throws InvalidArgumentException
      */
-    private function validate_response_code(string $responseCode) : string 
+    private function mcwc_validate_response_code(string $responseCode) : string 
     {
         $responseCode = sanitize_text_field($responseCode);
 
@@ -116,7 +116,7 @@ class WebhookPayload
      * @return float
      * @throws InvalidArgumentException
      */
-    private function validate_amount(string $amount) : float 
+    private function mcwc_validate_amount(string $amount) : float 
     {
         $amount = sanitize_text_field($amount);
 
@@ -134,7 +134,7 @@ class WebhookPayload
      * @return string
      * @throws InvalidArgumentException
      */
-    private function validate_currency_code(string $currencyCode) : string 
+    private function mcwc_validate_currency_code(string $currencyCode) : string 
     {
         $currencyCode = sanitize_text_field($currencyCode);
 
@@ -152,7 +152,7 @@ class WebhookPayload
      * @return string
      * @throws InvalidArgumentException
      */
-    private function validate_integrity_digest(string $integrityDigest) : string 
+    private function mcwc_validate_integrity_digest(string $integrityDigest) : string 
     {
         $integrityDigest = sanitize_text_field($integrityDigest);
 

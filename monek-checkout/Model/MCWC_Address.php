@@ -5,7 +5,7 @@
  *
  * @package Monek
  */
-class Address 
+class MCWC_Address 
 {
     public string $first_name;
     public string $last_name;
@@ -26,7 +26,7 @@ class Address
 	 * @param string $fieldName
 	 * @return string
 	 */
-    private function sanitize_name($inputType, $fieldName) : string
+    private function mcwc_sanitize_name($inputType, $fieldName) : string
     {
         $name = filter_input($inputType, $fieldName, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
         return preg_replace("/[^a-zA-Z\s\-']/u", "", $name) ?: '';
@@ -39,7 +39,7 @@ class Address
     * @param string $fieldName
     * @return string|null
 	*/
-    private function sanitize_phone($inputType, $fieldName) : ?string
+    private function mcwc_sanitize_phone($inputType, $fieldName) : ?string
     {
         $phone = filter_input($inputType, $fieldName, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
         return preg_replace("/[^\d\+\-\s]/", "", $phone);
@@ -51,7 +51,7 @@ class Address
 	 * @param string|null $phone
 	 * @return bool
 	 */
-    private function validate_phone(?string $phone) : bool 
+    private function mcwc_validate_phone(?string $phone) : bool 
     {
         return preg_match('/^\+?[0-9\s\-]{7,15}$/', $phone) === 1;
     }
@@ -63,7 +63,7 @@ class Address
     * @param string $country
     * @return bool
 	*/
-    private function validate_postcode(string $postcode, string $country) : bool 
+    private function mcwc_validate_postcode(string $postcode, string $country) : bool 
     {
         $postcodePatterns = [
             'GB' => '/^([A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2})$/',  // United Kingdom

@@ -5,7 +5,7 @@
  *
  * @package Monek
  */
-class CallbackController 
+class MCWC_CallbackController 
 {
 
     private const GATEWAY_ID = 'monek-checkout';
@@ -17,7 +17,7 @@ class CallbackController
      */
     public function __construct(bool $is_test_mode_active) 
     {
-        $this->integrity_corroborator = new IntegrityCorroborator($is_test_mode_active);
+        $this->integrity_corroborator = new MCWC_IntegrityCorroborator($is_test_mode_active);
     }
 
     /**
@@ -25,7 +25,7 @@ class CallbackController
      *
      * @return void
      */
-    public function register_routes() : void
+    public function mcwc_register_routes() : void
     {
         add_action('woocommerce_api_'.self::GATEWAY_ID, [&$this, 'handle_callback']);
     }
@@ -35,16 +35,16 @@ class CallbackController
      *
      * @return void
      */
-    public function handle_callback() : void
+    public function mcwc_handle_callback() : void
     {
         if(filter_input(INPUT_GET, 'Callback', FILTER_VALIDATE_BOOLEAN) == 'true'){
-            $this->process_payment_callback();
+            $this->mcwc_process_payment_callback();
         }
         else {
             json_echo = file_get_contents('php://input');
             $transaction_webhook_payload_data = json_decode($json_echo, true);
-            $payload = new WebhookPayload($transaction_webhook_payload_data);
-            $this->process_transaction_webhook_payload($payload);
+            $payload = new MCWC_WebhookPayload($transaction_webhook_payload_data);
+            $this->mcwc_process_transaction_webhook_payload($payload);
         }
     }
 
@@ -55,7 +55,7 @@ class CallbackController
      */
     private function process_payment_callback() : void
     {
-        $callback = new Callback();
+        $callback = new MCWC_Callback();
 
         if (!wp_verify_nonce($callback->wp_nonce, "complete-payment_{$callback->payment_reference}")) {
             new WP_Error('invalid_nonce', __('Invalid nonce', 'monek-checkout'));
@@ -95,7 +95,7 @@ class CallbackController
      * @param array $transaction_webhook_payload_data
      * @return void
      */
-    private function process_transaction_webhook_payload(WebhookPayload $payload) : void
+    private function mcwc_process_transaction_webhook_payload(MCWC_WebhookPayload $payload) : void
     {
         if(filter_input(INPUT_SERVER, 'REQUEST_METHOD', FILTER_SANITIZE_FULL_SPECIAL_CHARS) === 'POST') {
 
@@ -120,7 +120,7 @@ class CallbackController
                     return;
                 }
 
-                $response = $this->integrity_corroborator->confirm_integrity_digest($order, $payload);
+                $response = $this->integrity_corroborator->mcwc_confirm_integrity_digest($order, $payload);
 
                 if (is_wp_error($response) || wp_remote_retrieve_response_code($response) >= 300) {
                     header('HTTP/1.1 400 Bad Request');

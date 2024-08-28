@@ -1,8 +1,9 @@
 *** Monek Checkout Changelog ***
 
-2024-08-27 version 3.0.4
+2024-08-28 version 3.1.0
 * Update - Updated text-domain to match slug. Updated text-domain in all files
 * Added - Added additional sanitisations to input fields
+* Update - Updated names to use a unique prefix to avoid conflicts with other plugins
 
 2024-08-23 version 3.0.3
 * Fixed - MON-936/Fixed-Security-Flags, Sanitized input fields (#13)

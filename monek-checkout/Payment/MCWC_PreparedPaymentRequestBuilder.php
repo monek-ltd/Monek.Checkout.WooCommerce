@@ -5,7 +5,7 @@
  *
  * @package Monek
  */
-class PreparedPaymentRequestBuilder 
+class MCWC_PreparedPaymentRequestBuilder 
 {    
     private const PARTIAL_ORIGIN_ID = 'a6c921f4-8e00-4b11-99f4-';
 
@@ -19,7 +19,7 @@ class PreparedPaymentRequestBuilder
      * @param string $purchase_description
      * @return array
      */
-	public function build_request(WC_Order $order, string $merchant_id, string $country_code, 
+	public function mcwc_build_request(WC_Order $order, string $merchant_id, string $country_code, 
         string $return_plugin_url, string $purchase_description) : array
     {
         $billing_amount = $order->get_total();
@@ -30,8 +30,8 @@ class PreparedPaymentRequestBuilder
         $prepared_payment_request = [
             'MerchantID' => $merchant_id,
             'MessageType' => 'ESALE_KEYED',
-            'Amount' => TransactionHelper::convert_decimal_to_flat($billing_amount),
-            'CurrencyCode' => TransactionHelper::get_iso4217_currency_code(),
+            'Amount' => MCWC_TransactionHelper::mcwc_convert_decimal_to_flat($billing_amount),
+            'CurrencyCode' => MCWC_TransactionHelper::mcwc_get_iso4217_currency_code(),
             'CountryCode' => $country_code,
             'Dispatch' => 'NOW',
             'ResponseAction' => 'REDIRECT',
@@ -40,16 +40,16 @@ class PreparedPaymentRequestBuilder
             'PaymentReference' => $order->get_id(),
             'ThreeDSAction' => 'ACSDIRECT',
             'IdempotencyToken' => get_post_meta($order->get_id(), 'idempotency_token', true),
-            'OriginID' => self::PARTIAL_ORIGIN_ID . str_replace('.', '', get_monek_plugin_version()) . str_repeat('0', 14 - strlen(get_monek_plugin_version())),
+            'OriginID' => self::PARTIAL_ORIGIN_ID . str_replace('.', '', mcwc_get_monek_plugin_version()) . str_repeat('0', 14 - strlen(mcwc_get_monek_plugin_version())),
             'PurchaseDescription' => $purchase_description,
             'IntegritySecret' => get_post_meta($order->get_id(), 'integrity_secret', true),
-            'Basket' => $this->generate_basket_base64($order),
+            'Basket' => $this->mcwc_generate_basket_base64($order),
             'ShowDeliveryAddress' => 'YES',
             'WPNonce' => wp_create_nonce('complete-payment_' . $order->get_id()),
             'Callback' => 'true'
         ];
 
-        return $this->generate_cardholder_detail_information($prepared_payment_request);
+        return $this->mcwc_generate_cardholder_detail_information($prepared_payment_request);
     }
 
     /**
@@ -58,67 +58,19 @@ class PreparedPaymentRequestBuilder
      * @param WC_Order $order
      * @return string
      */
-    private function generate_basket_base64(WC_Order $order) : string
+    private function mcwc_generate_basket_base64(WC_Order $order) : string
     {
-        $order_items = $this->get_item_details($order);
+        $order_items = $this->mcwc_get_item_details($order);
         $basket = [
-            'items' => []
+            'items' => mcwc_get_item_details($order),
+            'discounts' => mcwc_get_order_discounts($order),
+            'taxes' => mcwc_get_order_taxes($order),
+            'delivery' => mcwc_get_order_delivery($order)
         ];
-
-        foreach ($order_items as $item) {
-            $item_description = $item['product_name'] ?? '';
-            if (strlen($item_description) > 15) {
-                $item_description = substr($item_description, 0, 15) . '...';
-            }
-            $basket['items'][] = [
-                'sku' => $item['sku'] ?? '',
-                'description' => $item_description,
-                'quantity' => $item['quantity'] ?? '',
-                'unitPrice' => $item['price'] ?? '',
-                'total' => $item['total'] ?? ''
-            ];
-        }
-
-        $order_discounts = $this->get_order_discounts($order);
-        if (!empty($order_discounts)) {
-            $basket['discounts'] = [];
-            foreach ($order_discounts as $discount) {
-                $discount_description = $discount['description'] ?? '';
-                if (strlen($discount_description) > 15) {
-                    $discount_description = substr($discount_description, 0, 15) . '...';
-                }
-                $basket['discounts'][] = [
-                    'code' => $discount['code'] ?? '',
-                    'description' => $discount_description,
-                    'amount' => $discount['amount'] ?? ''
-                ];
-            }
-        }
-
-        $order_taxes = $this->get_order_taxes($order);
-        if (!empty($order_taxes)) {
-            $basket['taxes'] = [];
-            foreach ($order_taxes as $tax) {
-                $tax_description = $tax['description'] ?? '';
-                if (strlen($tax_description) > 15) {
-                    $tax_description = substr($tax_description, 0, 15) . '...';
-                }
-                $basket['taxes'][] = [
-                    'code' => $tax['code'] ?? '',
-                    'description' => $tax_description,
-                    'rate' => $tax['rate'] ?? '',
-                    'amount' => $tax['amount'] ?? ''
-                ];
-            }
-        }
-
-        $order_delivery = $this->get_order_delivery($order);
-        if (!empty($order_delivery)) {
-            $basket['delivery'] = [
-                'carrier' => $order_delivery[0]['carrier'] ?? '',
-                'amount' => $order_delivery[0]['amount'] ?? ''
-            ];
-        }
+        
+        $basket = array_filter($basket, function($value) {
+            return !empty($value);
+        });
 
         $basket_json = wp_json_encode($basket);
         return base64_encode($basket_json);
@@ -130,11 +82,11 @@ class PreparedPaymentRequestBuilder
      * @param array $prepared_payment_request
      * @return array
      */
-    private function generate_cardholder_detail_information(array $prepared_payment_request) : array
+    private function mcwc_generate_cardholder_detail_information(array $prepared_payment_request) : array
     {
         $countries = WC()->countries->countries;
     
-        $billing_address = new BillingAddress();
+        $billing_address = new MCWC_BillingAddress();
         $billing_country_name = $billing_address->billing_country ?? '';
         $billing_country_code = array_search($billing_country_name, $countries);
         
@@ -153,7 +105,7 @@ class PreparedPaymentRequestBuilder
         ];
     
         if (isset($billing_address->ship_to_different_address) && $billing_address->ship_to_different_address == 1) {
-            $shipping_address = new ShippingAddress();
+            $shipping_address = new MCWC_ShippingAddress();
 
             $delivery_country_name = $shipping_address->shipping_country ?? '';
             $delivery_country_code = array_search($delivery_country_name, $countries);    
@@ -181,31 +133,20 @@ class PreparedPaymentRequestBuilder
      * @param WC_Order $order
      * @return array
      */
-    private function get_item_details(WC_Order $order) : array
+    private function mcwc_get_item_details(WC_Order $order) : array
     {
         $line_items = $order->get_items();
         $items_details = [];
     
         foreach ($line_items as $item) {
             $product = $item->get_product();
-            $product_name = $product->get_name();
-            $product_id = $product->get_id();
-            $sku = $product->get_sku();
-            $quantity = $item->get_quantity();
-            $price = $product->get_price();
-            $subtotal = $item->get_subtotal();
-            $total = $item->get_total();
-            $total_tax = $item->get_total_tax();
     
             $items_details[] = [
-                'product_name' => $product_name,
-                'product_id' => $product_id,
-                'sku' => $sku,
-                'quantity' => $quantity,
-                'price' => $price,
-                'subtotal' => $subtotal,
-                'total' => $total,
-                'total_tax' => $total_tax
+                'description' => MCWC_TransactionHelper::mcwc_trim_description($product->get_name()),
+                'sku' => $product->get_sku(),
+                'quantity' => $item->get_quantity(),
+                'unitPrice' => $product->get_price(),
+                'total' => $item->get_total(),
             ];
         }
     
@@ -218,7 +159,7 @@ class PreparedPaymentRequestBuilder
      * @param WC_Order $order
      * @return array
      */
-    private function get_order_delivery(WC_Order $order) : array
+    private function mcwc_get_order_delivery(WC_Order $order) : array
     {
         $shipping_methods = $order->get_shipping_methods();
         $delivery = [];
@@ -242,7 +183,7 @@ class PreparedPaymentRequestBuilder
      * @param WC_Order $order
      * @return array
      */
-    private function get_order_discounts(WC_Order $order) : array
+    private function mcwc_get_order_discounts(WC_Order $order) : array
     {
         $wc_discounts = new WC_Discounts( WC()->cart );
         $discounts = [];
@@ -255,7 +196,7 @@ class PreparedPaymentRequestBuilder
             if ($wc_discounts -> is_coupon_valid($coupon)) {
                 $discounts[] = array(
                     'code' => $coupon_code,
-                    'description' => $coupon->get_description(),
+                    'description' => MCWC_TransactionHelper::mcwc_trim_description($coupon->get_description()),
                     'amount' => $coupon->get_amount()
                 );
             }
@@ -270,7 +211,7 @@ class PreparedPaymentRequestBuilder
      * @param WC_Order $order
      * @return array
      */
-    private function get_order_taxes(WC_Order $order) : array
+    private function mcwc_get_order_taxes(WC_Order $order) : array
     {
         $taxes = [];
         $tax_lines = $order->get_taxes();
@@ -279,7 +220,7 @@ class PreparedPaymentRequestBuilder
             $data = $tax->get_data();
             $taxes[] = [
                 'code' => $data['rate_code'],
-                'description' => $data['label'],
+                'description' => MCWC_TransactionHelper::mcwc_trim_description($data['label']),
                 'rate' => $data['rate_percent'],
                 'amount' => $data['tax_total']
             ];

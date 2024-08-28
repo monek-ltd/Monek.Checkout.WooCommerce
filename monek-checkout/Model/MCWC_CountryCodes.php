@@ -1,5 +1,7 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 /**
  * CountryCodes - represents the available country codes for the payment gateway
  *
