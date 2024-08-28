@@ -45,7 +45,8 @@ class PreparedPaymentRequestBuilder
             'IntegritySecret' => get_post_meta($order->get_id(), 'integrity_secret', true),
             'Basket' => $this->generate_basket_base64($order),
             'ShowDeliveryAddress' => 'YES',
-            'WPNonce' => wp_create_nonce('complete-payment_' . $order->get_id())
+            'WPNonce' => wp_create_nonce('complete-payment_' . $order->get_id()),
+            'Callback' => 'true'
         ];
 
         return $this->generate_cardholder_detail_information($prepared_payment_request);

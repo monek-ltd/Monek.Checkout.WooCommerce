@@ -2,6 +2,7 @@
 
 2024-08-27 version 3.0.4
 * Update - Updated text-domain to match slug. Updated text-domain in all files
+* Added - Added additional sanitisations to input fields
 
 2024-08-23 version 3.0.3
 * Fixed - MON-936/Fixed-Security-Flags, Sanitized input fields (#13)

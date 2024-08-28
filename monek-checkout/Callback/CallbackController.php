@@ -37,15 +37,14 @@ class CallbackController
      */
     public function handle_callback() : void
     {
-        $json_echo = file_get_contents('php://input');
-        $transaction_webhook_payload_data = json_decode($json_echo, true);
-        
-        if(isset($transaction_webhook_payload_data)){
-            $payload = new WebhookPayload($transaction_webhook_payload_data);
-            $this->process_transaction_webhook_payload($payload);
+        if(filter_input(INPUT_GET, 'Callback', FILTER_VALIDATE_BOOLEAN) == 'true'){
+            $this->process_payment_callback();
         }
         else {
-            $this->process_payment_callback();
+            json_echo = file_get_contents('php://input');
+            $transaction_webhook_payload_data = json_decode($json_echo, true);
+            $payload = new WebhookPayload($transaction_webhook_payload_data);
+            $this->process_transaction_webhook_payload($payload);
         }
     }
 
