@@ -58,6 +58,6 @@ class MCWC_IntegrityCorroborator
     private function mcwc_get_integrity_check_url(): string
     {
         $integrity_check_extension = 'IntegrityCheck.ashx';
-        return ($this->is_test_mode_active ? MonekGateway::$staging_url : MonekGateway::$elite_url) . $integrity_check_extension;
+        return ($this->is_test_mode_active ? MCWC_MonekGateway::$staging_url : MCWC_MonekGateway::$elite_url) . $integrity_check_extension;
     }
 }

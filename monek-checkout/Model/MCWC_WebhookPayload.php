@@ -28,7 +28,7 @@ class MCWC_WebhookPayload
         $this->message = sanitize_text_field($data['message'] ?? '');
         $this->amount = $this->mcwc_validate_amount($data['amount'] ?? '');
         $this->currency_code = $this->mcwc_validate_currency_code($data['currencyCode'] ?? '');
-        $this->integrity_digest = $this->mcwc_validate_integrity_digest($data['integrityDigest'] ?? '');
+        $this->integrity_digest = sanitize_text_field($data['integrityDigest'] ?? '');
     }
 
     /**
@@ -143,23 +143,5 @@ class MCWC_WebhookPayload
         }
 
         return $currencyCode;
-    }
-    
-    /**
-     * Validate the integrity digest as an SHA-256 hash
-     *
-     * @param string $integrityDigest
-     * @return string
-     * @throws InvalidArgumentException
-     */
-    private function mcwc_validate_integrity_digest(string $integrityDigest) : string 
-    {
-        $integrityDigest = sanitize_text_field($integrityDigest);
-
-        if (!preg_match('/^[a-f0-9]{64}$/i', $integrityDigest)) {
-            throw new InvalidArgumentException('Invalid integrity digest format. Must be a 64-character hexadecimal string.');
-        }
-
-        return $integrityDigest;
     }
 }
