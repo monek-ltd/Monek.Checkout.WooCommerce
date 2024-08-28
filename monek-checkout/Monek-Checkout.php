@@ -89,6 +89,7 @@ if (!function_exists('mcwc_initialise_monek_payment_gateway')) {
                 'MCWC_TransactionHelper'             => 'Payment/MCWC_TransactionHelper.php',
                 'MCWC_PreparedPaymentRequestBuilder' => 'Payment/MCWC_PreparedPaymentRequestBuilder.php',
                 'MCWC_PreparedPaymentManager'        => 'Payment/MCWC_PreparedPaymentManager.php',
+                'MCWC_Address'                       => 'Model/MCWC_Address.php'
             ];
         
             if (array_key_exists($class_name, $class_map)) {
@@ -106,7 +107,7 @@ if (!function_exists('mcwc_initialise_monek_payment_gateway')) {
          */
         function mcwc_add_monek_gateway($gateways) : array
         {
-            $gateways[] = 'MonekGateway';
+            $gateways[] = 'MCWC_MonekGateway';
             return $gateways;
         }
         

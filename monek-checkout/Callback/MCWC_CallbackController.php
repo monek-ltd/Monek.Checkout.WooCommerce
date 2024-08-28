@@ -27,7 +27,7 @@ class MCWC_CallbackController
      */
     public function mcwc_register_routes() : void
     {
-        add_action('woocommerce_api_'.self::GATEWAY_ID, [&$this, 'handle_callback']);
+        add_action('woocommerce_api_'.self::GATEWAY_ID, [&$this, 'mcwc_handle_callback']);
     }
     
     /**
@@ -41,7 +41,7 @@ class MCWC_CallbackController
             $this->mcwc_process_payment_callback();
         }
         else {
-            json_echo = file_get_contents('php://input');
+            $json_echo = file_get_contents('php://input');
             $transaction_webhook_payload_data = json_decode($json_echo, true);
             $payload = new MCWC_WebhookPayload($transaction_webhook_payload_data);
             $this->mcwc_process_transaction_webhook_payload($payload);
@@ -53,7 +53,7 @@ class MCWC_CallbackController
      *
      * @return void
      */
-    private function process_payment_callback() : void
+    private function mcwc_process_payment_callback() : void
     {
         $callback = new MCWC_Callback();
 
@@ -73,7 +73,7 @@ class MCWC_CallbackController
         }
         
         if(!isset($callback->response_code) || $callback->response_code != '00'){
-            $note = 'Payment declined: ' . $callback->message ;
+            $note = "Payment declined: {$callback->message}" ;
             wc_add_notice($note, 'error');
             $order->add_order_note(__('Payment declined', 'monek-checkout'));
             $order->update_status('failed');
@@ -99,7 +99,7 @@ class MCWC_CallbackController
     {
         if(filter_input(INPUT_SERVER, 'REQUEST_METHOD', FILTER_SANITIZE_FULL_SPECIAL_CHARS) === 'POST') {
 
-            if(!$payload->validate()){
+            if(!$payload->mcwc_validate()){
                 header('HTTP/1.1 400 Bad Request');
                 echo wp_json_encode(['error' => 'Bad Request']);
                 return;

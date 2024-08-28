@@ -47,7 +47,7 @@ class MCWC_PreparedPaymentManager
     private function mcwc_get_ipay_prepare_url() : string
     {
         $ipay_prepare_extension = 'iPayPrepare.ashx';
-        return esc_url(($this->is_test_mode_active ? MonekGateway::$staging_url : MonekGateway::$elite_url) . $ipay_prepare_extension);
+        return esc_url(($this->is_test_mode_active ? MCWC_MonekGateway::$staging_url : MCWC_MonekGateway::$elite_url) . $ipay_prepare_extension);
     }
 
     /**

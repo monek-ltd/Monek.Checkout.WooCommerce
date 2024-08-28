@@ -120,11 +120,11 @@ class MCWC_MonekGateway extends WC_Payment_Gateway
      * @param int $order_id
      * @return array
      */
-    public function mcwc_process_payment($order_id) : array
+    public function process_payment($order_id) : array
     {
         $order = wc_get_order($order_id);
         $return_plugin_url = (new WooCommerce)->api_request_url(self::GATEWAY_ID);
-        $this->validate_return_url($order, $return_plugin_url);
+        $this->mcwc_validate_return_url($order, $return_plugin_url);
 
         $response = $this->prepared_payment_manager->mcwc_create_prepared_payment($order, $this->get_option('merchant_id'), 
             $this->get_option('country_dropdown'), $return_plugin_url, $this->get_option('basket_summary'));

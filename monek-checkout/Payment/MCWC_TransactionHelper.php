@@ -13,7 +13,7 @@ class MCWC_TransactionHelper {
      * @param float $decimal_number
      * @return int
      */
-    public static function mcwc_convert_decimal_to_flat(float $decimal_number) : int
+    public static function mcwc_convert_decimal_to_flat($decimal_number) : int
     {
         return (int) str_replace('.', '', $decimal_number);
     }

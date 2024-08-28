@@ -9,15 +9,13 @@ class MCWC_Address
 {
     public string $first_name;
     public string $last_name;
-    public string? $company;
+    public string $company;
     public string $address_1;
-    public string? $address_2;
+    public string $address_2;
     public string $city;
     public string $state;
     public string $country;
     public string $postcode;
-    public string? $email;
-    public string? $phone;
     
     /**
     * Sanitize the name input
@@ -26,34 +24,10 @@ class MCWC_Address
 	 * @param string $fieldName
 	 * @return string
 	 */
-    private function mcwc_sanitize_name($inputType, $fieldName) : string
+    public function mcwc_sanitize_name($inputType, $fieldName) : string
     {
-        $name = filter_input($inputType, $fieldName, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $name = filter_input($inputType, $fieldName, FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?? '';
         return preg_replace("/[^a-zA-Z\s\-']/u", "", $name) ?: '';
-    }
-
-    /**
-    * Sanitize the phone number input
-    *
-    * @param int $inputType
-    * @param string $fieldName
-    * @return string|null
-	*/
-    private function mcwc_sanitize_phone($inputType, $fieldName) : ?string
-    {
-        $phone = filter_input($inputType, $fieldName, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-        return preg_replace("/[^\d\+\-\s]/", "", $phone);
-    }
-
-    /**
-    * Validate the phone number format
-	 *
-	 * @param string|null $phone
-	 * @return bool
-	 */
-    private function mcwc_validate_phone(?string $phone) : bool 
-    {
-        return preg_match('/^\+?[0-9\s\-]{7,15}$/', $phone) === 1;
     }
 
     /**
@@ -63,7 +37,7 @@ class MCWC_Address
     * @param string $country
     * @return bool
 	*/
-    private function mcwc_validate_postcode(string $postcode, string $country) : bool 
+    public function mcwc_validate_postcode(string $postcode, string $country) : bool 
     {
         $postcodePatterns = [
             'GB' => '/^([A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2})$/',  // United Kingdom

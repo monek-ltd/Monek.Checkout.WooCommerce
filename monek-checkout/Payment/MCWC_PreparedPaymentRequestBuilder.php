@@ -60,12 +60,11 @@ class MCWC_PreparedPaymentRequestBuilder
      */
     private function mcwc_generate_basket_base64(WC_Order $order) : string
     {
-        $order_items = $this->mcwc_get_item_details($order);
         $basket = [
-            'items' => mcwc_get_item_details($order),
-            'discounts' => mcwc_get_order_discounts($order),
-            'taxes' => mcwc_get_order_taxes($order),
-            'delivery' => mcwc_get_order_delivery($order)
+            'items' => $this->mcwc_get_item_details($order),
+            'discounts' => $this->mcwc_get_order_discounts($order),
+            'taxes' => $this->mcwc_get_order_taxes($order),
+            'delivery' => $this->mcwc_get_order_delivery($order)[0]
         ];
         
         $basket = array_filter($basket, function($value) {
@@ -87,38 +86,38 @@ class MCWC_PreparedPaymentRequestBuilder
         $countries = WC()->countries->countries;
     
         $billing_address = new MCWC_BillingAddress();
-        $billing_country_name = $billing_address->billing_country ?? '';
+        $billing_country_name = $billing_address->country ?? '';
         $billing_country_code = array_search($billing_country_name, $countries);
         
         $cardholder_detail_information = [
-            'BillingName' => "{$billing_address->billing_first_name} {$billing_address->billing_last_name}",
-            'BillingCompany' => $billing_address->billing_company ?? '',
-            'BillingLine1' => $billing_address->billing_address_1 ?? '',
-            'BillingLine2' => $billing_address->billing_address_2 ?? '',
-            'BillingCity' => $billing_address->billing_city ?? '',
-            'BillingCounty' => $billing_address->billing_state ?? '',
-            'BillingCountry' => $billing_address->billing_country ?? '',
+            'BillingName' => "{$billing_address->first_name} {$billing_address->last_name}",
+            'BillingCompany' => $billing_address->company ?? '',
+            'BillingLine1' => $billing_address->address_1 ?? '',
+            'BillingLine2' => $billing_address->address_2 ?? '',
+            'BillingCity' => $billing_address->city ?? '',
+            'BillingCounty' => $billing_address->state ?? '',
+            'BillingCountry' => $billing_address->country ?? '',
             'BillingCountryCode' => $billing_country_code,
-            'BillingPostcode' => $billing_address->billing_postcode ?? '',
-            'EmailAddress' => $billing_address->billing_email ?? '',
-            'PhoneNumber' => $billing_address->billing_phone ?? '',
+            'BillingPostcode' => $billing_address->postcode ?? '',
+            'EmailAddress' => $billing_address->email ?? '',
+            'PhoneNumber' => $billing_address->phone ?? '',
         ];
     
         if (isset($billing_address->ship_to_different_address) && $billing_address->ship_to_different_address == 1) {
             $shipping_address = new MCWC_ShippingAddress();
 
-            $delivery_country_name = $shipping_address->shipping_country ?? '';
+            $delivery_country_name = $shipping_address->country ?? '';
             $delivery_country_code = array_search($delivery_country_name, $countries);    
 
-            $cardholder_detail_information['DeliveryName'] = isset($shipping_address->shipping_first_name) && isset($shipping_address->shipping_last_name) ? "{$shipping_address->shipping_first_name} {$shipping_address->shipping_last_name}" : '';
-            $cardholder_detail_information['DeliveryCompany'] = $shipping_address->shipping_company ?? '';
-            $cardholder_detail_information['DeliveryLine1'] = $shipping_address->shipping_address_1 ?? '';
-            $cardholder_detail_information['DeliveryLine2'] = $shipping_address->shipping_address_2 ?? '';
-            $cardholder_detail_information['DeliveryCity'] = $shipping_address->shipping_city ?? '';
-            $cardholder_detail_information['DeliveryCounty'] = $shipping_address->shipping_state ?? '';
-            $cardholder_detail_information['DeliveryCountry'] = $shipping_address->shipping_country ?? '';
+            $cardholder_detail_information['DeliveryName'] = "{$shipping_address->first_name} {$shipping_address->last_name}";
+            $cardholder_detail_information['DeliveryCompany'] = $shipping_address->company ?? '';
+            $cardholder_detail_information['DeliveryLine1'] = $shipping_address->address_1 ?? '';
+            $cardholder_detail_information['DeliveryLine2'] = $shipping_address->address_2 ?? '';
+            $cardholder_detail_information['DeliveryCity'] = $shipping_address->city ?? '';
+            $cardholder_detail_information['DeliveryCounty'] = $shipping_address->state ?? '';
+            $cardholder_detail_information['DeliveryCountry'] = $shipping_address->country ?? '';
             $cardholder_detail_information['DeliveryCountryCode'] = $delivery_country_code;
-            $cardholder_detail_information['DeliveryPostcode'] = $shipping_address->shipping_postcode ?? '';
+            $cardholder_detail_information['DeliveryPostcode'] = $shipping_address->postcode ?? '';
         }
         else {
             $cardholder_detail_information['DeliveryIsBilling'] = "YES";
@@ -194,11 +193,11 @@ class MCWC_PreparedPaymentRequestBuilder
             $coupon = new WC_Coupon($coupon_code);
     
             if ($wc_discounts -> is_coupon_valid($coupon)) {
-                $discounts[] = array(
+                $discounts[] = [
                     'code' => $coupon_code,
                     'description' => MCWC_TransactionHelper::mcwc_trim_description($coupon->get_description()),
                     'amount' => $coupon->get_amount()
-                );
+                ];
             }
         }
     
@@ -219,10 +218,10 @@ class MCWC_PreparedPaymentRequestBuilder
         foreach ($tax_lines as $tax) {
             $data = $tax->get_data();
             $taxes[] = [
-                'code' => $data['rate_code'],
+                'code' => $data['rate_code'] ?? '',
                 'description' => MCWC_TransactionHelper::mcwc_trim_description($data['label']),
-                'rate' => $data['rate_percent'],
-                'amount' => $data['tax_total']
+                'rate' => $data['rate_percent'] ?? '',
+                'amount' => ($data['tax_total'] ?? 0) == 0 ? ($data['shipping_tax_total'] ?? '') : $data['tax_total']
             ];
         }
     
