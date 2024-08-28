@@ -4,6 +4,8 @@
 * Update - Updated text-domain to match slug. Updated text-domain in all files
 * Added - Added additional sanitisations to input fields
 * Update - Updated names to use a unique prefix to avoid conflicts with other plugins
+* Update - Updated the callback identification check
+* Fixed - Prevented direct access to plugin files
 
 2024-08-23 version 3.0.3
 * Fixed - MON-936/Fixed-Security-Flags, Sanitized input fields (#13)
