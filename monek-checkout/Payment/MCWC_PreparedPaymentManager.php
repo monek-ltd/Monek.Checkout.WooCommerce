@@ -5,7 +5,7 @@
  *
  * @package Monek
  */
-class PreparedPaymentManager 
+class MCWC_PreparedPaymentManager 
 {
     private bool $is_test_mode_active;
 
@@ -27,16 +27,16 @@ class PreparedPaymentManager
      * @param string $purchase_description
      * @return array|WP_Error
      */
-    public function create_prepared_payment(WC_Order $order, string $merchant_id,  string $country_code,  
+    public function mcwc_create_prepared_payment(WC_Order $order, string $merchant_id,  string $country_code,  
         string $return_plugin_url, string $purchase_description)
     {
-        if (!$this->verify_nonce()) {
-            return new WP_Error('invalid_nonce', __('Invalid nonce', 'monek-payment-gateway'));
+        if (!$this->mcwc_verify_nonce()) {
+            return new WP_Error('invalid_nonce', __('Invalid nonce', 'monek-checkout'));
         }
-        $request_builder = new PreparedPaymentRequestBuilder();
-        $prepared_payment_request = $request_builder->build_request($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description);
+        $request_builder = new MCWC_PreparedPaymentRequestBuilder();
+        $prepared_payment_request = $request_builder->mcwc_build_request($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description);
 
-        return $this->send_prepared_payment_request($prepared_payment_request);
+        return $this->mcwc_send_prepared_payment_request($prepared_payment_request);
     }
     
     /**
@@ -44,10 +44,10 @@ class PreparedPaymentManager
      *
      * @return string
      */
-    private function get_ipay_prepare_url() : string
+    private function mcwc_get_ipay_prepare_url() : string
     {
         $ipay_prepare_extension = 'iPayPrepare.ashx';
-        return ($this->is_test_mode_active ? MonekGateway::$staging_url : MonekGateway::$elite_url) . $ipay_prepare_extension;
+        return esc_url(($this->is_test_mode_active ? MCWC_MonekGateway::$staging_url : MCWC_MonekGateway::$elite_url) . $ipay_prepare_extension);
     }
 
     /**
@@ -56,9 +56,9 @@ class PreparedPaymentManager
      * @param array $prepared_payment_request
      * @return array|WP_Error
      */
-    private function send_prepared_payment_request(array $prepared_payment_request)
+    private function mcwc_send_prepared_payment_request(array $prepared_payment_request)
     {
-        $prepared_payment_url = $this->get_ipay_prepare_url();
+        $prepared_payment_url = $this->mcwc_get_ipay_prepare_url();
 
         return wp_remote_post($prepared_payment_url, [
             'body' => http_build_query($prepared_payment_request),
@@ -70,7 +70,7 @@ class PreparedPaymentManager
      *
      * @return bool
      */
-    private function verify_nonce() : bool
+    private function mcwc_verify_nonce() : bool
     {
         $nonce = filter_input(INPUT_POST, "woocommerce-process-checkout-nonce", FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 

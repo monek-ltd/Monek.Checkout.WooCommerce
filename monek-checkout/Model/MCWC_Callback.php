@@ -5,7 +5,7 @@
  *
  * @package monek
  */
-class Callback 
+class MCWC_Callback 
 {
     public $wp_nonce;
     public $payment_reference;

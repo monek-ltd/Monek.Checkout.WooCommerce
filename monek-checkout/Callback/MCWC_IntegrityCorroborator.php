@@ -5,7 +5,7 @@
  * 
  * @package Monek
  */
-class IntegrityCorroborator 
+class MCWC_IntegrityCorroborator 
 {
     private $is_test_mode_active;
 
@@ -21,15 +21,15 @@ class IntegrityCorroborator
      * Confirm the integrity of the transaction data through an HTTP POST request to the Monek API 
      *
      * @param WC_Order $order
-     * @param WebhookPayload $transaction_webhook_payload_data
+     * @param MCWC_WebhookPayload $transaction_webhook_payload_data
      * @return array|WP_Error
      */
-    public function confirm_integrity_digest(WC_Order $order, WebhookPayload $transaction_webhook_payload_data)
+    public function mcwc_confirm_integrity_digest(WC_Order $order, MCWC_WebhookPayload $transaction_webhook_payload_data)
     {
-        $idempotency_token = get_post_meta($order->get_id(), 'idempotency_token', true);
-        $integrity_secret = get_post_meta($order->get_id(), 'integrity_secret', true);
+        $idempotency_token = sanitize_text_field(get_post_meta($order->get_id(), 'idempotency_token', true));
+        $integrity_secret = sanitize_text_field(get_post_meta($order->get_id(), 'integrity_secret', true));
 
-        $integrity_check_url = $this->get_integrity_check_url();
+        $integrity_check_url = esc_url($this->mcwc_get_integrity_check_url());
 
         return wp_remote_post($integrity_check_url, [
             'body' => http_build_query([
@@ -55,9 +55,9 @@ class IntegrityCorroborator
      *
      * @return string
      */
-    private function get_integrity_check_url(): string
+    private function mcwc_get_integrity_check_url(): string
     {
         $integrity_check_extension = 'IntegrityCheck.ashx';
-        return ($this->is_test_mode_active ? MonekGateway::$staging_url : MonekGateway::$elite_url) . $integrity_check_extension;
+        return ($this->is_test_mode_active ? MCWC_MonekGateway::$staging_url : MCWC_MonekGateway::$elite_url) . $integrity_check_extension;
     }
 }
