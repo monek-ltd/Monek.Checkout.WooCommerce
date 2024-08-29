@@ -85,7 +85,7 @@ class MCWC_WebhookPayload
         $value = sanitize_text_field($value);
 
         if (empty($value)) {
-            throw new InvalidArgumentException("$fieldName is required.");
+            throw new InvalidArgumentException(esc_html("$fieldName is required."));
         }
 
         return $value;
