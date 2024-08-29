@@ -78,6 +78,6 @@ class MCWC_PreparedPaymentManager
             return false;
         }
 
-        return wp_verify_nonce($nonce, 'woocommerce-process_checkout');
+        return wp_verify_nonce(sanitize_text_field( wp_unslash( $nonce ) ), 'woocommerce-process_checkout');
     }
 }

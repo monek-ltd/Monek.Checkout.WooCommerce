@@ -57,7 +57,7 @@ class MCWC_CallbackController
     {
         $callback = new MCWC_Callback();
 
-        if (!wp_verify_nonce($callback->wp_nonce, "complete-payment_{$callback->payment_reference}")) {
+        if (!wp_verify_nonce(sanitize_text_field( wp_unslash( $callback->wp_nonce)), "complete-payment_{$callback->payment_reference}")) {
             new WP_Error('invalid_nonce', __('Invalid nonce', 'monek-checkout'));
             return;
         }
