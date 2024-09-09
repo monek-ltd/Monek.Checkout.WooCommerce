@@ -1,7 +1,7 @@
 === Monek Checkout ===
 Contributors: monek, humberstone83-x
 Tags: ecommerce, e-commerce, payment-method, payment-gateway, gateway
-Stable tag: 3.1.0
+Stable tag: 3.2.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Tested up to: 6.6.1
@@ -31,3 +31,13 @@ Customers can now securely pay using credit and debit cards via Monek.
 Note: If you do not have a Monek ID, please visit Monek's website to sign up and obtain your ID. For any assistance with setup or integration, contact Monek directly through their website.
 
 Experience the future of payment processing with Monek � where simplicity meets sophistication.
+
+== Configuration ==
+
+GooglePay: 
+
+Indicates if the Google Pay™ button will appear on the checkout page. `YES` or `NO` (default)
+
+All merchants must adhere to the Google Pay APIs [Acceptable Use Policy](https://payments.developers.google.com/terms/aup) and accept the terms defined in the [Google Pay API Terms of Service](https://payments.developers.google.com/terms/sellertos). 
+
+Google Pay is a trademark of Google LLC.
