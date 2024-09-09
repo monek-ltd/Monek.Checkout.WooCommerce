@@ -110,8 +110,8 @@ class MCWC_MonekGateway extends WC_Payment_Gateway
                 'title' => __('Enable GooglePay', 'monek-checkout'),
                 'type' => 'checkbox',
                 'default' => 'no',
-                'label' => __('Enable GooglePay', 'monek-checkout'),
-                'description' => __('Enable this option to provide access to GooglePay as a payment option. Merchants must adhere to the Google Pay APIs Acceptable Use Policy and accept the terms defined in the Google Pay API Terms of Service.', 'monek-checkout'),
+                'label' => __('Enable this option to provide access to GooglePay as a payment option.', 'monek-checkout'),
+                'description' => __('Merchants must adhere to the <a href="https://payments.developers.google.com/terms/aup" target="_blank">Google Pay APIs Acceptable Use Policy</a> and accept the terms defined in the <a href="https://payments.developers.google.com/terms/sellertos" target="_blank">Google Pay API Terms of Service</a>.', 'monek-checkout'),
                 'desc_tip' => true
             ],
             'basket_summary' => [
