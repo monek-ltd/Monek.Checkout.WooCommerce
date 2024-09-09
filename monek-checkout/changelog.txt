@@ -1,5 +1,8 @@
 *** Monek Checkout Changelog ***
 
+2024-09-09 version 3.2.0
+* Added - Added a new feature to allow the user to enable GooglePay as a payment method
+
 2024-08-28 version 3.1.0
 * Update - Updated text-domain to match slug. Updated text-domain in all files
 * Added - Added additional sanitisations to input fields

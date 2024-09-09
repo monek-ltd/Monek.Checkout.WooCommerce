@@ -8,13 +8,15 @@
 class MCWC_PreparedPaymentManager 
 {
     private bool $is_test_mode_active;
+    private bool $show_google_pay;
 
     /**
      * @param bool $is_test_mode_active
      */
-    public function __construct(bool $is_test_mode_active) 
+    public function __construct(bool $is_test_mode_active, bool $show_google_pay) 
     { 
         $this->is_test_mode_active = $is_test_mode_active;
+        $this->show_google_pay = $show_google_pay;
     }    
 
     /**
@@ -33,7 +35,7 @@ class MCWC_PreparedPaymentManager
         if (!$this->mcwc_verify_nonce()) {
             return new WP_Error('invalid_nonce', __('Invalid nonce', 'monek-checkout'));
         }
-        $request_builder = new MCWC_PreparedPaymentRequestBuilder();
+        $request_builder = new MCWC_PreparedPaymentRequestBuilder($this->show_google_pay);
         $prepared_payment_request = $request_builder->mcwc_build_request($order, $merchant_id, $country_code, $return_plugin_url, $purchase_description);
 
         return $this->mcwc_send_prepared_payment_request($prepared_payment_request);
