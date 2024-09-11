@@ -40,7 +40,7 @@ class MCWC_Address
     public function mcwc_validate_postcode(string $postcode, string $country) : bool 
     {
         $postcodePatterns = [
-            'GB' => '/^([A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2})$/',  // United Kingdom
+            'GB' => '/^([A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2})$/i',  // United Kingdom
             'AU' => '/^\d{4}$/',                               // Australia
             'AT' => '/^\d{4}$/',                               // Austria
             'BE' => '/^\d{4}$/',                               // Belgium

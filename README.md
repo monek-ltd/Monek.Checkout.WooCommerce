@@ -136,3 +136,22 @@ By updating the permalink structure, you ensure that the Monek Gateway can handl
 
 #### Note:
 If your permalink structure is already set to a non-'Plain' option, or if your site is using a custom permalink structure, this issue does not apply.
+
+
+
+## Support and Assistance
+
+Please feel free to contact Monek Support for any assistance or inquiries related to the WooCommerce Monek Gateway plugin. Our team is available to help you with installation, configuration, and troubleshooting to ensure a seamless payment processing experience for your online store.
+
+For support, visit the [Monek Contact Page](https://monek.com/contact) or email us at support@monek.com
+
+### Frequently Asked Questions:
+
+#### Issue 1: Why is my order in 'Pending Payment' and not cancelling when the user fails to complete the payment?
+Pending Payment means the order has been received, but no payment has been made. Pending payment orders are generally awaiting customer action. 
+
+If the customer fails to complete the payment, the order will remain in 'Pending Payment' status until it is manually cancelled or the payment is completed unless the timeout period is reached. 
+
+The timeout period is set in the WooCommerce settings. To change the timeout period, navigate to WooCommerce > Settings > Products > Inventory > Hold Stock. Adjust the timeout period as needed.
+
+This is a WooCommerce default behavior and not specific to the Monek Gateway plugin.

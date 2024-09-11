@@ -9,6 +9,13 @@ class MCWC_PreparedPaymentRequestBuilder
 {    
     private const PARTIAL_ORIGIN_ID = 'a6c921f4-8e00-4b11-99f4-';
 
+    private bool $show_google_pay;
+
+    public function __construct($show_google_pay) 
+    {
+        $this->show_google_pay = $show_google_pay;
+    }
+
     /**
      * Build the prepared payment request for the payment gateway
      *
@@ -45,8 +52,9 @@ class MCWC_PreparedPaymentRequestBuilder
             'IntegritySecret' => get_post_meta($order->get_id(), 'integrity_secret', true),
             'Basket' => $this->mcwc_generate_basket_base64($order),
             'ShowDeliveryAddress' => 'YES',
+            'ShowGooglePay' => $this->show_google_pay ? 'YES' : 'NO',
             'WPNonce' => wp_create_nonce('complete-payment_' . $order->get_id()),
-            'Callback' => 'true'
+            'Callback' => 'true',
         ];
 
         return $this->mcwc_generate_cardholder_detail_information($prepared_payment_request);
@@ -64,7 +72,7 @@ class MCWC_PreparedPaymentRequestBuilder
             'items' => $this->mcwc_get_item_details($order),
             'discounts' => $this->mcwc_get_order_discounts($order),
             'taxes' => $this->mcwc_get_order_taxes($order),
-            'delivery' => $this->mcwc_get_order_delivery($order)[0]
+            'delivery' => $this->mcwc_get_order_delivery($order)[0] ?? []
         ];
         
         $basket = array_filter($basket, function($value) {

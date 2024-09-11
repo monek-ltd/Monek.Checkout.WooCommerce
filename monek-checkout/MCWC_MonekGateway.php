@@ -21,6 +21,7 @@ class MCWC_MonekGateway extends WC_Payment_Gateway
     private bool $is_test_mode_active;
     public string $merchant_id;
     private MCWC_PreparedPaymentManager $prepared_payment_manager;
+    private bool $show_google_pay;
     public static string $staging_url = 'https://staging.monek.com/Secure/';
 
     public function __construct() 
@@ -32,7 +33,7 @@ class MCWC_MonekGateway extends WC_Payment_Gateway
 
         add_action("woocommerce_update_options_payment_gateways_{$this->id}", [$this, 'process_admin_options'] ); 
 
-        $this->prepared_payment_manager = new MCWC_PreparedPaymentManager($this->is_test_mode_active);
+        $this->prepared_payment_manager = new MCWC_PreparedPaymentManager($this->is_test_mode_active, $this->show_google_pay);
 
         $callback_controller = new MCWC_CallbackController($this->is_test_mode_active);
         $callback_controller->mcwc_register_routes();
@@ -60,6 +61,7 @@ class MCWC_MonekGateway extends WC_Payment_Gateway
 		$this->description = __('Pay securely with Monek.', 'monek-checkout');
         $this->merchant_id = $this->get_option( 'merchant_id' );
         $this->is_test_mode_active = isset($this->settings['test_mode']) && $this->settings['test_mode'] == 'yes';
+        $this->show_google_pay = isset($this->settings['google_pay']) && $this->settings['google_pay'] == 'yes';
         $this->country_dropdown = $this->get_option('country_dropdown');
         $this->basket_summary = $this->get_option('basket_summary');
     }
@@ -102,6 +104,13 @@ class MCWC_MonekGateway extends WC_Payment_Gateway
                 'default' => 'no',
                 'label' => __('Enable trial features', 'monek-checkout'),
                 'description' => __('Enable this option to access trial features. Trial features provide early access to new functionalities and enhancements that are currently in testing.', 'monek-checkout'),
+                'desc_tip' => true
+            ],
+            'google_pay' => [
+                'title' => __('Enable GooglePay', 'monek-checkout'),
+                'type' => 'checkbox',
+                'default' => 'no',
+                'label' => __('Enable this option to provide access to GooglePay as a payment option. Merchants must adhere to the <a href="https://payments.developers.google.com/terms/aup" target="_blank">Google Pay APIs Acceptable Use Policy</a> and accept the terms defined in the <a href="https://payments.developers.google.com/terms/sellertos" target="_blank">Google Pay API Terms of Service</a>.', 'monek-checkout'),
                 'desc_tip' => true
             ],
             'basket_summary' => [
