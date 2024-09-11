@@ -72,7 +72,7 @@ class MCWC_PreparedPaymentRequestBuilder
             'items' => $this->mcwc_get_item_details($order),
             'discounts' => $this->mcwc_get_order_discounts($order),
             'taxes' => $this->mcwc_get_order_taxes($order),
-            'delivery' => $this->mcwc_get_order_delivery($order)[0]
+            'delivery' => $this->mcwc_get_order_delivery($order)[0] ?? []
         ];
         
         $basket = array_filter($basket, function($value) {
