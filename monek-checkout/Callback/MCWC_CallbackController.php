@@ -97,44 +97,41 @@ class MCWC_CallbackController
      */
     private function mcwc_process_transaction_webhook_payload(MCWC_WebhookPayload $payload) : void
     {
-        if(filter_input(INPUT_SERVER, 'REQUEST_METHOD', FILTER_SANITIZE_FULL_SPECIAL_CHARS) === 'POST') {
-
-            if(!$payload->mcwc_validate()){
-                header('HTTP/1.1 400 Bad Request');
-                echo wp_json_encode(['error' => 'Bad Request']);
-                return;
-            }
-
-            $order = wc_get_order($payload->payment_reference);
-            if(!$order){
-                header('HTTP/1.1 400 Bad Request');
-                echo wp_json_encode(['error' => 'Bad Request']);
-                return;
-            }
-
-            if($payload->response_code == '00'){
-                $saved_integrity_secret = get_post_meta($order->get_id(), 'integrity_secret', true);
-                if(!isset($saved_integrity_secret) || $saved_integrity_secret == ''){
-                    header('HTTP/1.1 500 Internal Server Error');
-                    echo wp_json_encode(['error' => 'Internal Server Error']);
-                    return;
-                }
-
-                $response = $this->integrity_corroborator->mcwc_confirm_integrity_digest($order, $payload);
-
-                if (is_wp_error($response) || wp_remote_retrieve_response_code($response) >= 300) {
-                    header('HTTP/1.1 400 Bad Request');
-                    echo wp_json_encode(['error' => 'Bad Request']);
-                } else {
-                    $order->add_order_note(__('Payment confirmed.', 'monek-checkout'));
-                    $order->payment_complete();
-                }
-            }
+        if(!$payload->mcwc_validate()){
+            error_log( 'Failed Validation' );
+            header('HTTP/1.1 400 Bad Request');
+            echo wp_json_encode(['error' => 'Bad Request']);
+            return;
         }
-        else {
-            header('HTTP/1.1 405 Method Not Allowed');
-            header('Allow: POST');
-            echo wp_json_encode(['error' => 'Method Not Allowed']);
+
+        $order = wc_get_order($payload->payment_reference);
+        if(!$order){
+            error_log( 'Order not found' );
+            header('HTTP/1.1 400 Bad Request');
+            echo wp_json_encode(['error' => 'Bad Request']);
+            return;
+        }
+
+        if($payload->response_code == '00'){
+            $saved_integrity_secret = get_post_meta($order->get_id(), 'integrity_secret', true);
+            if(!isset($saved_integrity_secret) || $saved_integrity_secret == ''){
+                error_log( 'Integrity secret not found' );
+                header('HTTP/1.1 500 Internal Server Error');
+                echo wp_json_encode(['error' => 'Internal Server Error']);
+                return;
+            }
+
+            $response = $this->integrity_corroborator->mcwc_confirm_integrity_digest($order, $payload);
+
+            if (is_wp_error($response) || wp_remote_retrieve_response_code($response) >= 300) {
+                error_log( 'Integrity check failed' );
+                header('HTTP/1.1 400 Bad Request');
+                echo wp_json_encode(['error' => 'Bad Request']);
+            } else {
+                error_log( 'Integrity check passed' );
+                $order->add_order_note(__('Payment confirmed.', 'monek-checkout'));
+                $order->payment_complete();
+            }
         }
     }
 }

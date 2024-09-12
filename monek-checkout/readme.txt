@@ -1,7 +1,7 @@
 === Monek Checkout ===
 Contributors: monek, humberstone83-x
 Tags: ecommerce, e-commerce, payment-method, payment-gateway, gateway
-Stable tag: 3.2.0
+Stable tag: 3.2.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Tested up to: 6.6.1

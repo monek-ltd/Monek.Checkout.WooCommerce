@@ -1,5 +1,8 @@
 *** Monek Checkout Changelog ***
 
+2024-09-12 version 3.2.1
+* Added - Added some webhook logging to help with debugging
+
 2024-09-09 version 3.2.0
 * Added - Added a new feature to allow the user to enable GooglePay as a payment method
 * Fixed - If no shipping options set, fixed trying to access empty array
