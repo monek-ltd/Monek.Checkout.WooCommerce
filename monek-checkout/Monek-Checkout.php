@@ -5,7 +5,7 @@
  * Author: Monek Ltd
  * Author URI: http://www.monek.com
  * Description: Take credit/debit card payments with Monek.
- * Version: 3.2.0
+ * Version: 3.2.1
  * text-domain: monek-checkout
  * Requires Plugins: woocommerce
  * License: GPLv3 or later
@@ -15,7 +15,7 @@
  * Requires at least: 5.0
  * Tested up to: 6.6.1
  * Requires PHP: 7.4
- * Stable tag: 3.2.0
+ * Stable tag: 3.2.1
  */
 
  /*
