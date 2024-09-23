@@ -1,0 +1,63 @@
+*** Monek Checkout Changelog ***
+
+2024-09-12 version 3.2.2
+* Tweak - Updated folder structure to match SVN Repo
+* Updated - README.md
+* Updated - Readme.txt
+* Added - assets for directory
+* Added - 3.2.2 tag
+
+2024-09-12 version 3.2.1
+* Added - Added some webhook logging to help with debugging
+* Fixed - Removed webhook response method check to fix random method not allowed error
+
+2024-09-09 version 3.2.0
+* Added - Added a new feature to allow the user to enable GooglePay as a payment method
+* Fixed - If no shipping options set, fixed trying to access empty array
+* Added - Added FAQ to repo README.md
+* Fixed - Made the GB Postcode validation case insensitive. 
+
+2024-08-28 version 3.1.0
+* Update - Updated text-domain to match slug. Updated text-domain in all files
+* Added - Added additional sanitisations to input fields
+* Update - Updated names to use a unique prefix to avoid conflicts with other plugins
+* Update - Updated the callback identification check
+* Fixed - Prevented direct access to plugin files
+
+2024-08-23 version 3.0.3
+* Fixed - MON-936/Fixed-Security-Flags, Sanitized input fields (#13)
+* Fixed - MON-936/Fixed-Security-Flags, Changed to use wp_safe_redirect
+* Fixed - Mon-936/Fixed-Security-Flags, Changed root folder to match slug monek-checkout
+* Update - Updated to use new PHP 7.4 features and updated required PHP version
+* Added - Added PHPDoc comments to classes and functions
+* Tweak - Extracted some logic into new classes and created new folder structure to uncrowd the root folder
+* Tweak - Cleaned up some of the naming conventions
+
+2024-08-14 version 3.0.2
+* Fixed - SAM-4678/Trim-Basket-Descriptions (#12)
+
+2024-07-23 version 3.0.1
+* Tweak - MON-708/Add-Nonce-Tokens (#11)
+
+2024-07-16 version 3.0.0
+* Feature - Mon 708/New-Checkout-Page (#9)
+* Remove - Remove deprecated methods (#10)
+* Update - Change plugin name
+* Added - readme.txt file
+* Added - reference to license
+
+2024-06-18 version 2.0.1
+* Update - Randomise integrity secret
+
+2024-06-18 version 2.0.0
+* Feature - New security protocol
+* Removed - Removed transaction response echo
+* Added - Validate integrity digest from webhook response
+
+2024-02-14 version 1.1.0
+* Added - Create country drop down
+* Updated - Alter passed fields
+* Updated - Basic code refactor
+
+2024-02-05 v1.0.0
+* Feature Initial release

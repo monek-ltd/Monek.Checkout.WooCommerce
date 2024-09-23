@@ -1,70 +1,85 @@
 # Monek.Checkout.WooCommerce
-### Monek WooCommerce Plugin
+### Monek Checkout (For WooCommerce) Plugin
 
-Enhance your online store with the Monek WooCommerce Plugin, a powerful and seamless integration for secure payment processing. Accept payments effortlessly, streamline transactions, and provide a smooth checkout experience for your customers.
+Enhance your online store with the Monek Checkout Plugin, a powerful and seamless integration for secure payment processing. Accept payments effortlessly, streamline transactions, and provide a smooth checkout experience for your customers.
 
 Contents:
-- Manual Installation Guide
+- Installation Instructions
+- Support and Assistance
 - Known Issues
+- Repository Information
+- Developer Information
 
 
 
-## Manual Installation Guide for Monek Gateway in WooCommerce
+## Installation Instructions for Monek Checkout
+There are 2 ways to install the Monek Checkout plugin for WooCommerce, either through the WordPress Plugin Directory or manually by downloading the plugin files from GitHub. Follow the instructions below to install the Monek Checkout plugin on your WooCommerce store.
 
-### Introduction
+
+### Installation via WordPress Plugin Directory
+In the back office of your WordPress site, you can install the Monek Checkout plugin directly from the WordPress Plugin Directory. Simply browse for the Monek Checkout plugin and install it with a few clicks. This is the easiest way to install the plugin, but we also provide a manual installation guide below.
+
+### Manual Installation Guide for Monek Checkout
+
+#### Introduction
 This guide provides step-by-step instructions for manually installing the Monek Gateway plugin for WooCommerce. Ensure that you have the necessary permissions and backups before proceeding.
 
-### Prerequisites
+#### Prerequisites
 - WordPress installed and activated.
 - *Permalink structure setting not set to "plain". *(see known issue 2)
 - WooCommerce plugin installed and activated.
 - FTP client (e.g., FileZilla) or access to your web server's file manager.
 
-### Step 1: Download the WooCommerce Monek Gateway Plugin from GitHub
-Visit the [GitHub repository](https://github.com/monek-ltd/Monek.Checkout.WooCommerce/) where the WooCommerce Monek Gateway plugin is hosted and download the [latest version](https://github.com/monek-ltd/Monek.Checkout.WooCommerce/releases/latest) of the plugin files. Github should allow you to download the repository as a ZIP archive.
+#### Step 1: Download Monek Checkout from GitHub
+Visit the [GitHub repository](https://github.com/monek-ltd/Monek.Checkout.WooCommerce/) where the Monek Checkout plugin is hosted and download the [latest version](https://github.com/monek-ltd/Monek.Checkout.WooCommerce/releases/latest) of the plugin files. Github should allow you to download the repository as a ZIP archive.
 
 
-### Step 2: Extract Plugin Files
-After downloading the [latest version](https://github.com/monek-ltd/Monek.Checkout.WooCommerce/releases/latest) WooCommerce Monek Gateway plugin from the [GitHub repository](https://github.com/monek-ltd/Monek.Checkout.WooCommerce/), extract the contents of the ZIP file to your local machine. This will reveal the plugin files and folders. (Look for the "monekcheckout" folder)
+#### Step 2: Extract Plugin Files
+After downloading the [latest version](https://github.com/monek-ltd/Monek.Checkout.WooCommerce/releases/latest) Monek Checkout plugin from the [GitHub repository](https://github.com/monek-ltd/Monek.Checkout.WooCommerce/), extract the contents of the ZIP file to your local machine. 
+
+This will reveal the plugin files and folders, Locate the version you want to install under tags and then copy the plugin files. (Look for the "monek-checkout" folder, there is also a copy under trunk but this is considered a development version and is not recommended to use.)
+
+You will need to use all the files and folders in the "monek-checkout" folder for the installation. 
 
 
-### Step 3: Connect to Your WordPress Site
+#### Step 3: Connect to Your WordPress Site
 Use your preferred FTP client or your web server's file manager to connect to your WordPress site. If you're not familiar with connecting via FTP, refer to your hosting provider's documentation for guidance. You'll need your FTP credentials (hostname, username, password).
 
 If you're using an FTP client like FileZilla, enter the provided credentials and connect to your server. If you're using a web server's file manager, log in to your hosting account and locate the file manager tool.
 
+(It is also possible to rezip just the "monek-checkout" folder and upload it directly to the site via the plugins tab of your site, if you do this skip the remaining steps and head straight to configuration.)
 
-### Step 4: Navigate to the Plugins Directory
+
+#### Step 4: Navigate to the Plugins Directory
 Once connected to your WordPress site via FTP or file manager:
 
 Navigate to the wp-content/plugins/ directory on your WordPress installation. This is the location where WordPress stores all plugin files.
 
-Locate and access the plugins directory to prepare for uploading the WooCommerce Monek Gateway plugin.
+Locate and access the plugins directory to prepare for uploading the Monek Checkout plugin.
 
 
-### Step 5: Upload the WooCommerce Monek Gateway Plugin
-With the wp-content/plugins/ directory open, upload the extracted WooCommerce Monek Gateway plugin folder "monekcheckout" to this location.
+#### Step 5: Upload the Monek Checkout Plugin
+With the wp-content/plugins/ directory open, upload the extracted Monek Checkout plugin folder "monekcheckout" to this location.
 
 If using an FTP client like FileZilla, drag and drop the folder from your local machine to the plugins directory on the server.
 
-If using a web server's file manager, look for an "Upload" or "Import" option and select the WooCommerce Monek Gateway plugin folder from your local machine.
+If using a web server's file manager, look for an "Upload" or "Import" option and select the Monek Checkout plugin folder from your local machine.
 
-Ensure that folder "monekcheckout" are successfully uploaded to the wp-content/plugins/ directory.
+Ensure that folder "monek-checkout" is successfully uploaded to the wp-content/plugins/ directory.
 
 
-
-### Step 6: Activate the WooCommerce Monek Gateway Plugin
+#### Step 6: Activate the Monek checkout Plugin
 Log in to your WordPress admin dashboard.
 
 Navigate to "Plugins" from the left sidebar.
 
-In the list of plugins, find "WooCommerce Monek Gateway."
+In the list of plugins, find "Monek Checkout."
 
 Click the "Activate" link below the plugin name.
 
 
 
-### Step 7: Configure the WooCommerce Monek Gateway
+#### Step 7: Configure the Monek Checkout
 After activation, navigate to "WooCommerce" > "Settings" from the left sidebar.
 
 Go to the "Payments" tab.
@@ -82,72 +97,17 @@ Save changes to apply the configuration.
 If you don't have the necessary information, such as your Monek ID, visit [Monek Contact Page](https://monek.com/contact) to get help. Ensure that all information entered is accurate to enable seamless payment processing on your WooCommerce store.
 
 
-
-
-
-## Known Issue 1: Compatibility with WooCommerce Cart and Checkout Blocks
-Starting with WooCommerce version 8.3, the Cart and Checkout Blocks become the default for new installations. However, this change may prevent the Monek Gateway from appearing in the checkout section.
-
-### Issue Description:
-#### - Affected Versions: 
-WooCommerce 8.3 and later for new installations.
-#### - Impact: 
-The Monek Gateway may not be visible in the checkout section due to the default Cart and Checkout Blocks.
-### Solution:
-To resolve this issue and ensure the Monek Gateway appears on the checkout page, follow these steps:
-
-### Revert to Classic Checkout Shortcode:
-
-If you are experiencing this issue, you can revert to the classic checkout shortcode. This step ensures compatibility with the Monek Gateway.
-
-Open the page where you have the checkout, likely titled "Checkout."
-Replace any existing WooCommerce block with the classic shortcode `[woocommerce_checkout]`.
-For more information on managing the Cart and Checkout Blocks, refer to the [WooCommerce documentation](https://woo.com/document/cart-checkout-blocks-status/#section-11).
-
-#### Note: 
-If your site is already using the classic checkout shortcode or is updating from an older version of WooCommerce, this issue does not apply.
-
-
-
-## Known Issue 2: Permalink Structure Conflict Resulting in 3005 Error
-
-When configuring your WooCommerce site, it's crucial to be aware of a known issue related to the permalink structure setting. Specifically, if your permalink structure is set to 'Plain,' it can lead to conflicts with a setting in the transaction call, resulting in a 3005 error from HTTP requests to the Monek payment page.
-
-### Issue Description:
-#### - Affected Versions:
-All WooCommerce versions may be affected if the permalink structure is set to 'Plain.'
-#### - Impact:
-The 3005 error occurs when the Monek Gateway rejects the return URL passed to it due to the presence of a query string. This issue arises when the permalink structure is set to 'Plain,' affecting the ability to redirect to complete transactions on the Monek payment page.
-
-### Solution:
-To resolve the 3005 error and ensure seamless transactions with the Monek Gateway, it is recommended to update the permalink structure setting. Follow these steps:
-
-### Update Permalink Structure:
-
-1. Navigate to your WordPress admin dashboard.
-2. Go to Settings > Permalinks.
-3. Choose a permalink structure other than 'Plain.' Options like 'Post name' or 'Day and name' are commonly used without causing conflicts.
-4. Save the changes.
-
-#### Warning:
-Updating the permalink structure can potentially cause issues on your site. Ensure that you carefully assess the impact of this change, particularly if your site relies on specific URL structures. It's advisable to test thoroughly in a staging environment before implementing changes on a live site.
-
-By updating the permalink structure, you ensure that the Monek Gateway can handle the return URL correctly, preventing the occurrence of the 3005 error.
-
-#### Note:
-If your permalink structure is already set to a non-'Plain' option, or if your site is using a custom permalink structure, this issue does not apply.
-
-
-
 ## Support and Assistance
 
-Please feel free to contact Monek Support for any assistance or inquiries related to the WooCommerce Monek Gateway plugin. Our team is available to help you with installation, configuration, and troubleshooting to ensure a seamless payment processing experience for your online store.
+Please feel free to contact Monek Support for any assistance or inquiries related to the Monek Checkout plugin. Our team is available to help you with installation, configuration, and troubleshooting to ensure a seamless payment processing experience for your online store.
 
 For support, visit the [Monek Contact Page](https://monek.com/contact) or email us at support@monek.com
 
+
+
 ### Frequently Asked Questions:
 
-#### Issue 1: Why is my order in 'Pending Payment' and not cancelling when the user fails to complete the payment?
+#### Question 1: Why is my order in 'Pending Payment' and not cancelling when the user fails to complete the payment?
 Pending Payment means the order has been received, but no payment has been made. Pending payment orders are generally awaiting customer action. 
 
 If the customer fails to complete the payment, the order will remain in 'Pending Payment' status until it is manually cancelled or the payment is completed unless the timeout period is reached. 
@@ -155,3 +115,128 @@ If the customer fails to complete the payment, the order will remain in 'Pending
 The timeout period is set in the WooCommerce settings. To change the timeout period, navigate to WooCommerce > Settings > Products > Inventory > Hold Stock. Adjust the timeout period as needed.
 
 This is a WooCommerce default behavior and not specific to the Monek Gateway plugin.
+
+
+
+### Known Issues and Solutions
+
+#### Known Issue 1: Compatibility with WooCommerce Cart and Checkout Blocks
+Starting with WooCommerce version 8.3, the Cart and Checkout Blocks become the default for new installations. However, this change may prevent the Monek Gateway from appearing in the checkout section.
+
+##### Issue Description:
+###### - Affected Versions: 
+WooCommerce 8.3 and later for new installations.
+###### - Impact: 
+The Monek Gateway may not be visible in the checkout section due to the default Cart and Checkout Blocks.
+##### Solution:
+To resolve this issue and ensure the Monek Gateway appears on the checkout page, follow these steps:
+
+##### Revert to Classic Checkout Shortcode:
+
+If you are experiencing this issue, you can revert to the classic checkout shortcode. This step ensures compatibility with the Monek Gateway.
+
+Open the page where you have the checkout, likely titled "Checkout."
+Replace any existing WooCommerce block with the classic shortcode `[woocommerce_checkout]`.
+For more information on managing the Cart and Checkout Blocks, refer to the [WooCommerce documentation](https://woo.com/document/cart-checkout-blocks-status/#section-11).
+
+###### Note: 
+If your site is already using the classic checkout shortcode or is updating from an older version of WooCommerce, this issue does not apply.
+
+
+
+#### Known Issue 2: Permalink Structure Conflict Resulting in 3005 Error
+
+When configuring your WooCommerce site, it's crucial to be aware of a known issue related to the permalink structure setting. Specifically, if your permalink structure is set to 'Plain,' it can lead to conflicts with a setting in the transaction call, resulting in a 3005 error from HTTP requests to the Monek payment page.
+
+##### Issue Description:
+###### - Affected Versions:
+All WooCommerce versions may be affected if the permalink structure is set to 'Plain.'
+###### - Impact:
+The 3005 error occurs when the Monek Gateway rejects the return URL passed to it due to the presence of a query string. This issue arises when the permalink structure is set to 'Plain,' affecting the ability to redirect to complete transactions on the Monek payment page.
+
+##### Solution:
+To resolve the 3005 error and ensure seamless transactions with the Monek Gateway, it is recommended to update the permalink structure setting. Follow these steps:
+
+##### Update Permalink Structure:
+
+1. Navigate to your WordPress admin dashboard.
+2. Go to Settings > Permalinks.
+3. Choose a permalink structure other than 'Plain.' Options like 'Post name' or 'Day and name' are commonly used without causing conflicts.
+4. Save the changes.
+
+###### Warning:
+Updating the permalink structure can potentially cause issues on your site. Ensure that you carefully assess the impact of this change, particularly if your site relies on specific URL structures. It's advisable to test thoroughly in a staging environment before implementing changes on a live site.
+
+By updating the permalink structure, you ensure that the Monek Gateway can handle the return URL correctly, preventing the occurrence of the 3005 error.
+
+###### Note:
+If your permalink structure is already set to a non-'Plain' option, or if your site is using a custom permalink structure, this issue does not apply.
+
+
+
+## Repository Information
+This repository contains the source code for the Monek WooCommerce Plugin, a payment gateway integration for WooCommerce stores. The plugin enables secure payment processing, seamless transactions, and enhanced checkout experiences for online shoppers. This repository is maintained both using GitHub and SVN, allowing for version control and distribution through the WordPress Plugin Directory. 
+
+Developers can contribute to the plugin's development, report issues, and suggest improvements through GitHub. For users, the repository provides access to the latest releases, installation instructions, known issues, and support details.
+
+The SVN repository is used to push updates to the WordPress Plugin Directory, ensuring that users can easily install and update the Monek WooCommerce Plugin directly from their WordPress admin dashboard.
+
+### Repository Contents:
+- Assets: Contains images and icons used in the plugin.
+- Tags: Contains versions of the plugin for download.
+- Trunk: Contains development versions of the plugin.
+- README.md: Provides information about the plugin, installation instructions, known issues, and support details.
+
+### Repository Links:
+- GitHub Repository: [Monek.Checkout.WooCommerce](https://github.com/monek-ltd/Monek.Checkout.WooCommerce/)
+- Wordpress SVN URL: [monek-checkout - Wordpress.org](https://plugins.svn.wordpress.org/monek-checkout)
+
+### Plugin Links:
+- Latest GitHub Release: [Monek Checkout - Releases (Latest)](https://github.com/monek-ltd/Monek.Checkout.WooCommerce/releases/latest)
+- Wordpress Public URL: [Monek Checkout](https://wordpress.org/plugins/monek-checkout/)
+
+
+
+## Developer Information
+
+The Monek WooCommerce Plugin is developed and maintained by Monek Ltd, If you are a Monek developer looking for further information on the plugin's codebase, structure, or functionality, please refer to the following details:
+
+
+### Important Information:
+Should any issues arrise with the plugin, it is possible that the plugin will be closed until the issues are resolved. Please ensure that we are vigilant in maintaining the plugin and keeping it up to date as well as tackling any issues as they arrise.
+
+Any code in trunk is considered development code but any code pushed to trunk should still be in a release ready state.
+
+Before any release, please ensure that the following steps are taken:
+- The plugin follows WordPress coding standards and best practices for secure and efficient development. Please refer to the [guidelines](https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/) here before crafting a new release. 
+- Also ensure that any release is checked using the [Plugin Check](https://wordpress.org/plugins/plugin-check/) tool before crafting a release.
+
+
+### Developer Resources:
+
+#### SVN Tips and Tricks
+
+If you're new to SVN, it can be a little weird to get used to. Unlike Git repositories, SVN is a release system. This means you should only be pushing ready-to-be-used versions of your plugin. You can use any SVN Client you like, but we recommend TortoiseSVN for windows.
+
+To get started, you should read this:
+
+https://developer.wordpress.org/plugins/wordpress-org/how-to-use-subversion/
+
+Some common points of confusion are:
+
+- SVN user IDs are the same as your WordPress.org login ID - not your email address
+- User IDs are case sensitive (if your account is JoDoe123HAY then you must use that exact ID)
+- You can set up your SVN credentials (if you haven't already) in the “Account & Security” section of your WordPress profile - https://profiles.wordpress.org/me/profile/edit/group/3/?screen=svn-password
+- Your readme content determines what information is shown on your WordPress.org public page - https://developer.wordpress.org/plugins/wordpress-org/how-your-readme-txt-works/
+- Your plugin banners, screenshots, and icons are handled via the special plugin assets folder - https://developer.wordpress.org/plugins/wordpress-org/plugin-assets/
+
+#### Useful Links:
+- [Using Subversion with the WordPress Plugin Directory](https://developer.wordpress.org/plugins/wordpress-org/how-to-use-subversion/)
+- [FAQ about the WordPress Plugin Directory](https://developer.wordpress.org/plugins/wordpress-org/plugin-developer-faq/)
+- [WordPress Plugin Directory readme.txt standard](https://wordpress.org/plugins/developers/#readme)
+- [A readme.txt validator](https://wordpress.org/plugins/developers/readme-validator/)
+- [Plugin Assets (header images, etc)](https://developer.wordpress.org/plugins/wordpress-org/plugin-assets/)
+- [WordPress Plugin Directory Guidelines](https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/)
+- [Block Specific Plugin Guidelines](https://developer.wordpress.org/plugins/wordpress-org/block-specific-plugin-guidelines/)
+- [Important notifications and updates](https://make.wordpress.org/plugins/)
+- [Development Log](https://plugins.trac.wordpress.org/log/monek-checkout/)
