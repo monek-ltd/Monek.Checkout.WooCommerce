@@ -8,9 +8,12 @@ Stable tag: 3.2.2
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Monek Checkout for WooCommerce integrates seamlessly for payments, allowing customers to pay with debit/credit cards. Install the plugin, create a Monek account, or connect an existing one to start accepting payments
+Monek Checkout for WooCommerce integrates seamlessly for payments, allowing customers to pay with debit/credit cards. 
 
 == Description ==
+
+Monek Checkout for WooCommerce integrates seamlessly for payments, allowing customers to pay with debit/credit cards. Install the plugin, create a Monek account, or connect an existing one to start accepting payments
+
 ✓ Streamlined checkout experience specifically crafted to minimize cart abandonment rates, it ensures a smooth transaction process for both merchants and customers.
 
 ✓ Designed with a mobile-first approach, our checkout page guarantees an intuitive and user-friendly shopping experience across all devices. This ensures that customers can easily complete their purchases from anywhere, at any time, contributing to higher satisfaction and increased sales for merchants. Whether customers are shopping from their smartphones, tablets, or desktops, the checkout process remains consistently efficient and hassle-free.
