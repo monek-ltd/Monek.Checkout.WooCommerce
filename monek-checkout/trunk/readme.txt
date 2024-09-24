@@ -113,6 +113,7 @@ This is a WooCommerce default behavior and not specific to the Monek Gateway plu
 == Screenshots ==
 1. Checkout Page
 2. Plugin Configuration Settings
+3. Payment Options
 
 == Changelog ==
 
