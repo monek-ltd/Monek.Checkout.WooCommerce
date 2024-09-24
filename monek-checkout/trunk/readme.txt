@@ -12,7 +12,7 @@ Monek Checkout for WooCommerce integrates seamlessly for payments, allowing cust
 
 == Description ==
 
-Monek Checkout for WooCommerce and WordPress integrates seamlessly for payments, allowing customers to pay with debit/credit cards as well as Apple and Google wallets. Install the plugin, create a Monek account, or connect an existing one to start accepting payments.
+Monek Checkout for WooCommerce integrates seamlessly for payments, allowing customers to pay with debit/credit cards as well as Apple and Google wallets. Install the plugin, create a Monek account, or connect an existing one to start accepting payments.
 
 ✓ Streamlined checkout experience specifically crafted to minimize cart abandonment rates, it ensures a smooth transaction process for both merchants and customers.
 
