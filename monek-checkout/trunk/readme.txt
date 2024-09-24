@@ -12,7 +12,7 @@ Monek Checkout for WooCommerce integrates seamlessly for payments, allowing cust
 
 == Description ==
 
-Monek Checkout for WooCommerce integrates seamlessly for payments, allowing customers to pay with debit/credit cards. Install the plugin, create a Monek account, or connect an existing one to start accepting payments
+Monek Checkout for WooCommerce and WordPress integrates seamlessly for payments, allowing customers to pay with debit/credit cards as well as Apple and Google wallets. Install the plugin, create a Monek account, or connect an existing one to start accepting payments.
 
 ✓ Streamlined checkout experience specifically crafted to minimize cart abandonment rates, it ensures a smooth transaction process for both merchants and customers.
 
@@ -24,6 +24,7 @@ Monek Checkout for WooCommerce integrates seamlessly for payments, allowing cust
 Provides a payment method suitable to your customers
 
 = Features =
+✓ Payment Methods: Offer multiple payment options such as credit/debit cards, PayPal, digital wallets (e.g., Apple Pay & GooglePay)
 ✓ Product List: Display a list of items in the cart, including product images, names, quantities, and prices.
 ✓ Subtotal, Shipping, and Taxes: Clearly display the subtotal, estimated shipping costs, and taxes. Update these in real-time as customers make changes.
 ✓ Total Price: Highlight the total price prominently.
@@ -32,7 +33,6 @@ Provides a payment method suitable to your customers
 ✓ Shipping Method: Offer various shipping options (e.g., standard, express) with corresponding prices and delivery estimates.
 ✓ Address Verification: Implement address verification to minimize errors and ensure accurate delivery.
 ✓ Billing Address: Provide an option to use the shipping address as the billing address or enter a separate one.
-✓ Payment Methods: Offer multiple payment options such as credit/debit cards, PayPal, digital wallets (e.g., Apple Pay)
 ✓ Credit Card Details: Require card number, expiration date, security code (CVV), and name on the card.
 ✓ Secure Payment Badge: Display security badges (e.g., SSL certificate, trusted payment logos) to reassure customers about the safety of their payment information.
 ✓ Review Order: Present a final review of the order, including items, shipping method, billing, and shipping addresses.
@@ -114,9 +114,9 @@ The timeout period is set in the WooCommerce settings. To change the timeout per
 This is a WooCommerce default behavior and not specific to the Monek Gateway plugin.
 
 == Screenshots ==
-1. Checkout Page
-2. Plugin Configuration Settings
-3. Payment Options
+1. Desktop View
+2. Mobile View
+3. Expanded Mobile View
 
 == Changelog ==
 
