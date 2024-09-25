@@ -1,6 +1,6 @@
 === Monek Checkout ===
 Contributors: humberstone83
-Tags: Credit Card Payments, Monek, Monek Checkout, Monek Gateway, Monek Payments, Payments, Gateway, Debit Payments
+Tags: Credit Card Payments, Monek, Monek Checkout, Monek Gateway, Monek Payments
 Requires at least: 5.0
 Tested up to: 6.6.1
 Requires PHP: 7.4
@@ -8,19 +8,23 @@ Stable tag: 3.2.2
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Monek Checkout for WooCommerce integrates seamlessly for payments, allowing customers to pay with debit/credit cards. Install the plugin, create a Monek account, or connect an existing one to start accepting payments
+Monek Checkout for WooCommerce integrates seamlessly for payments, allowing customers to pay with debit/credit cards. 
 
 == Description ==
+
+Monek Checkout for WooCommerce integrates seamlessly for payments, allowing customers to pay with debit/credit cards as well as Apple and Google wallets. Install the plugin, create a Monek account, or connect an existing one to start accepting payments.
+
 ✓ Streamlined checkout experience specifically crafted to minimize cart abandonment rates, it ensures a smooth transaction process for both merchants and customers.
 
 ✓ Designed with a mobile-first approach, our checkout page guarantees an intuitive and user-friendly shopping experience across all devices. This ensures that customers can easily complete their purchases from anywhere, at any time, contributing to higher satisfaction and increased sales for merchants. Whether customers are shopping from their smartphones, tablets, or desktops, the checkout process remains consistently efficient and hassle-free.
 
 ✓ Advanced security measures and multiple payment options, our platform builds trust and convenience, encouraging repeat business and fostering customer loyalty. In essence, we provide merchants with a robust, adaptable solution to enhance their online sales and grow their business in the digital marketplace.
 
-Benefits
+= Benefits =
 Provides a payment method suitable to your customers
 
-Features
+= Features =
+✓ Payment Methods: Offer multiple payment options such as credit/debit cards, PayPal, digital wallets (e.g., Apple Pay & GooglePay)
 ✓ Product List: Display a list of items in the cart, including product images, names, quantities, and prices.
 ✓ Subtotal, Shipping, and Taxes: Clearly display the subtotal, estimated shipping costs, and taxes. Update these in real-time as customers make changes.
 ✓ Total Price: Highlight the total price prominently.
@@ -29,7 +33,6 @@ Features
 ✓ Shipping Method: Offer various shipping options (e.g., standard, express) with corresponding prices and delivery estimates.
 ✓ Address Verification: Implement address verification to minimize errors and ensure accurate delivery.
 ✓ Billing Address: Provide an option to use the shipping address as the billing address or enter a separate one.
-✓ Payment Methods: Offer multiple payment options such as credit/debit cards, PayPal, digital wallets (e.g., Apple Pay)
 ✓ Credit Card Details: Require card number, expiration date, security code (CVV), and name on the card.
 ✓ Secure Payment Badge: Display security badges (e.g., SSL certificate, trusted payment logos) to reassure customers about the safety of their payment information.
 ✓ Review Order: Present a final review of the order, including items, shipping method, billing, and shipping addresses.
@@ -39,7 +42,7 @@ Features
 ✓ Thank You Message: Redirect to the standard confirmation message once the purchase is complete.
 ✓ Mobile-Friendly: Ensure the checkout page is responsive and functions smoothly on mobile devices and tablets.
 
-What your customers will like
+= What your customers will like =
 Convenience and Speed
 ✓ Quick Transactions: A streamlined checkout process reduces the time it takes to complete a purchase, making it easy and fast for customers to buy what they want.
 ✓ Guest Checkout Options: Allowing customers to checkout without creating an account saves time and reduces friction, especially for first-time or one-time buyers.
@@ -67,12 +70,12 @@ Support and Assistance
 ✓ Error Handling: Clear error messages and guidance on how to correct mistakes help prevent customer frustration and abandonment.
 
 == Installation ==
-Automatic Installation
+= Automatic Installation =
 The automatic installation process is the most convenient method for adding WooCommerce to your WordPress site, as it eliminates the need for manual file handling. With this option, WordPress manages the entire file transfer process, allowing you to complete the installation without leaving your web browser.
 
 To begin, log in to your WordPress dashboard, navigate to the “Plugins” menu, and click on “Add New.” In the search box that appears, type “Monek Checkout” and press “Search Plugins.” Once you locate Monek Checkout in the search results, you’ll be able to view key details about the plugin, including the current version, user ratings, and a brief description of its features. When you\'re ready to proceed, simply click the “Install Now” button, and WordPress will automatically handle the installation for you.
 
-Manual Installation
+= Manual Installation =
 If you prefer to install Monek Checkout manually, this method requires downloading the plugin directly from the WordPress plugin repository and uploading it to your web server via an FTP client. To start, download the Monek Checkout plugin file to your computer. Next, use an FTP application of your choice to upload the plugin files to the appropriate directory on your web server.
 
 For detailed instructions on how to carry out a manual installation, refer to the WordPress Codex, which provides comprehensive guidance on the process. https://wordpress.org/support/article/managing-plugins/#manual-plugin-installation
@@ -111,8 +114,9 @@ The timeout period is set in the WooCommerce settings. To change the timeout per
 This is a WooCommerce default behavior and not specific to the Monek Gateway plugin.
 
 == Screenshots ==
-1. Checkout Page
-2. Plugin Configuration Settings
+1. Desktop View
+2. Mobile View
+3. Expanded Mobile View
 
 == Changelog ==
 
