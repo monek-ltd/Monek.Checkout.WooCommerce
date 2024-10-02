@@ -33,7 +33,6 @@ class MCWC_MonekGateway extends WC_Payment_Gateway
         $this->mcwc_get_settings();
 
         add_action("woocommerce_update_options_payment_gateways_{$this->id}", [$this, 'process_admin_options']);
-        add_action('admin_enqueue_scripts', 'mcwc_enqueue_monek_admin_scripts');
 
         $this->prepared_payment_manager = new MCWC_PreparedPaymentManager($this->is_test_mode_active, $this->show_google_pay);
 
@@ -42,30 +41,6 @@ class MCWC_MonekGateway extends WC_Payment_Gateway
 
         if ($this->is_consignment_mode_active) {
             MCWC_ProductConsignmentInitializer::init();
-        }
-    }
-
-    /**
-     * Enqueue the JavaScript file for the settings page
-     * 
-     * @return void
-     */
-    function mcwc_enqueue_monek_admin_scripts() {
-        $current_screen = get_current_screen();
-        
-        if ($current_screen && $current_screen->id === 'woocommerce_page_wc-settings') {
-            $current_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : '';
-            $current_section = isset($_GET['section']) ? sanitize_text_field($_GET['section']) : '';
-
-            if ($current_tab === 'checkout' && $current_section === 'monek-checkout') {
-                wp_enqueue_script(
-                    'monek-custom-admin-js',
-                    plugin_dir_url(__FILE__) . 'assets/js/monek-admin.js',
-                    ['jquery'],
-                    '1.0.0',
-                    true
-                );
-            }
         }
     }
 

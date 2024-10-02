@@ -135,5 +135,30 @@ if (!function_exists('mcwc_initialise_monek_payment_gateway')) {
         add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'mcwc_add_monek_settings_link');
     }
 
+    /**
+     * Enqueue the JavaScript file for the settings page
+     * 
+     * @return void
+     */
+    function mcwc_enqueue_monek_admin_scripts() {
+        $current_screen = get_current_screen();
+        
+        if ($current_screen && $current_screen->id === 'woocommerce_page_wc-settings') {
+            $current_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : '';
+            $current_section = isset($_GET['section']) ? sanitize_text_field($_GET['section']) : '';
+
+            if ($current_tab === 'checkout' && $current_section === 'monek-checkout') {
+                wp_enqueue_script(
+                    'monek-custom-admin-js',
+                    plugin_dir_url(__FILE__) . 'assets/js/monek-admin.js',
+                    ['jquery'],
+                    '1.0.0',
+                    true
+                );
+            }
+        }
+    }
+    
+    add_action('admin_enqueue_scripts', 'mcwc_enqueue_monek_admin_scripts');
     add_action('plugins_loaded', 'mcwc_initialise_monek_payment_gateway', 0);
 }
