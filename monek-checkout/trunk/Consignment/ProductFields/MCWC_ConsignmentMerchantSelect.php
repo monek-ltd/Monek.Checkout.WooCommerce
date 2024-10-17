@@ -66,6 +66,8 @@ class MCWC_ConsignmentMerchantSelect
         if (isset($_POST[MCWC_ConsignmentSettings::CONSIGNMENT_MERCHANT_PRODUCT_META_KEY])) {   
             $selected_pair = sanitize_text_field($_POST[MCWC_ConsignmentSettings::CONSIGNMENT_MERCHANT_PRODUCT_META_KEY]);     
             
+            // Disables the ability to save the product if the selected merchant is empty
+            /*
             if (empty($selected_pair)) {
                 wp_die(
                     __('Please select a valid consignment merchant.', 'monek-checkout'),
@@ -76,8 +78,11 @@ class MCWC_ConsignmentMerchantSelect
                     ]
                 );
             } else {
+            */
                 update_post_meta($post_id, MCWC_ConsignmentSettings::CONSIGNMENT_MERCHANT_PRODUCT_META_KEY, $selected_pair);
+            /*
             }
+            */
         }
     }
 }
