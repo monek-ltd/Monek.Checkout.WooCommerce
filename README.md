@@ -174,6 +174,9 @@ If your permalink structure is already set to a non-'Plain' option, or if your s
 
 
 
+#### Known Issue 3: New Beta Product Page does not display Consignment Selection
+TODO
+
 ## Repository Information
 This repository contains the source code for the Monek WooCommerce Plugin, a payment gateway integration for WooCommerce stores. The plugin enables secure payment processing, seamless transactions, and enhanced checkout experiences for online shoppers. This repository is maintained both using GitHub and SVN, allowing for version control and distribution through the WordPress Plugin Directory. 
 

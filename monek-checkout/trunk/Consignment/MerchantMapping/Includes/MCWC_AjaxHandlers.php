@@ -24,7 +24,7 @@ function mcwc_add_merchant_pair()
         wp_send_json_error(['message' => __('Merchant ID already exists.', 'monek-checkout')]);
     }
 }
-add_action('wp_ajax_add_merchant_pair', 'mcwc_add_merchant_pair');
+add_action('wp_ajax_mcwc_add_merchant_pair', 'mcwc_add_merchant_pair');
 
 /**
  * Handles deleting a merchant pair from the merchant mapping table.
@@ -47,4 +47,4 @@ function mcwc_delete_merchant_pair()
         wp_send_json_error(['message' => __('Merchant ID not found.', 'monek-checkout')]);
     }
 }
-add_action('wp_ajax_delete_merchant_pair', 'mcwc_delete_merchant_pair');
+add_action('wp_ajax_mcwc_delete_merchant_pair', 'mcwc_delete_merchant_pair');

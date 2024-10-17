@@ -161,4 +161,6 @@ if (!function_exists('mcwc_initialise_monek_payment_gateway')) {
     
     add_action('admin_enqueue_scripts', 'mcwc_enqueue_monek_admin_scripts');
     add_action('plugins_loaded', 'mcwc_initialise_monek_payment_gateway', 0);
+
+    require_once 'MerchantMapping/Includes/MCWC_AjaxHandlers.php';
 }

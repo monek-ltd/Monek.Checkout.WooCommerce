@@ -1,5 +1,5 @@
 jQuery(document).ready(function ($) {
-    $('#add-merchant-pair-button').click(function () {
+    $('#add-merchant-pair-button').on('click', function () {
         var merchantID = $('#new-merchant-id').val();
         var merchantName = $('#new-merchant-name').val();
 
@@ -8,7 +8,7 @@ jQuery(document).ready(function ($) {
                 url: ajaxurl,  
                 method: 'POST',
                 data: {
-                    action: 'add_merchant_pair',
+                    action: 'mcwc_add_merchant_pair',
                     merchant_id: merchantID,
                     merchant_name: merchantName,
                     security: mappingTable.nonce  
@@ -43,7 +43,7 @@ jQuery(document).ready(function ($) {
             url: ajaxurl, 
             method: 'POST',
             data: {
-                action: 'delete_merchant_pair',
+                action: 'mcwc_delete_merchant_pair',
                 merchant_id: merchantID,
                 security: mappingTable.nonce
             },
