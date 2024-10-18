@@ -4,6 +4,7 @@
 * Added - Consignment Feature to enable the user to add a monek id per product
 * Tweak - Plugin settings page layout
 * Added - Added new images for directory page
+* Added - Hide payment option if monek id not set
 
 2024-09-12 version 3.2.2
 * Tweak - Updated folder structure to match SVN Repo
