@@ -158,9 +158,52 @@ if (!function_exists('mcwc_initialise_monek_payment_gateway')) {
             }
         }
     }
+
+    /**
+     * Conditionally disable the payment gateway if no monek id is set
+     * 
+     * @param mixed $available_gateways
+     * @return mixed
+     */
+    function mcwc_conditionally_disable_gateway( $available_gateways ) {
+        
+        if(is_admin()) {
+            return $available_gateways;
+        }
+
+        $is_merchant_id_set = false;
+
+        $gateway_instance = new MCWC_MonekGateway();
+        $merchant_id = $gateway_instance->get_option('merchant_id');
+
+        if(!empty( $merchant_id ) ) {
+            $is_merchant_id_set = true;
+        }
+
+        if(isset($gateway_instance->settings['consignment_mode']) && $gateway_instance->settings['consignment_mode'] == 'yes') {
+            $cart_items = WC()->cart->get_cart();
+            
+            foreach ( $cart_items as $cart_item ) {
+                $product_id = $cart_item['product_id'];
+                $merchant_id = get_post_meta($product_id, MCWC_ConsignmentSettings::CONSIGNMENT_MERCHANT_PRODUCT_META_KEY, true);
+                
+                if(!empty( $merchant_id ) ) {
+                    $is_merchant_id_set = true;
+                }
+                break;
+            }
+        }
+
+        if ( !$is_merchant_id_set ) {
+            unset( $available_gateways['monek-checkout'] );
+        }
+        
+        return $available_gateways;
+    }
     
     add_action('admin_enqueue_scripts', 'mcwc_enqueue_monek_admin_scripts');
     add_action('plugins_loaded', 'mcwc_initialise_monek_payment_gateway', 0);
+    add_filter( 'woocommerce_available_payment_gateways', 'mcwc_conditionally_disable_gateway' );
 
     require_once 'Consignment/MerchantMapping/Includes/MCWC_AjaxHandlers.php';
 }
