@@ -18,8 +18,12 @@ function validate_product_merchant($passed, $product_id, $quantity) : bool {
 
     $merchant_id = get_post_meta($product_id, MCWC_ConsignmentSettings::CONSIGNMENT_MERCHANT_PRODUCT_META_KEY, true);
     if (empty($merchant_id)) {
+        // This is a consignment product, but it doesn't have a merchant ID set.
+        /*    
         wc_add_notice('Invalid Monek ID: Monek ID is required for consignment sales', 'error');
         return false;
+        */
+        $merchant_id = '';
     }
 
     $same_merchant_id = true;

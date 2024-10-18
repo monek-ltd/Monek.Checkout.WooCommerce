@@ -104,7 +104,9 @@ All merchants must adhere to the Google Pay APIs [Acceptable Use Policy](https:/
 Google Pay is a trademark of Google LLC.
 
 Enable Consignment Sales:
-TODO
+Indicates if the consignment sales feature will be enabled. `YES` or `NO` (default)
+
+This will mean that a Monek ID will be required to be mapped to each product individually.
 
 == Frequently Asked Questions ==
 Why is my order in \'Pending Payment\' and not cancelling when the user fails to complete the payment?
@@ -126,9 +128,11 @@ This is a WooCommerce default behavior and not specific to the Monek Gateway plu
 == Changelog ==
 
 =3.3.0=
-*Release Date - TBC*
+*Release Date - 2024-10-2024*
 
-*TODO
+* Added - Consignment Feature to enable the user to add a monek id per product
+* Tweak - Plugin settings page layout
+* Added - Added new images for directory page
 
 =3.2.1=
 *Release Date - 2024-09-12*
