@@ -174,6 +174,31 @@ If your permalink structure is already set to a non-'Plain' option, or if your s
 
 
 
+#### Known Issue 3: New Beta Product Page does not display Consignment Selection
+When setting up a new product page in WooCommerce, you may encounter an issue where the consignment selection is not displayed on the product page. This issue can prevent customers from choosing the desired consignment option when purchasing the product.
+
+##### Issue Description:
+###### - Affected Versions:
+From WooCommerce 7.9, anyone opted-in to test the new product form currently in beta. The new product management experience is available on WooCommerce stores as an opt-in feature for simple and variable physical products.
+###### - Impact:
+Unable to select the consignment option during the product setup, leading to incomplete product configurations and potential issues during checkout.
+
+##### Solution:
+With the current beta stage, you cannot use extensions that rely on product listings, such as Monek Checkout. We will continue to roll out additional features to support products with variations, extensibility, and many other features.
+
+To resolve this issue please dsiable the new product form and use the classic product form.
+
+##### Disable new product form:
+You can disable the New Product Form by following the below steps:
+
+Navigate to WooCommerce > Settings > Advanced > Features.
+Uncheck “Try new product editor (Beta)” and save changes.
+
+###### Note:
+We will continue to monitor the progress of the new product form and provide updates on compatibility with the Monek Checkout plugin in the future as plugin support is added.
+
+
+
 ## Repository Information
 This repository contains the source code for the Monek WooCommerce Plugin, a payment gateway integration for WooCommerce stores. The plugin enables secure payment processing, seamless transactions, and enhanced checkout experiences for online shoppers. This repository is maintained both using GitHub and SVN, allowing for version control and distribution through the WordPress Plugin Directory. 
 

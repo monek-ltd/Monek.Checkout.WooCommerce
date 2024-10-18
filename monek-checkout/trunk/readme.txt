@@ -4,7 +4,7 @@ Tags: Credit Card Payments, Monek, Monek Checkout, Monek Gateway, Monek Payments
 Requires at least: 5.0
 Tested up to: 6.6.1
 Requires PHP: 7.4
-Stable tag: 3.2.2
+Stable tag: 3.3.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -103,6 +103,11 @@ All merchants must adhere to the Google Pay APIs [Acceptable Use Policy](https:/
 
 Google Pay is a trademark of Google LLC.
 
+Enable Consignment Sales:
+Indicates if the consignment sales feature will be enabled. `YES` or `NO` (default)
+
+This will mean that a Monek ID will be required to be mapped to each product individually.
+
 == Frequently Asked Questions ==
 Why is my order in \'Pending Payment\' and not cancelling when the user fails to complete the payment?
 Pending Payment means the order has been received, but no payment has been made. Pending payment orders are generally awaiting customer action. 
@@ -114,11 +119,20 @@ The timeout period is set in the WooCommerce settings. To change the timeout per
 This is a WooCommerce default behavior and not specific to the Monek Gateway plugin.
 
 == Screenshots ==
-1. Desktop View
-2. Mobile View
-3. Expanded Mobile View
+1. Mobile Checkout
+2. Desktop Checkout
+3. Desktop View
+4. Mobile View
+5. Expanded Mobile View
 
 == Changelog ==
+
+=3.3.0=
+*Release Date - 2024-10-2024*
+
+* Added - Consignment Feature to enable the user to add a monek id per product
+* Tweak - Plugin settings page layout
+* Added - Added new images for directory page
 
 =3.2.1=
 *Release Date - 2024-09-12*
