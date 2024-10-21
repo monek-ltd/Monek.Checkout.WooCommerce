@@ -178,9 +178,11 @@ if (!function_exists('mcwc_initialise_monek_payment_gateway')) {
 
         if(!empty( $merchant_id ) ) {
             $is_merchant_id_set = true;
-        }
-
-        if(isset($gateway_instance->settings['consignment_mode']) && $gateway_instance->settings['consignment_mode'] == 'yes') {
+        } 
+        else if (isset($gateway_instance->settings['consignment_mode']) 
+            && $gateway_instance->settings['consignment_mode'] == 'yes'
+            && isset(WC()->cart)) {
+            
             $cart_items = WC()->cart->get_cart();
             
             foreach ( $cart_items as $cart_item ) {
