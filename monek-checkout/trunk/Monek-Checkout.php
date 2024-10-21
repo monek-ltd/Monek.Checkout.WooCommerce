@@ -183,6 +183,7 @@ if (!function_exists('mcwc_initialise_monek_payment_gateway')) {
             && $gateway_instance->settings['consignment_mode'] == 'yes'
             && isset(WC()->cart)) {
             
+
             $cart_items = WC()->cart->get_cart();
             
             foreach ( $cart_items as $cart_item ) {
