@@ -27,7 +27,7 @@ class MCWC_ConsignmentMerchantSelect
         echo '<div class="options_group">';
 
         woocommerce_wp_select([
-            'id' => MCWC_ConsignmentSettings::CONSIGNMENT_MERCHANT_SELECT_ID,
+            'id' => MCWC_ConsignmentSettings::CONSIGNMENT_MERCHANT_PRODUCT_META_KEY,
             'label' => __('Consignment Merchant', 'monek-checkout'),
             'options' => self::mcwc_get_merchants(),
             'description' => __('Select the merchant for this product.', 'monek-checkout'),
@@ -76,11 +76,11 @@ class MCWC_ConsignmentMerchantSelect
     public static function mcwc_save_consignment_merchant_action($product)
     {
         error_log( 'Saving Consignment Merchant for product' );
-        if (isset($_POST[MCWC_ConsignmentSettings::CONSIGNMENT_MERCHANT_SELECT_ID])) {   
+        if (isset($_POST[MCWC_ConsignmentSettings::CONSIGNMENT_MERCHANT_PRODUCT_META_KEY])) {   
             
-            error_log( 'Form Data Set: ' . $_POST[MCWC_ConsignmentSettings::CONSIGNMENT_MERCHANT_SELECT_ID]);
+            error_log( 'Form Data Set: ' . $_POST[MCWC_ConsignmentSettings::CONSIGNMENT_MERCHANT_PRODUCT_META_KEY]);
 
-            $selected_pair = sanitize_text_field($_POST[MCWC_ConsignmentSettings::CONSIGNMENT_MERCHANT_SELECT_ID]);     
+            $selected_pair = sanitize_text_field($_POST[MCWC_ConsignmentSettings::CONSIGNMENT_MERCHANT_PRODUCT_META_KEY]);     
             
             error_log( 'Select Pair: ' . $selected_pair );
             // Disables the ability to save the product if the selected merchant is empty
