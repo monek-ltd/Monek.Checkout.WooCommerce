@@ -11,9 +11,8 @@ class MCWC_ConsignmentMerchantSelect
     public static function init()
     {
         add_action('woocommerce_product_options_general_product_data', [__CLASS__, 'mcwc_build_consignment_merchant_select']);
-        add_action('woocommerce_admin_process_product_object', [__CLASS__, 'mcwc_save_consignment_merchant_action']);
-        add_action('woocommerce_process_product_meta', [__CLASS__, 'mcwc_save_consignment_merchant'] );
-        add_action('woocommerce_save_product_variation', [__CLASS__, 'mcwc_save_consignment_merchant']);
+        add_action('woocommerce_new_product', [__CLASS__, 'mcwc_save_consignment_merchant'], 10, 1 );
+        add_action('woocommerce_update_product', [__CLASS__, 'mcwc_save_consignment_merchant'], 10, 1);
     }
 
     /**
@@ -28,7 +27,7 @@ class MCWC_ConsignmentMerchantSelect
         echo '<div class="options_group">';
 
         woocommerce_wp_select([
-            'id' => 'consignment_merchant',
+            'id' => MCWC_ConsignmentSettings::CONSIGNMENT_MERCHANT_PRODUCT_META_KEY,
             'label' => __('Consignment Merchant', 'monek-checkout'),
             'options' => self::mcwc_get_merchants(),
             'description' => __('Select the merchant for this product.', 'monek-checkout'),
