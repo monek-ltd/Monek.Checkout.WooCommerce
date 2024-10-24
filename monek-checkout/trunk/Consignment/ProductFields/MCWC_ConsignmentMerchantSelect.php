@@ -45,6 +45,7 @@ function mcwc_build_consignment_merchant_select($loop = 0, $variation = null)
 * @param int $post_id The ID of the product.
 * @return void
 */
+/*
 function mcwc_save_consignment_merchant($post_id){
     error_log( 'Saving Consignment Merchant for post ' . $post_id );
     if (isset($_POST[MCWC_ConsignmentSettings::CONSIGNMENT_MERCHANT_PRODUCT_META_KEY])) {   
@@ -55,7 +56,7 @@ function mcwc_save_consignment_merchant($post_id){
             
         error_log( 'Select Pair: ' . $selected_pair );
         // Disables the ability to save the product if the selected merchant is empty
-        /*
+        
         if (empty($selected_pair)) {
             wp_die(
                 __('Please select a valid consignment merchant.', 'monek-checkout'),
@@ -66,11 +67,11 @@ function mcwc_save_consignment_merchant($post_id){
                 ]
             );
         } else {
-        */
-        update_post_meta($post_id, MCWC_ConsignmentSettings::CONSIGNMENT_MERCHANT_PRODUCT_META_KEY, $selected_pair);
-        /*
+        
+            update_post_meta($post_id, MCWC_ConsignmentSettings::CONSIGNMENT_MERCHANT_PRODUCT_META_KEY, $selected_pair);
+        
         }
-        */
+        
             
         error_log( 'Product Updated' );
     }
@@ -79,7 +80,8 @@ function mcwc_save_consignment_merchant($post_id){
     }
 
 }
+*/
 add_action('woocommerce_product_options_advanced', 'mcwc_build_consignment_merchant_select');
-add_action('woocommerce_new_product', 'mcwc_save_consignment_merchant');
-add_action('woocommerce_update_product', 'mcwc_save_consignment_merchant');
+//add_action('woocommerce_new_product', 'mcwc_save_consignment_merchant');
+//add_action('woocommerce_update_product', 'mcwc_save_consignment_merchant');
 
