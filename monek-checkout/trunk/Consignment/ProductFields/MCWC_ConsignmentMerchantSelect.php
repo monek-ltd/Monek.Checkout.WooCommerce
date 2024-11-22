@@ -74,6 +74,6 @@ function mcwc_save_consignment_merchant($post_id){
 
 }
 add_action('woocommerce_product_options_general_product_data', 'mcwc_build_consignment_merchant_select');
-add_action('woocommerce_new_product', 'mcwc_save_consignment_merchant', 1);
-add_action('woocommerce_update_product', 'mcwc_save_consignment_merchant', 1);
+add_action('woocommerce_new_product', 'mcwc_save_consignment_merchant');
+add_action('woocommerce_update_product', 'mcwc_save_consignment_merchant');
 
