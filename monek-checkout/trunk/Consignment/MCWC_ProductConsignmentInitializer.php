@@ -9,8 +9,6 @@ class MCWC_ProductConsignmentInitializer
         
         /* DOES NOT WORK WITH NEW PRODUCT PAGE CURRENTLY IN BETA, PLUGIN SUPPORT HAS NOT BEEN ADDED */
         require_once 'ProductFields/MCWC_ConsignmentMerchantSelect.php';
-        require_once 'ProductFields/Includes/MCWC_EnqueueScripts.php';
-        
 
         require_once 'CartValidation/MCWC_EnforceSingleMerchant.php';
     }

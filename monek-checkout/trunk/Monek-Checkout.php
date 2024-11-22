@@ -209,5 +209,4 @@ if (!function_exists('mcwc_initialise_monek_payment_gateway')) {
     add_filter( 'woocommerce_available_payment_gateways', 'mcwc_conditionally_disable_gateway' );
 
     require_once 'Consignment/MerchantMapping/Includes/MCWC_AjaxHandlers.php';
-    require_once 'Consignment/ProductFields/Includes/MCWC_AjaxHandlers.php';
 }
