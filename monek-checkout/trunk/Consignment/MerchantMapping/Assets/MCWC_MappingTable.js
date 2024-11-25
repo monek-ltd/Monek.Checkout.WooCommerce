@@ -5,20 +5,23 @@ jQuery(document).ready(function ($) {
 
         if (merchantID && merchantName) {
             $.ajax({
-                url: ajaxurl,  
+                url: ajaxurl,
                 method: 'POST',
                 data: {
                     action: 'mcwc_add_merchant_pair',
                     merchant_id: merchantID,
                     merchant_name: merchantName,
-                    security: mappingTable.nonce  
+                    security: mappingTable.nonce
                 },
                 success: function (response) {
                     if (response.success) {
+                        var tag = response.data.tag_name;
+
                         $('#merchant-pairs-table').append(
                             '<tr data-id="' + merchantID + '">' +
                             '<td>' + merchantID + '</td>' +
                             '<td>' + merchantName + '</td>' +
+                            '<td>' + tag + '</td>' +
                             '<td><button class="button delete-merchant-pair" data-id="' + merchantID + '">' + mappingTable.deleteText + '</button></td>' +
                             '</tr>'
                         );
@@ -28,6 +31,9 @@ jQuery(document).ready(function ($) {
                     } else {
                         alert(response.data.message);
                     }
+                },
+                error: function () {
+                    alert("Failed to add merchant pair. Please try again.");
                 }
             });
         } else {
@@ -54,8 +60,8 @@ jQuery(document).ready(function ($) {
                     alert(response.data.message);
                 }
             },
-            failure: function (response) {
-                alert("Failed to delete merchant pair.");
+            error: function () {
+                alert("Failed to delete merchant pair. Please try again.");
             }
         });
     });

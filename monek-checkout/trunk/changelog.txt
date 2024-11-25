@@ -1,5 +1,8 @@
 *** Monek Checkout Changelog ***
 
+2024-11-25 version 3.3.2
+* Update - Update the Consignment Feature to rely on tags to add the product MIDS
+
 2024-10-23 version 3.3.1
 * Tweak - Tweaked Consignment Feature to add more logging and attatch to different actions
 

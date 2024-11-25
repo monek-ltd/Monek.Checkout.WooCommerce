@@ -8,7 +8,7 @@ if (!defined('ABSPATH')) exit;
  * @param mixed $hook The current admin page hook.
  * @return void
  */
-function enqueue_monek_merchant_mapping_table_script($hook) {
+function mcwc_enqueue_monek_merchant_mapping_table_script($hook) {
     if (strpos($hook, 'woocommerce_page_wc-settings') !== false) {
         if (isset($_GET['section']) && $_GET['section'] === MCWC_ConsignmentSettings::MERCHANT_MAPPING_SECTION_SLUG) {
             wp_enqueue_script(
@@ -28,4 +28,4 @@ function enqueue_monek_merchant_mapping_table_script($hook) {
         }
     }
 }
-add_action('admin_enqueue_scripts', 'enqueue_monek_merchant_mapping_table_script');
+add_action('admin_enqueue_scripts', 'mcwc_enqueue_monek_merchant_mapping_table_script');

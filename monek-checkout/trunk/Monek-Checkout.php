@@ -15,7 +15,7 @@
  * Requires at least: 5.0
  * Tested up to: 6.6.1
  * Requires PHP: 7.4
- * Stable tag: 3.3.0
+ * Stable tag: 3.3.2
  */
 
  /*
@@ -92,6 +92,7 @@ if (!function_exists('mcwc_initialise_monek_payment_gateway')) {
                 'MCWC_Address'                       => 'Model/MCWC_Address.php',
                 'MCWC_ConsignmentSettings'           => 'Consignment/Model/MCWC_ConsignmentSettings.php',
                 'MCWC_ProductConsignmentInitializer' => 'Consignment/MCWC_ProductConsignmentInitializer.php',
+                'MCWC_ConsignmentCart'       => 'Consignment/Cart/MCWC_ConsignmentCart.php',
             ];
         
             if (array_key_exists($class_name, $class_map)) {
@@ -181,20 +182,9 @@ if (!function_exists('mcwc_initialise_monek_payment_gateway')) {
         } 
         else if (isset($gateway_instance->settings['consignment_mode']) 
             && $gateway_instance->settings['consignment_mode'] == 'yes'
-            && isset(WC()->cart)) {
-            
-
-            $cart_items = WC()->cart->get_cart();
-            
-            foreach ( $cart_items as $cart_item ) {
-                $product_id = $cart_item['product_id'];
-                $merchant_id = get_post_meta($product_id, MCWC_ConsignmentSettings::CONSIGNMENT_MERCHANT_PRODUCT_META_KEY, true);
-                
-                if(!empty( $merchant_id ) ) {
-                    $is_merchant_id_set = true;
-                }
-                break;
-            }
+            && isset(WC()->cart)) 
+        {
+            $is_merchant_id_set = MCWC_ConsignmentCart::mcwc_check_cart_for_matching_merchants() === 1;
         }
 
         if ( !$is_merchant_id_set ) {
