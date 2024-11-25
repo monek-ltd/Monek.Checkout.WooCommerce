@@ -107,7 +107,7 @@ class MCWC_MonekGateway extends WC_Payment_Gateway
         $this->basket_summary = $this->get_option('basket_summary');
     }
 
-    /**
+   /**
      * Initialise the form fields for the Monek payment gateway 
      *
      * @return void
@@ -115,6 +115,7 @@ class MCWC_MonekGateway extends WC_Payment_Gateway
     public function mcwc_init_form_fields(): void
     {
         $country_codes = include 'Model/MCWC_CountryCodes.php';
+        $consignment_mode = $this->get_option('consignment_mode');
 
         $this->form_fields = [
             'enabled' => [
@@ -142,10 +143,12 @@ class MCWC_MonekGateway extends WC_Payment_Gateway
             'consignment_mode' => [
                 'title' => __('Enable Consignment Sales', 'monek-checkout'),
                 'type' => 'checkbox',
-                'label' => sprintf(
+                'label' => isset($consignment_mode) && $consignment_mode == 'yes'
+                    ? sprintf(
                         __('Monek ID per product. <a href="%s">Configure Consignment IDs</a>.', 'monek-checkout'),
                         admin_url('admin.php?page=wc-settings&tab=products&section=monek_consigment_ids')
-                    ),
+                    )
+                    : __('Monek ID per product.', 'monek-checkout'),
                 'default' => 'no',
                 'description' => __('If enabled, the Monek ID field will be hidden and the Monek ID will need to be configured per product.', 'monek-checkout'),
                 'desc_tip' => true
