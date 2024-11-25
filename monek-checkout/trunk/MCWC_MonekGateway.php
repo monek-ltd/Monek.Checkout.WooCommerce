@@ -53,33 +53,14 @@ class MCWC_MonekGateway extends WC_Payment_Gateway
      */
     private function mcwc_get_consignment_merchant_id(WC_Order $order): string
     {
-        $product_id = array_values($order->get_items())[0]->get_product()->get_id();
-        $merchant_id = get_post_meta($product_id, MCWC_ConsignmentSettings::CONSIGNMENT_MERCHANT_PRODUCT_META_KEY, true);
-        if (empty($merchant_id)) {
-            wc_add_notice('Invalid Monek ID: Monek ID is required for consignment sales', 'error');
-            $order->add_order_note(__('Invalid Monek ID: Monek ID is required for consignment sales', 'monek-checkout'));
-            exit;
-        }
-
-        $same_merchant_id = true;
-
-        foreach ($order->get_items() as $order_item) {
-            $product_id = $order_item->get_product()->get_id();
-            $current_merchant_id = get_post_meta($product_id, MCWC_ConsignmentSettings::CONSIGNMENT_MERCHANT_PRODUCT_META_KEY, true);
-
-            if ($current_merchant_id !== $merchant_id) {
-                $same_merchant_id = false;
-                break;
-            }
-        }
-
-        if ($same_merchant_id) {
-            return $merchant_id;
-        } else {
+        if(MCWC_ConsignmentCart::mcwc_check_order_for_matching_merchants($order->get_id()) !== 1) {
             wc_add_notice('Invalid Monek ID: Order items have different merchant IDs.', 'error');
             $order->add_order_note(__('Invalid Monek ID: Order items have different merchant IDs.', 'monek-checkout'));
-
             throw new Exception('Order items have different merchant IDs.');
+        }
+        else {
+            $order_items = $order->get_items();
+            return MCWC_ConsignmentCart::mcwc_get_merchant_id_by_product_tags_from_pairs(reset($order_items)->get_product()->get_id())[0];
         }
     }
 
@@ -126,7 +107,7 @@ class MCWC_MonekGateway extends WC_Payment_Gateway
         $this->basket_summary = $this->get_option('basket_summary');
     }
 
-    /**
+   /**
      * Initialise the form fields for the Monek payment gateway 
      *
      * @return void
@@ -134,6 +115,7 @@ class MCWC_MonekGateway extends WC_Payment_Gateway
     public function mcwc_init_form_fields(): void
     {
         $country_codes = include 'Model/MCWC_CountryCodes.php';
+        $consignment_mode = $this->get_option('consignment_mode');
 
         $this->form_fields = [
             'enabled' => [
@@ -161,10 +143,12 @@ class MCWC_MonekGateway extends WC_Payment_Gateway
             'consignment_mode' => [
                 'title' => __('Enable Consignment Sales', 'monek-checkout'),
                 'type' => 'checkbox',
-                'label' => sprintf(
+                'label' => isset($consignment_mode) && $consignment_mode == 'yes'
+                    ? sprintf(
                         __('Monek ID per product. <a href="%s">Configure Consignment IDs</a>.', 'monek-checkout'),
                         admin_url('admin.php?page=wc-settings&tab=products&section=monek_consigment_ids')
-                    ),
+                    )
+                    : __('Monek ID per product.', 'monek-checkout'),
                 'default' => 'no',
                 'description' => __('If enabled, the Monek ID field will be hidden and the Monek ID will need to be configured per product.', 'monek-checkout'),
                 'desc_tip' => true

@@ -6,13 +6,6 @@ class MCWC_ProductConsignmentInitializer
     {
         require_once 'MerchantMapping/MCWC_AddProductSettingsSection.php';
         require_once 'MerchantMapping/Includes/MCWC_EnqueueScripts.php';
-        
-        /* DOES NOT WORK WITH NEW PRODUCT PAGE CURRENTLY IN BETA, PLUGIN SUPPORT HAS NOT BEEN ADDED */
-        require_once 'ProductFields/MCWC_ConsignmentMerchantSelect.php';
-        require_once 'ProductFields/Includes/MCWC_EnqueueScripts.php';
-        
-
-        require_once 'CartValidation/MCWC_EnforceSingleMerchant.php';
     }
 }
 
