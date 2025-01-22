@@ -150,7 +150,7 @@ When configuring your WooCommerce site, it's crucial to be aware of a known issu
 
 ##### Issue Description:
 ###### - Affected Versions:
-All WooCommerce versions may be affected if the permalink structure is set to 'Plain.'
+All WooCommerce + Wordpress versions may be affected if the permalink structure is set to 'Plain.'
 ###### - Impact:
 The 3005 error occurs when the Monek Gateway rejects the return URL passed to it due to the presence of a query string. This issue arises when the permalink structure is set to 'Plain,' affecting the ability to redirect to complete transactions on the Monek payment page.
 
@@ -192,10 +192,33 @@ To resolve this issue please dsiable the new product form and use the classic pr
 You can disable the New Product Form by following the below steps:
 
 Navigate to WooCommerce > Settings > Advanced > Features.
-Uncheck “Try new product editor (Beta)” and save changes.
+Uncheck ï¿½Try new product editor (Beta)ï¿½ and save changes.
 
 ###### Note:
 We will continue to monitor the progress of the new product form and provide updates on compatibility with the Monek Checkout plugin in the future as plugin support is added.
+
+
+
+#### Known Issue 4: Payment Option Does Not Appear In Admin Dashboard When Using Wordpress Multisite Integration
+If using this plugin with a wordpress multisite you may notice the following issue, with WooCommerce & Monek Checkout plugins installed and network activated, The Monek payment option does not appear within the WooCommerce payment methods list in the admin dashboard. This issue has been solved, please refer to the solution below.
+
+
+##### Issue Description:
+###### - Affected Versions:
+All WooCommerce + Wordpress versions may be affected as the exact cause is unknown.
+###### - Impact:
+The Monek payment option does not appear within the WooCommerce payment methods list in the admin dashboard.
+
+
+##### Solution:
+Solution detailed on this [support thread](https://wordpress.org/support/topic/not-working-on-multisite-42/)
+
+The plugin is not correctly detected when the WooCommerce plugin is network activated, to get round this activate individually on each site that is part of the multisite network. 
+
+- Ensure WooCommerce is not network activated
+- Activate WooCommerce on each site one at a time (Do not network activate)
+- Activate Monek Checkout on each site one at a time (Do not network activate)
+- Monek Checkout should now appear as a WooCommerce payment option within the settings
 
 
 
@@ -251,7 +274,7 @@ Some common points of confusion are:
 
 - SVN user IDs are the same as your WordPress.org login ID - not your email address
 - User IDs are case sensitive (if your account is JoDoe123HAY then you must use that exact ID)
-- You can set up your SVN credentials (if you haven't already) in the “Account & Security” section of your WordPress profile - https://profiles.wordpress.org/me/profile/edit/group/3/?screen=svn-password
+- You can set up your SVN credentials (if you haven't already) in the ï¿½Account & Securityï¿½ section of your WordPress profile - https://profiles.wordpress.org/me/profile/edit/group/3/?screen=svn-password
 - Your readme content determines what information is shown on your WordPress.org public page - https://developer.wordpress.org/plugins/wordpress-org/how-your-readme-txt-works/
 - Your plugin banners, screenshots, and icons are handled via the special plugin assets folder - https://developer.wordpress.org/plugins/wordpress-org/plugin-assets/
 
