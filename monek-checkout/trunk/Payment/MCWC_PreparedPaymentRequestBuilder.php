@@ -68,11 +68,12 @@ class MCWC_PreparedPaymentRequestBuilder
      */
     private function mcwc_generate_basket_base64(WC_Order $order) : string
     {
+        $tax_display_cart = get_option('woocommerce_tax_display_cart');
         $basket = [
-            'items' => $this->mcwc_get_item_details($order),
-            'discounts' => $this->mcwc_get_order_discounts($order),
-            'taxes' => $this->mcwc_get_order_taxes($order),
-            'delivery' => $this->mcwc_get_order_delivery($order)[0] ?? []
+            'taxType' => $tax_display_cart === 'incl' ? 'inclusive' : 'exclusive',
+            'items' => $this->mcwc_get_item_details($order, $tax_display_cart),
+            'discounts' => $this->mcwc_get_order_discounts($order, $tax_display_cart),
+            'delivery' => $this->mcwc_get_order_delivery($order, $tax_display_cart)
         ];
         
         $basket = array_filter($basket, function($value) {
@@ -140,25 +141,54 @@ class MCWC_PreparedPaymentRequestBuilder
      * @param WC_Order $order
      * @return array
      */
-    private function mcwc_get_item_details(WC_Order $order) : array
+    private function mcwc_get_item_details(WC_Order $order, string $tax_display): array
     {
         $line_items = $order->get_items();
         $items_details = [];
-    
+
         foreach ($line_items as $item) {
             $product = $item->get_product();
-    
+            $quantity = $item->get_quantity();
+            $unit_price = $tax_display === 'incl' ? wc_get_price_including_tax($product) : wc_get_price_excluding_tax($product);
+            $line_total = $item->get_total();
+            $line_tax = $item->get_total_tax();
+            $tax_rate = $this->get_item_tax_rate($item);
+
             $items_details[] = [
-                'description' => MCWC_TransactionHelper::mcwc_trim_description($product->get_name()),
                 'sku' => $product->get_sku(),
-                'quantity' => $item->get_quantity(),
-                'unitPrice' => $product->get_price(),
-                'total' => $item->get_total(),
+                //'commodityCode' => $product->get_attribute('pa_commodity_code') ?? '',
+                'description' => MCWC_TransactionHelper::mcwc_trim_description($product->get_name()),
+                'quantity' => $quantity,
+                'unitPrice' => round($unit_price, 2),
+                //'unitOfMeasure' => $product->get_attribute('pa_unit_of_measure') ?? '',
+                'total' => $tax_display === 'incl' ? round($line_total + $line_tax, 2) : round($line_total, 2),
+                'taxRate' => $tax_rate,
+                'taxAmount' => round($line_tax, 2),
             ];
         }
-    
+
         return $items_details;
     }
+
+    /**
+     * Get the tax rate for an item
+     *
+     * @param WC_Order_Item_Product $item
+     * @return float
+     */
+    private function get_item_tax_rate($item): float
+    {
+        $taxes = $item->get_taxes();
+        if (!empty($taxes['total'])) {
+            $rate_id = array_key_first($taxes['total']);
+            if ($rate_id && isset($taxes['total'][$rate_id])) {
+                return (float) WC_Tax::get_rate_percent($rate_id);
+            }
+        }
+        return 0.0;
+    }
+
+
 
     /**
      * Get the delivery details of the order
@@ -166,22 +196,38 @@ class MCWC_PreparedPaymentRequestBuilder
      * @param WC_Order $order
      * @return array
      */
-    private function mcwc_get_order_delivery(WC_Order $order) : array
+    private function mcwc_get_order_delivery(WC_Order $order, string $tax_display): array
     {
-        $shipping_methods = $order->get_shipping_methods();
         $delivery = [];
-    
-        if (!empty($shipping_methods)) {
-            foreach ($shipping_methods as $shipping_method) {
-                $delivery[] = [
-                    'carrier' => $shipping_method->get_method_title(),
-                    'amount' => $shipping_method->get_total()
-                    //TrackingReference and TrackingUrl currently unavailable
-                ];
+        foreach ($order->get_shipping_methods() as $shipping_method) {
+            $amount = $shipping_method->get_total();
+            $tax = $shipping_method->get_total_tax();
+            $delivery = [
+                'carrier' => $shipping_method->get_method_title(),
+                'amount' => $tax_display === 'incl' ? round($amount + $tax, 2) : round($amount, 2),
+                'taxRate' =>  $this->get_shipping_tax_rate($shipping_method),
+                'taxAmount' => round($tax, 2) 
+            ];
+        }
+        return $delivery;
+    }
+
+    /**
+     * Get the tax rate for a shipping method
+     *
+     * @param WC_Order_Item_Shipping $shipping_method
+     * @return float
+     */
+    private function get_shipping_tax_rate(WC_Order_Item_Shipping $shipping_method): float
+    {
+        $taxes = $shipping_method->get_taxes();
+        if (!empty($taxes['total'])) {
+            $rate_id = array_key_first($taxes['total']);
+            if ($rate_id && isset($taxes['total'][$rate_id])) {
+                return (float) WC_Tax::get_rate_percent($rate_id);
             }
         }
-    
-        return $delivery;
+        return 0.0;
     }
 
     /**
@@ -190,26 +236,43 @@ class MCWC_PreparedPaymentRequestBuilder
      * @param WC_Order $order
      * @return array
      */
-    private function mcwc_get_order_discounts(WC_Order $order) : array
+    private function mcwc_get_order_discounts(WC_Order $order, string $tax_display): array
     {
-        $wc_discounts = new WC_Discounts( WC()->cart );
         $discounts = [];
-    
-        $applied_coupons = $order->get_coupon_codes();
-    
-        foreach ($applied_coupons as $coupon_code) {
-            $coupon = new WC_Coupon($coupon_code);
-    
-            if ($wc_discounts -> is_coupon_valid($coupon)) {
-                $discounts[] = [
-                    'code' => $coupon_code,
-                    'description' => MCWC_TransactionHelper::mcwc_trim_description($coupon->get_description()),
-                    'amount' => $coupon->get_amount()
-                ];
-            }
+
+        foreach ($order->get_coupon_codes() as $code) {
+            $coupon = new WC_Coupon($code);
+            $amount = $order->get_discount_total();
+            $tax = $order->get_discount_tax();
+
+            $discounts[] = [
+                'code' => $code,
+                'description' => MCWC_TransactionHelper::mcwc_trim_description($coupon->get_description()),
+                'amount' => $tax_display === 'incl' ? round($amount + $tax, 2) : round($amount, 2),
+                'taxRate' => $this->get_discount_tax_rate($order),
+                'taxAmount' => round($tax, 2),
+            ];
         }
-    
+
         return $discounts;
+    }
+
+    /**
+     * Summary of get_discount_tax_rate
+     * 
+     * @param WC_Order $order
+     * @return float
+     */
+    private function get_discount_tax_rate(WC_Order $order): float
+    {
+        $discount_total = $order->get_discount_total();
+        $discount_tax = $order->get_discount_tax();
+
+        if ($discount_total > 0) {
+            return round(($discount_tax / $discount_total) * 100, 2);
+        }
+
+        return 0.0;
     }
 
     /**
