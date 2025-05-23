@@ -156,11 +156,11 @@ class MCWC_PreparedPaymentRequestBuilder
 
             $items_details[] = [
                 'sku' => $product->get_sku(),
-                //'commodityCode' => $product->get_attribute('pa_commodity_code') ?? '',
+                'commodityCode' => $product->get_attribute('pa_commodity_code') ?? '',
                 'description' => MCWC_TransactionHelper::mcwc_trim_description($product->get_name()),
                 'quantity' => $quantity,
                 'unitPrice' => round($unit_price, 2),
-                //'unitOfMeasure' => $product->get_attribute('pa_unit_of_measure') ?? '',
+                'unitOfMeasure' => $product->get_attribute('pa_unit_of_measure') ?? '',
                 'total' => $tax_display === 'incl' ? round($line_total + $line_tax, 2) : round($line_total, 2),
                 'taxRate' => $tax_rate,
                 'taxAmount' => round($line_tax, 2),
