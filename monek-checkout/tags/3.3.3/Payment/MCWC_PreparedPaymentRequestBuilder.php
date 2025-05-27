@@ -154,6 +154,8 @@ class MCWC_PreparedPaymentRequestBuilder
             $line_tax = $item->get_total_tax();
             $tax_rate = $this->get_item_tax_rate($item);
 
+            $display_tax = $tax_rate > 0 && $line_tax > 0;
+
             $items_details[] = [
                 'sku' => $product->get_sku(),
                 'commodityCode' => $product->get_attribute('pa_commodity_code') ?? '',
@@ -162,8 +164,8 @@ class MCWC_PreparedPaymentRequestBuilder
                 'unitPrice' => round($unit_price, 2),
                 'unitOfMeasure' => $product->get_attribute('pa_unit_of_measure') ?? '',
                 'total' => $tax_display === 'incl' ? round($line_total + $line_tax, 2) : round($line_total, 2),
-                'taxRate' => $tax_rate,
-                'taxAmount' => round($line_tax, 2),
+                'taxRate' => $display_tax ? $tax_rate : null,
+                'taxAmount' => $display_tax ? round($line_tax, 2) : null,
             ];
         }
 
@@ -201,7 +203,6 @@ class MCWC_PreparedPaymentRequestBuilder
         $delivery = [];
         foreach ($order->get_shipping_methods() as $shipping_method) {
             $amount = $shipping_method->get_total();
-            
             if($amount <= 0) {
                 continue; // Skip if shipping amount is zero or negative
             }
@@ -210,8 +211,8 @@ class MCWC_PreparedPaymentRequestBuilder
             $delivery = [
                 'carrier' => $shipping_method->get_method_title(),
                 'amount' => $tax_display === 'incl' ? round($amount + $tax, 2) : round($amount, 2),
-                'taxRate' =>  $this->get_shipping_tax_rate($shipping_method),
-                'taxAmount' => round($tax, 2) 
+                'taxRate' =>  $tax > 0 ? $this->get_shipping_tax_rate($shipping_method) : null,
+                'taxAmount' => $tax > 0 ? round($tax, 2) : null 
             ];
         }
         return $delivery;
@@ -254,8 +255,8 @@ class MCWC_PreparedPaymentRequestBuilder
                 'code' => $code,
                 'description' => MCWC_TransactionHelper::mcwc_trim_description($coupon->get_description()),
                 'amount' => $tax_display === 'incl' ? round($amount + $tax, 2) : round($amount, 2),
-                'taxRate' => $this->get_discount_tax_rate($order),
-                'taxAmount' => round($tax, 2),
+                'taxRate' => $tax > 0 ? $this->get_discount_tax_rate($order) : null,
+                'taxAmount' => $tax > 0 ? round($tax, 2) : null,
             ];
         }
 
