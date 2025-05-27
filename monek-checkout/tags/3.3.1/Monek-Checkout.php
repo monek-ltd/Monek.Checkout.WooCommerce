@@ -5,7 +5,7 @@
  * Author: Monek Ltd
  * Author URI: http://www.monek.com
  * Description: Take credit/debit card payments with Monek.
- * Version: 3.2.3
+ * Version: 3.3.3
  * text-domain: monek-checkout
  * Requires Plugins: woocommerce
  * License: GPLv3 or later
@@ -15,7 +15,7 @@
  * Requires at least: 5.0
  * Tested up to: 6.6.1
  * Requires PHP: 7.4
- * Stable tag: 3.2.3
+ * Stable tag: 3.3.3
  */
 
  /*
@@ -89,7 +89,10 @@ if (!function_exists('mcwc_initialise_monek_payment_gateway')) {
                 'MCWC_TransactionHelper'             => 'Payment/MCWC_TransactionHelper.php',
                 'MCWC_PreparedPaymentRequestBuilder' => 'Payment/MCWC_PreparedPaymentRequestBuilder.php',
                 'MCWC_PreparedPaymentManager'        => 'Payment/MCWC_PreparedPaymentManager.php',
-                'MCWC_Address'                       => 'Model/MCWC_Address.php'
+                'MCWC_Address'                       => 'Model/MCWC_Address.php',
+                'MCWC_ConsignmentSettings'           => 'Consignment/Model/MCWC_ConsignmentSettings.php',
+                'MCWC_ProductConsignmentInitializer' => 'Consignment/MCWC_ProductConsignmentInitializer.php',
+                'MCWC_ConsignmentCart'       => 'Consignment/Cart/MCWC_ConsignmentCart.php',
             ];
         
             if (array_key_exists($class_name, $class_map)) {
@@ -133,5 +136,67 @@ if (!function_exists('mcwc_initialise_monek_payment_gateway')) {
         add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'mcwc_add_monek_settings_link');
     }
 
+    /**
+     * Enqueue the JavaScript file for the settings page
+     * 
+     * @return void
+     */
+    function mcwc_enqueue_monek_admin_scripts() {
+        $current_screen = get_current_screen();
+        
+        if ($current_screen && $current_screen->id === 'woocommerce_page_wc-settings') {
+            $current_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : '';
+            $current_section = isset($_GET['section']) ? sanitize_text_field($_GET['section']) : '';
+
+            if ($current_tab === 'checkout' && $current_section === 'monek-checkout') {
+                wp_enqueue_script(
+                    'monek-custom-admin-js',
+                    plugin_dir_url(__FILE__) . 'assets/js/monek-admin.js',
+                    ['jquery'],
+                    '1.0.0',
+                    true
+                );
+            }
+        }
+    }
+
+    /**
+     * Conditionally disable the payment gateway if no monek id is set
+     * 
+     * @param mixed $available_gateways
+     * @return mixed
+     */
+    function mcwc_conditionally_disable_gateway( $available_gateways ) {
+        
+        if(is_admin()) {
+            return $available_gateways;
+        }
+
+        $is_merchant_id_set = false;
+
+        $gateway_instance = new MCWC_MonekGateway();
+        $merchant_id = $gateway_instance->get_option('merchant_id');
+
+        if(!empty( $merchant_id ) ) {
+            $is_merchant_id_set = true;
+        } 
+        else if (isset($gateway_instance->settings['consignment_mode']) 
+            && $gateway_instance->settings['consignment_mode'] == 'yes'
+            && isset(WC()->cart)) 
+        {
+            $is_merchant_id_set = MCWC_ConsignmentCart::mcwc_check_cart_for_matching_merchants() === 1;
+        }
+
+        if ( !$is_merchant_id_set ) {
+            unset( $available_gateways['monek-checkout'] );
+        }
+        
+        return $available_gateways;
+    }
+    
+    add_action('admin_enqueue_scripts', 'mcwc_enqueue_monek_admin_scripts');
     add_action('plugins_loaded', 'mcwc_initialise_monek_payment_gateway', 0);
+    add_filter( 'woocommerce_available_payment_gateways', 'mcwc_conditionally_disable_gateway' );
+
+    require_once 'Consignment/MerchantMapping/Includes/MCWC_AjaxHandlers.php';
 }

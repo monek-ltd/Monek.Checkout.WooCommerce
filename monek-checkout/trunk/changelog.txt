@@ -1,16 +1,17 @@
 *** Monek Checkout Changelog ***
 
-2024-11-25 version 3.3.2
-* Update - Update the Consignment Feature to rely on tags to add the product MIDS
-
-2024-10-23 version 3.3.1
-* Tweak - Tweaked Consignment Feature to add more logging and attatch to different actions
+2025-05-27 version 3.3.3
+* Fixed - Tax was showing incorrectly for inclusive
+* Added - Tax exclusive support for the checkout page
 
 2024-10-18 version 3.3.0
 * Added - Consignment Feature to enable the user to add a monek id per product
 * Tweak - Plugin settings page layout
 * Added - Added new images for directory page
 * Added - Hide payment option if monek id not set
+* Tweak -  2024-10-23 3.3.1 Tweaked Consignment Feature to add more logging and attatch to different actions
+* Update - 2024-11-25 3.3.2 Update the Consignment Feature to rely on tags to add the product MIDS
+
 
 2024-09-12 version 3.2.2
 * Tweak - Updated folder structure to match SVN Repo
