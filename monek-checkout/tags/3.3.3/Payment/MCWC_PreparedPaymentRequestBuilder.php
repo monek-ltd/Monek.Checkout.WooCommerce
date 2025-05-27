@@ -201,6 +201,11 @@ class MCWC_PreparedPaymentRequestBuilder
         $delivery = [];
         foreach ($order->get_shipping_methods() as $shipping_method) {
             $amount = $shipping_method->get_total();
+            
+            if($amount <= 0) {
+                continue; // Skip if shipping amount is zero or negative
+            }
+
             $tax = $shipping_method->get_total_tax();
             $delivery = [
                 'carrier' => $shipping_method->get_method_title(),
