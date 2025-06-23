@@ -13,7 +13,7 @@
  * Tags: payment, gateway, credit card, debit card, woocommerce
  * Contributors: Monek Ltd
  * Requires at least: 5.0
- * Tested up to: 6.6.1
+ * Tested up to: 6.8.1
  * Requires PHP: 7.4
  * Stable tag: 3.3.4
  */
