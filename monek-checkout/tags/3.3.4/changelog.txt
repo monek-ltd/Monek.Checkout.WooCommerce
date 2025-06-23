@@ -1,9 +1,5 @@
 *** Monek Checkout Changelog ***
 
-2025-06-2025 version 3.3.4
-* Added - New setting to disable the checkout page basket breakdown
-* Added - New order note to show when the order is created
-
 2025-05-27 version 3.3.3
 * Fixed - Tax was showing incorrectly for inclusive
 * Added - Tax exclusive support for the checkout page
