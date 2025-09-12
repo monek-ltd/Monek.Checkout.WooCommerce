@@ -1,6 +1,10 @@
 *** Monek Checkout Changelog ***
 
-2025-06-2025 version 3.3.4
+2025-09-12 version 3.3.5
+* Added - Support for Checkout Blocks
+* Fixed - Known Issue 1
+
+2025-06-25 version 3.3.4
 * Added - New setting to disable the checkout page basket breakdown
 * Added - New order note to show when the order is created
 

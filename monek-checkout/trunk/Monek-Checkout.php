@@ -1,5 +1,7 @@
 <?php
 
+use Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry;
+
 /*
  * Plugin Name: Monek Checkout
  * Author: Monek Ltd
@@ -13,9 +15,9 @@
  * Tags: payment, gateway, credit card, debit card, woocommerce
  * Contributors: Monek Ltd
  * Requires at least: 5.0
- * Tested up to: 6.8.1
+ * Tested up to: 6.8.2
  * Requires PHP: 7.4
- * Stable tag: 3.3.4
+ * Stable tag: 3.3.5
  */
 
  /*
@@ -92,7 +94,8 @@ if (!function_exists('mcwc_initialise_monek_payment_gateway')) {
                 'MCWC_Address'                       => 'Model/MCWC_Address.php',
                 'MCWC_ConsignmentSettings'           => 'Consignment/Model/MCWC_ConsignmentSettings.php',
                 'MCWC_ProductConsignmentInitializer' => 'Consignment/MCWC_ProductConsignmentInitializer.php',
-                'MCWC_ConsignmentCart'       => 'Consignment/Cart/MCWC_ConsignmentCart.php',
+                'MCWC_ConsignmentCart'               => 'Consignment/Cart/MCWC_ConsignmentCart.php',
+                'MCWC_Monek_Blocks'                  => 'Blocks/MCWC_Monek_Blocks.php',
             ];
         
             if (array_key_exists($class_name, $class_map)) {
@@ -193,6 +196,21 @@ if (!function_exists('mcwc_initialise_monek_payment_gateway')) {
         
         return $available_gateways;
     }
+
+
+    add_action( 'woocommerce_blocks_loaded', function() {
+        if ( ! class_exists( '\Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' ) ) {
+            return;
+        }
+
+        add_action(
+            'woocommerce_blocks_payment_method_type_registration',
+            function( PaymentMethodRegistry $payment_method_registry ) {
+                $payment_method_registry->register( new MCWC_Monek_Blocks() );
+            }
+        );
+    });
+
     
     add_action('admin_enqueue_scripts', 'mcwc_enqueue_monek_admin_scripts');
     add_action('plugins_loaded', 'mcwc_initialise_monek_payment_gateway', 0);

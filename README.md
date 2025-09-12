@@ -120,31 +120,7 @@ This is a WooCommerce default behavior and not specific to the Monek Gateway plu
 
 ### Known Issues and Solutions
 
-#### Known Issue 1: Compatibility with WooCommerce Cart and Checkout Blocks
-Starting with WooCommerce version 8.3, the Cart and Checkout Blocks become the default for new installations. However, this change may prevent the Monek Gateway from appearing in the checkout section.
-
-##### Issue Description:
-###### - Affected Versions: 
-WooCommerce 8.3 and later for new installations.
-###### - Impact: 
-The Monek Gateway may not be visible in the checkout section due to the default Cart and Checkout Blocks.
-##### Solution:
-To resolve this issue and ensure the Monek Gateway appears on the checkout page, follow these steps:
-
-##### Revert to Classic Checkout Shortcode:
-
-If you are experiencing this issue, you can revert to the classic checkout shortcode. This step ensures compatibility with the Monek Gateway.
-
-Open the page where you have the checkout, likely titled "Checkout."
-Replace any existing WooCommerce block with the classic shortcode `[woocommerce_checkout]`.
-For more information on managing the Cart and Checkout Blocks, refer to the [WooCommerce documentation](https://woo.com/document/cart-checkout-blocks-status/#section-11).
-
-###### Note: 
-If your site is already using the classic checkout shortcode or is updating from an older version of WooCommerce, this issue does not apply.
-
-
-
-#### Known Issue 2: Permalink Structure Conflict Resulting in 3005 Error
+#### Known Issue 1: Permalink Structure Conflict Resulting in 3005 Error
 
 When configuring your WooCommerce site, it's crucial to be aware of a known issue related to the permalink structure setting. Specifically, if your permalink structure is set to 'Plain,' it can lead to conflicts with a setting in the transaction call, resulting in a 3005 error from HTTP requests to the Monek payment page.
 
@@ -174,7 +150,7 @@ If your permalink structure is already set to a non-'Plain' option, or if your s
 
 
 
-#### Known Issue 3: New Beta Product Page does not display Consignment Selection
+#### Known Issue 2: New Beta Product Page does not display Consignment Selection
 When setting up a new product page in WooCommerce, you may encounter an issue where the consignment selection is not displayed on the product page. This issue can prevent customers from choosing the desired consignment option when purchasing the product.
 
 ##### Issue Description:
@@ -199,7 +175,7 @@ We will continue to monitor the progress of the new product form and provide upd
 
 
 
-#### Known Issue 4: Payment Option Does Not Appear In Admin Dashboard When Using Wordpress Multisite Integration
+#### Known Issue 3: Payment Option Does Not Appear In Admin Dashboard When Using Wordpress Multisite Integration
 If using this plugin with a wordpress multisite you may notice the following issue, with WooCommerce & Monek Checkout plugins installed and network activated, The Monek payment option does not appear within the WooCommerce payment methods list in the admin dashboard. This issue has been solved, please refer to the solution below.
 
 
