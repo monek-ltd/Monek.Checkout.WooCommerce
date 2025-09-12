@@ -7,7 +7,7 @@ use Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry;
  * Author: Monek Ltd
  * Author URI: http://www.monek.com
  * Description: Take credit/debit card payments with Monek.
- * Version: 3.3.4
+ * Version: 3.3.5
  * text-domain: monek-checkout
  * Requires Plugins: woocommerce
  * License: GPLv3 or later
