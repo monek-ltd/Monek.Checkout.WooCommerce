@@ -1,7 +1,5 @@
 <?php
 
-use Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry;
-
 /*
  * Plugin Name: Monek Checkout
  * Author: Monek Ltd
