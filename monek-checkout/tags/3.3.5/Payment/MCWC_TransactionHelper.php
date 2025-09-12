@@ -42,4 +42,18 @@ class MCWC_TransactionHelper {
         }
         return $description;
     }
+    
+    /**
+     * Strip apostrophes from all values.
+     *
+     * @param array $details
+     * @return array
+     */
+    public static function mcwc_strip_apostrophes(array $details): array
+    {
+        foreach ($details as $key => $value) {
+            $details[$key] = str_replace("&#039;", '', $value);
+        }
+        return $details;
+    }
 }

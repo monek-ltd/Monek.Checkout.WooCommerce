@@ -71,31 +71,17 @@ class MCWC_PreparedPaymentManager
 
     /**
      * Verify the nonce for the checkout process
-     * Accept nonce from Classic checkout OR Checkout Blocks (Store API).
      *
      * @return bool
      */
-    private function mcwc_verify_nonce(): bool {
-        // 1) Classic checkout (AJAX): hidden field "woocommerce-process-checkout-nonce"
-        if ( isset( $_POST['woocommerce-process-checkout-nonce'] ) ) {
-            $nonce = sanitize_text_field( wp_unslash( $_POST['woocommerce-process-checkout-nonce'] ) );
-            if ( wp_verify_nonce( $nonce, 'woocommerce-process_checkout' ) ) {
-                return true;
-            }
+    private function mcwc_verify_nonce() : bool
+    {
+        $nonce = filter_input(INPUT_POST, "woocommerce-process-checkout-nonce", FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+
+        if (!$nonce) {
+            return false;
         }
 
-        // 2) Blocks (Store API): header "X-WC-Store-API-Nonce" with action "wc_store_api"
-        $store_api_nonce = $_SERVER['HTTP_X_WC_STORE_API_NONCE'] ?? '';
-        if ( ! empty( $store_api_nonce ) && wp_verify_nonce( $store_api_nonce, 'wc_store_api' ) ) {
-            return true;
-            }
-
-        // 3) Some environments also provide "X-WP-Nonce" for REST with action "wp_rest"
-        $wp_rest_nonce = $_SERVER['HTTP_X_WP_NONCE'] ?? '';
-        if ( ! empty( $wp_rest_nonce ) && wp_verify_nonce( $wp_rest_nonce, 'wp_rest' ) ) {
-            return true;
-        }
-
-        return false;
+        return wp_verify_nonce(sanitize_text_field( wp_unslash( $nonce ) ), 'woocommerce-process_checkout');
     }
 }

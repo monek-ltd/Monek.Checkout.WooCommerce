@@ -94,8 +94,7 @@ if (!function_exists('mcwc_initialise_monek_payment_gateway')) {
                 'MCWC_Address'                       => 'Model/MCWC_Address.php',
                 'MCWC_ConsignmentSettings'           => 'Consignment/Model/MCWC_ConsignmentSettings.php',
                 'MCWC_ProductConsignmentInitializer' => 'Consignment/MCWC_ProductConsignmentInitializer.php',
-                'MCWC_ConsignmentCart'               => 'Consignment/Cart/MCWC_ConsignmentCart.php',
-                'MCWC_Monek_Blocks'                  => 'Blocks/MCWC_Monek_Blocks.php',
+                'MCWC_ConsignmentCart'               => 'Consignment/Cart/MCWC_ConsignmentCart.php'
             ];
         
             if (array_key_exists($class_name, $class_map)) {

@@ -137,6 +137,8 @@ class MCWC_PreparedPaymentRequestBuilder
         else {
             $cardholder_detail_information['DeliveryIsBilling'] = "YES";
         }
+        
+        $cardholder_detail_information = MCWC_TransactionHelper::mcwc_strip_apostrophes($cardholder_detail_information);
 
         return array_merge($prepared_payment_request, $cardholder_detail_information);
     }
