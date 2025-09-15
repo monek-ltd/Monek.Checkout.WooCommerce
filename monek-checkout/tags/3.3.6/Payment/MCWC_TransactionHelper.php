@@ -42,7 +42,7 @@ class MCWC_TransactionHelper {
         }
         return $description;
     }
-    
+
     /**
      * Strip apostrophes from all values.
      *

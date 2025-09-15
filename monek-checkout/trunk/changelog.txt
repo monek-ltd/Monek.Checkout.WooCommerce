@@ -1,5 +1,9 @@
 *** Monek Checkout Changelog ***
 
+2025-09-12 version 3.3.6
+* Added - Support for Checkout Blocks
+* Fixed - Known Issue 1
+
 2025-07-04 version 3.3.5
 * Fixed - Strip apostrophes from the basket description to prevent issues with the checkout page
 
