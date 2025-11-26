@@ -69,6 +69,7 @@ class WebhookRouteRegistrar
         }
 
         $order->update_meta_data('_monek_last_webhook', wp_json_encode($body));
+
         $targetStatus = 'payment-confirmed';
 
         if ($order->get_status() !== $targetStatus) {
@@ -170,6 +171,7 @@ class WebhookRouteRegistrar
         $expectedSignature = base64_encode(hash_hmac('sha256', $payloadToSign, $preparedSecret, true));
 
         $signatures = $this->extractSignatures($svixSignature);
+        
         if (isset($signatures['v1'])) {
             foreach ($signatures['v1'] as $candidate) {
                 if (hash_equals($expectedSignature, $candidate)) {
