@@ -1,5 +1,5 @@
 === Monek Checkout ===
-Contributors: humberstone83
+Contributors: humberstone83, mariusmonek
 Tags: credit card, payments, monek, woocommerce
 Requires at least: 6.0
 Tested up to: 6.8.2
@@ -16,7 +16,7 @@ The plugin mounts Monek’s hosted payment fields and optional express wallets d
 
 Key features:
 * Secure embedded payment fields rendered inside WooCommerce Checkout Blocks.
-* Optional Apple Pay and other express wallets when configured in Odin.
+* Optional Apple Pay and other express wallets when configured in Monek Merchant Portal (Odin).
 * Payment Confirmed order status triggered by verified webhooks for added assurance.
 * Simple configuration steps designed for non-technical store owners.
 
@@ -29,8 +29,8 @@ Key features:
 
 == Configuration ==
 
-=== 1. Gather your API credentials from Odin ===
-1. Sign in to the [Odin merchant portal](https://merchant.odin.com/) and open the **Integrations** tab.
+=== 1. Gather your API credentials from Monek Merchant Portal (Odin) ===
+1. Sign in to the [Monek Merchant Portal](https://merchant.odin.com/) and open the **Integrations** tab.
 2. Locate or create an access key for WooCommerce.
 3. Copy the **publishable (public) key** and **secret key**.
 4. (Optional) If you plan to offer Apple Pay, add your website domain to this access key before leaving the page.
@@ -41,11 +41,11 @@ Key features:
 3. Save your changes.
 
 === 3. (Optional) Enable Apple Pay ===
-1. Ensure your website domain is listed against the access key you created in Odin.
+1. Ensure your website domain is listed against the access key you created in Monek Merchant Portal.
 2. Test checkout from a supported Apple device or browser. The Apple Pay button will appear automatically when Apple confirms the domain.
 
 === 4. (Optional) Configure a webhook for Payment Confirmed ===
-1. In Odin, create or edit an SVIX webhook in the **Integrations** tab.
+1. In Monek Merchant Portal, create or edit an SVIX webhook in the **Integrations** tab.
 2. Set the destination URL to your site domain with `/wp-json/monek/v1/webhook` appended (for example, `https://example.com/wp-json/monek/v1/webhook`). The plugin exposes this REST endpoint automatically.
 3. (Optional) Enter the **webhook endpoint signing secret** in the plugin settings to verify that incoming events are from SVIX. If you leave this field blank, the plugin treats every webhook as valid.
 4. When a verified webhook confirms payment, the plugin can move the order into the **Payment Confirmed** status. Use this status to track orders that have securely completed the Monek payment flow.
@@ -68,6 +68,6 @@ Need help? Contact [Monek Support](https://monek.com/contact) or visit the [Word
 *Breaking change release requiring WooCommerce Checkout Blocks.*
 
 * Introduced the new checkout experience powered by WooCommerce Checkout Blocks.
-* Added clear steps for collecting publishable and secret keys from Odin.
+* Added clear steps for collecting publishable and secret keys from Monek Merchant Portal.
 * Documented optional Apple Pay domain setup and SVIX webhook configuration.
 * Added the Payment Confirmed status to help merchants track securely verified payments.
