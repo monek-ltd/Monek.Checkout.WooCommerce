@@ -233,25 +233,61 @@
   }
 
   function registerExpressSdkListeners(onSubmit, onClose, setExpressPaymentError) {
-    function handleSuccess() {
+    async function handleSuccess() {
       const ref = windowObject.monekCheckout?.getClientPaymentRef?.();
       if (!ref) return;
 
-      const payload = {
+      const expressPaymentPayload = {
         monek_reference: ref,
         monek_mode: 'express',
       };
 
-      windowObject.__monekExpressPayload = payload;
+      windowObject.__monekExpressPayload = expressPaymentPayload;
+
+      const paymentResponseData = await windowObject.monekCheckout.waitForCompletionOnce();
+      const ctx = paymentResponseData?.ctx?.applePay || {};
+
+      const billingAddressFromApplePay = {
+        first_name: ctx.billingContact?.givenName ?? "",
+        last_name: ctx.billingContact?.familyName ?? "",
+        email: ctx.payerEmail ?? "",
+        address_1: ctx.billingContact?.addressLines?.join(' ') ?? "",
+        city: ctx.billingContact?.locality ?? "",
+        state: ctx.billingContact?.administrativeArea ?? "",
+        postcode: ctx.billingContact?.postalCode ?? "",
+        country: ctx.billingContact?.countryCode ?? "GB",
+        phone: ctx.payerPhone ?? "",
+      };
+
+      const shippingAddressFromApplePay = {
+        first_name: ctx.shippingContact?.givenName ?? "",
+        last_name: ctx.shippingContact?.familyName ?? "",
+        address_1: ctx.shippingContact?.addressLines?.join(' ') ?? "",
+        city: ctx.shippingContact?.locality ?? "",
+        state: ctx.shippingContact?.administrativeArea ?? "",
+        postcode: ctx.shippingContact?.postalCode ?? "",
+        country: ctx.shippingContact?.countryCode ?? "GB",
+        phone: ctx.shippingContact?.phoneNumber ?? "",
+      };
 
       try {
-        const dispatch = windowObject.wp?.data?.dispatch?.('wc/store/payment');
+        const cartDispatch = windowObject.wp?.data?.dispatch?.('wc/store/cart');
 
-        if (dispatch?.__internalSetPaymentMethodData) {
-          dispatch.__internalSetPaymentMethodData(payload);
+        if (cartDispatch?.setBillingAddress) {
+          cartDispatch.setBillingAddress(billingAddressFromApplePay);
         }
 
-        console.log('[monek] payment data set:', payload);
+        if (cartDispatch?.setShippingAddress) {
+          cartDispatch.setShippingAddress(shippingAddressFromApplePay);
+        }
+
+        const paymentDispatch = windowObject.wp?.data?.dispatch?.('wc/store/payment');
+
+        if (paymentDispatch?.__internalSetPaymentMethodData) {
+          paymentDispatch.__internalSetPaymentMethodData(expressPaymentPayload);
+        }
+
+        console.log('[monek] payment data set:', expressPaymentPayload);
       } catch (err) {
         windowObject.console?.warn?.('[monek] failed to set payment method data', err);
       }
