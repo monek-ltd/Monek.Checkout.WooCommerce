@@ -26,8 +26,6 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
     private const DEFAULT_CUSTOM_INPUT_BACKGROUND = '#ffffff';
     private const DEFAULT_CUSTOM_ACCENT = '#1460f2';
 
-    private const string MONEK_CHECKOUT_SDK_SCRIPT = 'https://checkout-js.monek.com/monek-checkout.iife.js';
-
     private Logger $logger;
     private CheckoutRequestFactory $checkoutRequestFactory;
     private ExpressCheckoutHandler $expressCheckoutHandler;
@@ -329,7 +327,7 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
 
         wp_register_script(
             $sdkHandle,
-            self::MONEK_CHECKOUT_SDK_SCRIPT,
+            'https://checkout-js.monek.com/monek-checkout.iife.js',
             [],
             null,
             true

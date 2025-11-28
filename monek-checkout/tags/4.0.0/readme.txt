@@ -30,7 +30,7 @@ Key features:
 == Configuration ==
 
 === 1. Gather your API credentials from Monek Merchant Portal (Odin) ===
-1. Sign in to the [Monek Merchant Portal](https://merchant.odin.com/) and open the **Integrations** tab.
+1. Sign in to the [Monek Merchant Portal](https://portal.monek.com/) and open the **Integrations** tab.
 2. Locate or create an access key for WooCommerce.
 3. Copy the **publishable (public) key** and **secret key**.
 4. (Optional) If you plan to offer Apple Pay, add your website domain to this access key before leaving the page.
