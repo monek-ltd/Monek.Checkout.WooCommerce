@@ -4,7 +4,7 @@ Tags: credit card, payments, monek, woocommerce
 Requires at least: 6.0
 Tested up to: 6.8.2
 Requires PHP: 7.4
-Stable tag: 4.0.2
+Stable tag: 4.1.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -31,8 +31,8 @@ Key features:
 
 === 1. Gather your API credentials from Monek Merchant Portal (Odin) ===
 1. Sign in to the [Monek Merchant Portal](https://portal.monek.com/) and open the **Integrations** tab.
-2. Locate or create an access key for WooCommerce.
-3. Copy the **publishable (public) key** and **secret key**.
+2. In the Checkout Access Tokens tab, create a new access token using the plus icon on the right. Select Apple Pay if you want to make it available on your website.
+3. Copy the **publishable (public) key** and **secret key** before you close the pop-up window.
 4. (Optional) If you plan to offer Apple Pay, add your website domain to this access key before leaving the page.
 
 === 2. Add the credentials in WooCommerce ===

@@ -1,28 +1,8 @@
 *** Monek Checkout Changelog ***
 
-2025-12-09 version 4.1.0
-* Breaking - Requires WooCommerce Checkout Blocks and retires the legacy shortcode checkout.
-* Added - Embedded checkout experience powered by the Monek Checkout SDK with server-side completion and the Payment Confirmed order status.
-* Added - Configuration fields for Odin publishable and secret keys plus Apple Pay domain support.
-* Added - Optional SVIX webhook endpoint at /wp-json/monek/v1/webhook, including signing secret verification for trusted notifications.
-
 2025-12-09 version 4.0.4
-* Fixed - Rollback to a previous version
-
-2025-11-28 version 4.0.2
-* Fixed - Update the stable version in Monek-Checkout.php
-
-2025-11-28 version 4.0.2
-* Fixed - Update the stable version in Monek-Checkout.php
-
-2025-11-28 version 4.0.1
-* Fixed - Monek Merchant Portal URL in readme.txt
-
-2025-10-23 version 4.0.0
-* Breaking - Requires WooCommerce Checkout Blocks and retires the legacy shortcode checkout.
-* Added - Embedded checkout experience powered by the Monek Checkout SDK with server-side completion and the Payment Confirmed order status.
-* Added - Configuration fields for Odin publishable and secret keys plus Apple Pay domain support.
-* Added - Optional SVIX webhook endpoint at /wp-json/monek/v1/webhook, including signing secret verification for trusted notifications.
+* Deprecated the 4.0.x branch.
+* Added admin notice informing users about the new 4.1.x major release.
 
 2025-09-12 version 3.3.6
 * Added - Support for Checkout Blocks
@@ -31,7 +11,7 @@
 2025-07-04 version 3.3.5
 * Fixed - Strip apostrophes from the basket description to prevent issues with the checkout page
 
-2025-06-23 version 3.3.4
+2025-06-25 version 3.3.4
 * Added - New setting to disable the checkout page basket breakdown
 * Added - New order note to show when the order is created
 
