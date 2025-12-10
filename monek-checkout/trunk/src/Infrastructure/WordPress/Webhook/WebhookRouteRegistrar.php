@@ -171,7 +171,7 @@ class WebhookRouteRegistrar
         $expectedSignature = base64_encode(hash_hmac('sha256', $payloadToSign, $preparedSecret, true));
 
         $signatures = $this->extractSignatures($svixSignature);
-        
+
         if (isset($signatures['v1'])) {
             foreach ($signatures['v1'] as $candidate) {
                 if (hash_equals($expectedSignature, $candidate)) {
