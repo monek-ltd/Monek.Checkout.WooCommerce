@@ -93,6 +93,17 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
                 'description' => __('Optional message shown alongside the payment form.', 'monek-checkout'),
                 'default' => __('Secure payment powered by Monek.', 'monek-checkout'),
             ],
+            'show_express' => [
+                'title' => __('Express checkout', 'monek-checkout'),
+                'type' => 'checkbox',
+                'label' => __('Display express wallets (Apple Pay, etc.) above the card form when available.', 'monek-checkout'),
+                'default' => 'yes',
+            ],
+            'download_apple_file' => [
+                'title'       => __('Apple Pay registration file', 'monek-checkout'),
+                'type'        => 'download_button',
+                'description' => __('Domain registration file.', 'monek-checkout'),
+            ],
             'publishable_key' => [
                 'title' => __('Publishable key', 'monek-checkout'),
                 'type' => 'text',
@@ -114,13 +125,7 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
                 'default' => '',
                 'desc_tip' => true,
             ],
-            'show_express' => [
-                'title' => __('Express checkout', 'monek-checkout'),
-                'type' => 'checkbox',
-                'label' => __('Display express wallets (Apple Pay, etc.) above the card form when available.', 'monek-checkout'),
-                'default' => 'yes',
-            ],
-            'debug' => [
+            'debug' => [    
                 'title' => __('Debug logging', 'monek-checkout'),
                 'type' => 'checkbox',
                 'label' => __('Enable verbose logging in the browser console.', 'monek-checkout'),
@@ -483,6 +488,35 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
     public function validate_custom_accent_color_field($key, $value): string
     {
         return $this->validate_color_field($key, $value, self::DEFAULT_CUSTOM_ACCENT);
+    }
+
+    public function generate_download_button_html($key, $data)
+    {
+        $nonce = wp_create_nonce('monek_download_apple_file');
+
+        ob_start();
+        ?>
+        <tr valign="top">
+            <th scope="row" class="titledesc">
+                <label><?php echo esc_html($data['title']); ?></label>
+            </th>
+            <td class="forminp">
+                <button
+                    type="button"
+                    class="button button-secondary"
+                    id="monek-download-apple-file"
+                    onclick="monekInstallApplePayFile(this)"
+                    data-nonce="<?php echo esc_attr($nonce); ?>">
+                    <?php esc_html_e('Download file', 'monek-checkout'); ?>
+                </button>
+
+                <p class="apple-pay-description">
+                    <?php echo esc_html($data['description']); ?>
+                </p>
+            </td>
+        </tr>
+        <?php
+        return ob_get_clean();
     }
 
     private function build_custom_styling(array $customTheme): array

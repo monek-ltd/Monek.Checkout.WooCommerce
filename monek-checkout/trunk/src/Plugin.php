@@ -58,5 +58,40 @@ class Plugin
         add_action('rest_api_init', [$this->webhookRouteRegistrar, 'register']);
         add_action('before_woocommerce_init', [$this->blockCompatibilityDeclarer, 'declareCompatibility']);
         add_action('woocommerce_blocks_payment_method_type_registration', [$this->blockPaymentRegistrar, 'register']);
+
+        add_action('admin_enqueue_scripts', function () {
+
+            // Only run in admin
+            if ( ! is_admin() ) {
+                return;
+            }
+
+            wp_enqueue_script(
+                'monek-admin',
+                plugin_dir_url( MONEK_PLUGIN_FILE ) . 'assets/js/monek-admin.js',
+                ['jquery'],
+                '1.0.0',
+                true
+            );
+        });
+
+        add_action('wp_ajax_monek_download_apple_file', function () {
+
+            check_ajax_referer('monek_download_apple_file');
+
+            if ( ! current_user_can('manage_woocommerce') ) {
+                wp_send_json_error('Permission denied');
+            }
+
+            $installer = new \Monek\Checkout\Application\Checkout\ApplePayFileInstaller();
+
+            if ( ! $installer->installFile() ) {
+                wp_send_json_error('Installation failed');
+            }
+
+            wp_send_json_success([
+                'message' => 'Apple Pay domain file installed successfully'
+            ]);
+        });
     }
 }
