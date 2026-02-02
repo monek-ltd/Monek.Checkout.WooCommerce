@@ -37,4 +37,18 @@ jQuery(document).ready(function ($) {
         $('#monek-download-apple-file').prop('disabled', !checked);
     }
 
+    // Listen for dismiss click on the Apple Pay notice
+    $('.monek-apple-pay-notice button.notice-dismiss').on('click', function () {
+        createDismissApplePayNoticeAction();
+    });
+
+    function createDismissApplePayNoticeAction() {
+        $.post(ajaxurl, {
+            action: 'monek_dismiss_apple_pay_notice'
+        }).done(function (response) {
+            console.log('[monek] Apple Pay notice dismissed', response);
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+            console.error('[monek] Apple Pay notice dismissing error', textStatus, errorThrown);
+        });
+    }
 });

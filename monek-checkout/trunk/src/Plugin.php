@@ -85,7 +85,7 @@ class Plugin
 
             $installer = new \Monek\Checkout\Application\Checkout\ApplePayFileInstaller();
 
-            if ( ! $installer->installFile() ) {
+            if ( ! $installer->downloadFile() ) {
                 wp_send_json_error('Installation failed');
             }
 
