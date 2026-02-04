@@ -30,25 +30,23 @@ Key features:
 == Configuration ==
 
 === 1. Gather your API credentials from Monek Merchant Portal (Odin) ===
-1. Sign in to the [Monek Merchant Portal](https://portal.monek.com/) and open the **Integrations** tab.
-2. In the Checkout Access Tokens tab, create a new access token using the plus icon on the right. Select Apple Pay if you want to make it available on your website.
-3. Copy the **publishable (public) key** and **secret key** before you close the pop-up window.
-4. (Optional) If you plan to offer Apple Pay, add your website domain to this access key before leaving the page.
+1. Sign in to the [Monek Merchant Portal](https://portal.monek.com/) and navigate to **Settings** -> **Integrations** page.
+2. Under the WooCommerce Integration tab, create a new integration. Provide a display name and your domain (e.g. `example.com`). The domain name is required for Express Checkout and can be disabled later from the WooCommerce plugin settings if needed.
+3. As a final step, copy the **access (public) key**, **secret key** and **webhook url key** before closing the pop-up window.
 
 === 2. Add the credentials in WooCommerce ===
 1. In WordPress, go to **WooCommerce → Settings → Payments** and select **Monek**.
-2. Enter your **Monek ID**, **publishable key**, and **secret key**.
+2. Enter the **access key**, **secret key** and **webhook url key** values.
 3. Save your changes.
 
-=== 3. (Optional) Enable Apple Pay ===
-1. Ensure your website domain is listed against the access key you created in Monek Merchant Portal.
-2. Test checkout from a supported Apple device or browser. The Apple Pay button will appear automatically when Apple confirms the domain.
+=== 3. (Optional) Use Apple Pay ===
+1. Your website domain is listed against the access key you created in Monek Merchant Portal.
+2. You can disable Apple Pay at any time by unticking **Express Checkout** from the plugin settings.
+3. Test checkout from a supported Apple device or browser. The Apple Pay button will appear automatically once Apple confirms the domain.
 
-=== 4. (Optional) Configure a webhook for Payment Confirmed ===
-1. In Monek Merchant Portal, create or edit an SVIX webhook in the **Integrations** tab.
-2. Set the destination URL to your site domain with `/wp-json/monek/v1/webhook` appended (for example, `https://example.com/wp-json/monek/v1/webhook`). The plugin exposes this REST endpoint automatically.
-3. (Optional) Enter the **webhook endpoint signing secret** in the plugin settings to verify that incoming events are from SVIX. If you leave this field blank, the plugin treats every webhook as valid.
-4. When a verified webhook confirms payment, the plugin can move the order into the **Payment Confirmed** status. Use this status to track orders that have securely completed the Monek payment flow.
+=== 4. (Optional) Use a webhook for Payment Confirmed ===
+1. Webhook confirms payment, and the plugin updates the order status to **Payment Confirmed**. Use this status to track orders that have securely completed the Monek payment flow.
+2. If you prefer to manage order status updates manually, you can remove the **Webhook URL Key** from the plugin settings.
 
 == Frequently Asked Questions ==
 
@@ -56,7 +54,7 @@ Key features:
 No. The webhook and signing secret are optional. Without a signing secret, webhooks are automatically trusted, and the order can still move to **Payment Confirmed** when the event is received.
 
 = Can I keep using the classic WooCommerce checkout? =
-No. Version 4.0 requires WooCommerce Checkout Blocks and no longer supports the legacy shortcode-based checkout. Update WooCommerce to the latest version and enable Blocks to take advantage of the improved experience.
+No. Version 4.x requires WooCommerce Checkout Blocks and no longer supports the legacy shortcode-based checkout. Update WooCommerce to the latest version and enable Blocks to take advantage of the improved experience.
 
 == Support ==
 
@@ -64,10 +62,10 @@ Need help? Contact [Monek Support](https://monek.com/contact) or visit the [Word
 
 == Changelog ==
 
-= 4.0.0 =
+= 4.1.0 =
 *Breaking change release requiring WooCommerce Checkout Blocks.*
 
 * Introduced the new checkout experience powered by WooCommerce Checkout Blocks.
-* Added clear steps for collecting publishable and secret keys from Monek Merchant Portal.
-* Documented optional Apple Pay domain setup and SVIX webhook configuration.
+* Added clear steps for collecting access keys and webhook url from Monek Merchant Portal.
+* Documented Apple Pay domain setup and the option to disable it.
 * Added the Payment Confirmed status to help merchants track securely verified payments.
