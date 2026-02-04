@@ -90,11 +90,14 @@ Click on "Manage" to access its configuration settings.
 
 Fill in the required details:
 - Enable/Disable: Toggle to enable the WooCommerce Monek Gateway.
-- Monek ID: Enter the Monek ID provided to you.
+- Enable/Disable Express Checkout
+- Access Key: Enter the access key.
+- Secret Key: Enter the secret key.
+- Webhook URL Key: Enter the webhook url key.
   
 Save changes to apply the configuration.
 
-If you don't have the necessary information, such as your Monek ID, visit [Monek Contact Page](https://monek.com/contact) to get help. Ensure that all information entered is accurate to enable seamless payment processing on your WooCommerce store.
+For the necessary information, such as the keys and webhook url, visit [Monek Contact Page](https://monek.com/contact) to create them. Ensure that all information entered is accurate to enable seamless payment processing on your WooCommerce store.
 
 
 ## Support and Assistance

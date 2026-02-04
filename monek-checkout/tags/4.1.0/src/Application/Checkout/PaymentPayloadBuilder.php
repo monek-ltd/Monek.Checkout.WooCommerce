@@ -66,6 +66,7 @@ class PaymentPayloadBuilder
             'url' => home_url(),
             'basketDescription' => sprintf(__('Order %s', 'monek-checkout'), $order->get_order_number()),
             'paymentReference' => $paymentReference,
+            'originId' => $this->storeContext->buildOriginId(),
         ];
     }
 
