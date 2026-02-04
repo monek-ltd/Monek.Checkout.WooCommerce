@@ -105,7 +105,7 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
                 'description' => __('Domain registration file.', 'monek-checkout'),
             ],
             'publishable_key' => [
-                'title' => __('Publishable key', 'monek-checkout'),
+                'title' => __('Access key', 'monek-checkout'),
                 'type' => 'text',
                 'description' => __('Your public key used to initialise the embedded checkout.', 'monek-checkout'),
                 'default' => '',
@@ -119,7 +119,7 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
                 'desc_tip' => true,
             ],
             'svix_signing_secret' => [
-                'title' => __('Webhook signing secret', 'monek-checkout'),
+                'title' => __('Webhook URL key', 'monek-checkout'),
                 'type' => 'text',
                 'description' => __('Paste the signing secret for your svix endpoint.', 'monek-checkout'),
                 'default' => '',
