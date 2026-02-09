@@ -30,7 +30,8 @@ class StoreContext
 
     public function generateIdempotencyToken(int $orderId): string
     {
-        return 'wc-' . $orderId . '-' . wp_generate_uuid4();
+        $version = monek_get_plugin_version();
+        return 'wc-' . str_replace('.', '', $version) . $orderId . '-' . wp_generate_uuid4();
     }
 
     public function buildOriginId(): string

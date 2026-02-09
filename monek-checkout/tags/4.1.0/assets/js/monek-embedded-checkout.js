@@ -178,9 +178,12 @@
   }
 
   function createClientPaymentReference() {
+    const version = configuration.pluginVersion || '';
+    const versionPrefix = version ? `${version.replace(/\./g, '')}-` : '';
+    
     try {
       if (windowObject.crypto?.randomUUID) {
-        return `MNK-${windowObject.crypto.randomUUID()}`;
+        return `MNK-wc${versionPrefix}${windowObject.crypto.randomUUID()}`;
       }
     } catch (error) {
       if (windowObject.console?.warn) {
@@ -188,7 +191,7 @@
       }
     }
 
-    return `MNK-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    return `MNK-wc${versionPrefix}${Date.now()}-${Math.random().toString(36).slice(2)}`;
   }
 
   function ensureClientPaymentReference() {
