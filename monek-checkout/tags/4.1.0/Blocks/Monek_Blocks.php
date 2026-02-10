@@ -119,6 +119,8 @@ final class MonekBlocksIntegration extends AbstractPaymentMethodType
             'countryNumeric' => '826',
             'orderDescription' => get_bloginfo('name'),
             'initialAmountMinor' => 0,
+            'debugTimestamp' => time(),
+            'pluginVersion' => monek_get_plugin_version(),
             'debug' => $debug,
             'strings' => [
                 'token_error' => __('There was a problem preparing your payment. Please try again.', 'monek-checkout'),
