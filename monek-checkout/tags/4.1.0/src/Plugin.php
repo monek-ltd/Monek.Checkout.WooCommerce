@@ -70,7 +70,7 @@ class Plugin
                 'monek-admin',
                 plugin_dir_url( MONEK_PLUGIN_FILE ) . 'assets/js/monek-admin.js',
                 ['jquery'],
-                '1.0.0',
+                '1.0.2',
                 true
             );
         });
