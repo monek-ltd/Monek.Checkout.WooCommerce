@@ -64,7 +64,7 @@ class PaymentPayloadBuilder
             'idempotencyToken' => $this->storeContext->generateIdempotencyToken((int) $order->get_id()),
             'source' => 'EmbeddedCheckout',
             'url' => home_url(),
-            'basketDescription' => sprintf(__('Order %s', 'monek-checkout'), $order->get_order_number()),
+            'basketDescription' => $this->createBasketDetails($order),
             'paymentReference' => $paymentReference,
             'originId' => $this->storeContext->buildOriginId(),
             'sourceIpAddress' => $_SERVER['REMOTE_ADDR'] ?? null,
@@ -86,5 +86,54 @@ class PaymentPayloadBuilder
         }
 
         return $digits;
+    }
+
+    private function createBasketDetails(WC_Order $order): string
+    {
+        $items = [];
+
+        foreach ( $order->get_items() as $item_id => $item ) {
+
+            $product = $item->get_product();
+            if ( ! $product ) {
+                continue;
+            }
+
+            $quantity     = $item->get_quantity();
+            $line_total   = (float) $item->get_total();
+            $line_tax     = (float) $item->get_total_tax();
+
+            // Avoid division by zero
+            $unit_price = $quantity > 0 ? $line_total / $quantity : 0;
+
+            // Tax rate calculation (approx)
+            $tax_rate = 0;
+            if ( $line_total > 0 && $line_tax > 0 ) {
+                $tax_rate = round( ( $line_tax / $line_total ) * 100, 2 );
+            }
+
+            $items[] = [
+                'sku'            => $product->get_sku() ?: (string) $product->get_id(),
+                'commodityCode'  => '',
+                'description'    => $item->get_name(),
+                'quantity'       => (int) $quantity,
+                'unitPrice'      => round( $unit_price, 2 ),
+                'unitOfMeasure'  => '',
+                'total'          => round( $line_total, 2 ),
+                'taxRate'        => $tax_rate,
+                'taxAmount'      => round( $line_tax, 2 ),
+            ];
+        }
+
+        $basket = [
+            'taxType'   => 0,
+            'items'     => $items,
+            'discounts' => [],
+            'taxes'     => [],
+        ];
+
+        $basketJson = wp_json_encode($basket);
+
+        return base64_encode($basketJson);
     }
 }
