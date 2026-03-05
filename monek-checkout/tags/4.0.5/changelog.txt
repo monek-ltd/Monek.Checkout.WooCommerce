@@ -1,6 +1,6 @@
 *** Monek Checkout Changelog ***
 
-2025-12-09 version 4.0.5
+2026-03-05 version 4.0.5
 * Deprecated the 4.0.x branch.
 * Added new settings and admin information about the new 4.1.x major release.
 
