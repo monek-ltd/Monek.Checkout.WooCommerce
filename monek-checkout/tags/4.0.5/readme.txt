@@ -132,7 +132,7 @@ This is a WooCommerce default behavior and not specific to the Monek Gateway plu
 == Changelog ==
 
 =4.0.5=
-*Release Date - 2026-02-23*
+*Release Date - 2026-03-05*
 * Deprecated the 4.0.x branch.
 * Added new settings and admin information about the new 4.1.x major release.
 
