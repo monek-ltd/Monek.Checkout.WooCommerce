@@ -82,7 +82,7 @@ class PaymentProcessor
 
             return [
                 'success' => false,
-                'message' => sprintf('payment failed (%d)', $statusCode),
+                'message' => sprintf('PAYMENT COULDN\'T BE PROCESSED. PLEASE CHECK YOUR CARD DETAILS OR TRY ANOTHER PAYMENT METHOD.'),
                 'auth_code' => null,
                 'error_code' => isset($decodedBody['ErrorCode']) ? (string) $decodedBody['ErrorCode'] : null,
                 'raw' => is_array($decodedBody) ? $decodedBody : null,
