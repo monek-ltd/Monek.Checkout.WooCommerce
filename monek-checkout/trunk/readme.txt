@@ -2,7 +2,7 @@
 Contributors: humberstone83, mariusmonek
 Tags: credit card, payments, monek, woocommerce
 Requires at least: 6.0
-Tested up to: 6.8.2
+Tested up to: 7.0
 Requires PHP: 7.4
 Stable tag: 4.1.0
 License: GPLv3
@@ -16,7 +16,7 @@ The plugin mounts Monek’s hosted payment fields and optional express wallets d
 
 Key features:
 * Secure embedded payment fields rendered inside WooCommerce Checkout Blocks.
-* Optional Apple Pay and other express wallets when configured in Monek Merchant Portal (Odin).
+* Optional Apple Pay and other express wallets when configured in Monek Merchant Portal.
 * Payment Confirmed order status triggered by verified webhooks for added assurance.
 * Simple configuration steps designed for non-technical store owners.
 
@@ -29,7 +29,7 @@ Key features:
 
 == Configuration ==
 
-=== 1. Gather your API credentials from Monek Merchant Portal (Odin) ===
+=== 1. Gather your API credentials from Monek Merchant Portal ===
 1. Sign in to the [Monek Merchant Portal](https://portal.monek.com/) and navigate to **Settings** -> **Integrations** page.
 2. Under the WooCommerce Integration tab, create a new integration. Provide a display name and your domain (e.g. `example.com`). The domain name is required for Express Checkout and can be disabled later from the WooCommerce plugin settings if needed.
 3. As a final step, copy the **access (public) key**, **secret key** and **webhook url key** before closing the pop-up window.
