@@ -73,6 +73,10 @@ class Plugin
                 '1.0.2',
                 true
             );
+
+            wp_localize_script('monek-admin', 'monekAdmin', [
+                'dismissApplePayNonce' => wp_create_nonce('monek_dismiss_apple_pay_notice'),
+            ]);
         });
 
         add_action('wp_ajax_monek_download_apple_file', function () {

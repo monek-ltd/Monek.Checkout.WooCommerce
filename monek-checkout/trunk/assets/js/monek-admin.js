@@ -44,7 +44,8 @@ jQuery(document).ready(function ($) {
 
     function createDismissApplePayNoticeAction() {
         $.post(ajaxurl, {
-            action: 'monek_dismiss_apple_pay_notice'
+            action: 'monek_dismiss_apple_pay_notice',
+            _wpnonce: monekAdmin.dismissApplePayNonce
         }).done(function (response) {
             console.log('[monek] Apple Pay notice dismissed', response);
         }).fail(function (jqXHR, textStatus, errorThrown) {

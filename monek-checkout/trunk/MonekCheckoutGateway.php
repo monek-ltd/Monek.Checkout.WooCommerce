@@ -32,6 +32,11 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
     private StandardCheckoutHandler $standardCheckoutHandler;
     private CurrencyFormatter $currencyFormatter;
     private StoreContext $storeContext;
+    private string $publishable_key;
+    private string $secret_key;
+    private string $show_express;
+    private string $debug_mode;
+    private string $svix_signing_secret;
 
     public function __construct()
     {
@@ -46,11 +51,11 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
 
         $this->title = $this->get_option('title');
         $this->description = $this->get_option('description');
-        $this->publishable_key = $this->get_option('publishable_key');
-        $this->secret_key = $this->get_option('secret_key');
-        $this->show_express = $this->get_option('show_express', 'yes');
-        $this->debug_mode = $this->get_option('debug', 'no');
-        $this->svix_signing_secret = $this->get_option('svix_signing_secret');
+        $this->publishable_key = (string) $this->get_option('publishable_key');
+        $this->secret_key = (string) $this->get_option('secret_key');
+        $this->show_express = (string) $this->get_option('show_express', 'yes');
+        $this->debug_mode = (string) $this->get_option('debug', 'no');
+        $this->svix_signing_secret = (string) $this->get_option('svix_signing_secret');
 
         $this->logger = new Logger();
         $this->currencyFormatter = new CurrencyFormatter();
@@ -222,7 +227,7 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
     public function payment_fields(): void
     {
         if ($this->description) {
-            echo wpautop(wptexturize($this->description));
+            echo wp_kses_post(wpautop(wptexturize($this->description)));
         }
 
         echo '<div id="monek-checkout-wrapper" class="monek-checkout-wrapper" data-loading="true">';

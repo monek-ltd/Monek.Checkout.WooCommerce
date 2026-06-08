@@ -1,5 +1,12 @@
 *** Monek Checkout Changelog ***
 
+2025-06-08 version 4.1.1
+* Fixed - Deprecated dynamic property assignments for PHP 8.2+ compatibility.
+* Fixed - Gateway ID resolution now uses proper PaymentContext getter methods instead of relying on magic property access.
+* Security - Added nonce verification to the Apple Pay notice dismissal AJAX handler.
+* Security - Payment description output now uses wp_kses_post to prevent stored XSS.
+* Security - Webhook endpoint now rejects requests when no signing secret is configured.
+
 2025-12-09 version 4.1.0
 * Breaking - Requires WooCommerce Checkout Blocks and retires the legacy shortcode checkout.
 * Added - Embedded checkout experience powered by the Monek Checkout SDK with server-side completion and the Payment Confirmed order status.

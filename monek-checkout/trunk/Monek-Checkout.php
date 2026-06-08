@@ -4,12 +4,12 @@
  * Description: Embedded checkout experience for WooCommerce powered by Monek.
  * Author: Monek Ltd
  * Author URI: https://www.monek.com
- * Version: 4.1.0
+ * Version: 4.1.1
  * Text Domain: monek-checkout
  * Requires Plugins: woocommerce
  * Requires at least: 6.0
- * Tested up to: 6.8.2
- * Requires PHP: 7.4
+ * Tested up to: 7.0
+ * Requires PHP: 7.4     
  * License: GPLv3 or later
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -104,6 +104,7 @@ add_action( 'admin_notices', function () {
 });
 
 add_action('wp_ajax_monek_dismiss_apple_pay_notice', function () {
+    check_ajax_referer('monek_dismiss_apple_pay_notice', '_wpnonce');
     delete_option('monek_apple_pay_install_failed');
     wp_send_json_success();
 });

@@ -4,7 +4,7 @@ Tags: credit card, payments, monek, woocommerce
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 4.1.0
+Stable tag: 4.1.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -61,6 +61,13 @@ No. Version 4.x requires WooCommerce Checkout Blocks and no longer supports the 
 Need help? Contact [Monek Support](https://monek.com/contact) or visit the [WordPress.org support forum](https://wordpress.org/support/plugin/monek-checkout/).
 
 == Changelog ==
+
+= 4.1.1 =
+* Fixed deprecated dynamic property assignments for PHP 8.2+ compatibility.
+* Fixed gateway ID resolution to use proper PaymentContext getter methods.
+* Security: added nonce verification to Apple Pay notice dismissal AJAX handler.
+* Security: description output now uses wp_kses_post to prevent stored XSS.
+* Security: webhook endpoint now rejects requests when no signing secret is configured.
 
 = 4.1.0 =
 *Breaking change release requiring WooCommerce Checkout Blocks.*

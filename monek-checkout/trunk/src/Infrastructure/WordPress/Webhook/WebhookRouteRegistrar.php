@@ -143,7 +143,7 @@ class WebhookRouteRegistrar
         $secret = $this->getSigningSecret();
         if ($secret === '') {
             $reason = 'no_secret';
-            return true;
+            return false;
         }
 
         $preparedSecret = $this->prepareSigningSecret($secret);

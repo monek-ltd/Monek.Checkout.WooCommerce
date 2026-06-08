@@ -62,11 +62,7 @@ class CheckoutRequestFactory
 
     private function resolveGatewayIdentifier(PaymentContext $context): string
     {
-        $candidate = '';
-
-        if (!isset($context->payment_method)) {
-            $candidate = $context->payment_method;
-        }
+        $candidate = $context->payment_method ?? '';
 
         return $this->cleanTextValue($candidate);
     }
