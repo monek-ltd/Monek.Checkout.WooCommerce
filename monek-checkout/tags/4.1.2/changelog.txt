@@ -6,7 +6,7 @@
 * Added - Teardown API (unmount/unmountExpress) on window.monekCheckout and onCheckoutFail handling so gateway errors surface in the checkout.
 * Fixed - Embedded card form no longer clipped/half-hidden on mobile; checkout surfaces now scale to the viewport width.
 
-2025-06-08 version 4.1.1
+2026-06-08 version 4.1.1
 * Fixed - Deprecated dynamic property assignments for PHP 8.2+ compatibility.
 * Fixed - Gateway ID resolution now uses proper PaymentContext getter methods instead of relying on magic property access.
 * Security - Added nonce verification to the Apple Pay notice dismissal AJAX handler.
