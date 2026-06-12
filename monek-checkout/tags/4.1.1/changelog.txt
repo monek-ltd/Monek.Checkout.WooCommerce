@@ -1,6 +1,6 @@
 *** Monek Checkout Changelog ***
 
-2025-06-08 version 4.1.1
+2026-06-08 version 4.1.1
 * Fixed - Deprecated dynamic property assignments for PHP 8.2+ compatibility.
 * Fixed - Gateway ID resolution now uses proper PaymentContext getter methods instead of relying on magic property access.
 * Security - Added nonce verification to the Apple Pay notice dismissal AJAX handler.
