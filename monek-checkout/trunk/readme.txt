@@ -8,10 +8,14 @@ Stable tag: 4.1.2
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Monek Checkout connects your WooCommerce store to Monek’s secure payment platform. Version 4.0 introduces the WooCommerce Checkout Blocks experience and retires the legacy shortcode-based checkout so merchants get a faster, more reliable checkout flow.
+== Important: WooCommerce Block Checkout Required ==
+
+⚠️ This plugin requires the **WooCommerce Block-based Checkout**. The legacy shortcode checkout (`[woocommerce_checkout]`) is not supported. Before installing, please ensure your checkout page uses the WooCommerce Checkout Block.
+To check: edit your checkout page in WordPress and confirm it contains the **WooCommerce Checkout Block** rather than the `[woocommerce_checkout]` shortcode. If you are unsure how to switch, please refer to the [WooCommerce documentation on block checkout](https://woo.com/document/woocommerce-blocks/).
 
 == Description ==
 
+Monek Checkout connects your WooCommerce store to Monek’s secure payment platform. Version 4.0 introduces the WooCommerce Checkout Blocks experience and **retires** the legacy shortcode-based checkout so merchants get a faster, more reliable checkout flow.
 The plugin mounts Monek’s hosted payment fields and optional express wallets directly inside the WooCommerce Checkout Blocks experience. Customers stay on your site while their card details are captured securely. Merchants benefit from a guided setup that walks them through collecting API keys, enabling Apple Pay, and optionally confirming payments via webhook.
 
 Key features:
