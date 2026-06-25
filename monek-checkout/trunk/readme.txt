@@ -4,7 +4,7 @@ Tags: credit card, payments, monek, woocommerce
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 4.1.2
+Stable tag: 4.2.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -65,6 +65,10 @@ No. Version 4.x requires WooCommerce Checkout Blocks and no longer supports the 
 Need help? Contact [Monek Support](https://monek.com/contact) or visit the [WordPress.org support forum](https://wordpress.org/support/plugin/monek-checkout/).
 
 == Changelog ==
+
+= 4.2.0 =
+* Enhanced the Express Checkout flow by introducing a verification token returned by the backend, allowing the plugin to validate and update the payment accordingly.
+* The plugin detects which checkout solution is currently active and displays an error message if WooCommerce Blocks Checkout is not enabled.
 
 = 4.1.2 =
 * Fixed the block checkout payment surface staying greyed out when switching away from Monek and back; the embedded SDK now tears down and re-mounts cleanly.

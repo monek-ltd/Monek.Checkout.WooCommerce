@@ -379,6 +379,45 @@
     return state.sdkPromise;
   }
 
+  async function verifyExpressPayment(authResult) {
+    const verifyUrl = configuration.expressVerifyUrl;
+    if (!verifyUrl) {
+      windowObject.console?.error?.('[monek] express verify URL not configured; Payment cannot be verified.');
+      return { verified: false };
+    }
+
+    const requestBody = {
+      verification: authResult?.verification || '',
+      sessionId: authResult?.sessionId || '',
+      paymentReference: getClientPaymentReference(),
+      transactionId: authResult?.transactionId || '',
+    };
+
+    try {
+      const response = await windowObject.fetch(verifyUrl, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-WP-Nonce': configuration.restNonce || '',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      const verified = response.ok && data?.verified === true;
+
+      if (!verified) {
+        windowObject.console?.warn?.('[monek] express verification failed', data);
+      }
+
+      return { verified };
+    } catch (error) {
+      windowObject.console?.error?.('[monek] express verification request failed', error);
+      return { verified: false };
+    }
+  }
+
   function buildComponentOptions(isExpress) {
     const paymentReference = ensureClientPaymentReference();
 
@@ -386,6 +425,7 @@
       getAmount: () => ({ minor: getOrderTotalMinor(), currency: configuration.currencyNumeric || '826' }),
       getDescription: () => configuration.orderDescription || 'Order',
       getCardholderDetails: buildCardholderDetails,
+      onPaymentAuthorised: verifyExpressPayment,
     };
 
     const baseStyling = resolveStylingConfiguration(configuration);

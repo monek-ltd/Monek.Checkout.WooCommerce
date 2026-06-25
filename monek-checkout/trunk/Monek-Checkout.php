@@ -4,7 +4,7 @@
  * Description: Embedded checkout experience for WooCommerce powered by Monek.
  * Author: Monek Ltd
  * Author URI: https://www.monek.com
- * Version: 4.1.2
+ * Version: 4.2.0
  * Text Domain: monek-checkout
  * Requires Plugins: woocommerce
  * Requires at least: 6.0
@@ -21,6 +21,7 @@ use Monek\Checkout\Infrastructure\WordPress\Admin\SettingsNoticePresenter;
 use Monek\Checkout\Infrastructure\WordPress\Admin\ToolsPage;
 use Monek\Checkout\Infrastructure\WordPress\Blocks\BlockPaymentRegistrar;
 use Monek\Checkout\Infrastructure\WordPress\Compatibility\BlockCompatibilityDeclarer;
+use Monek\Checkout\Infrastructure\WordPress\RouteRegistrar\ExpressVerificationRouteRegistrar;
 use Monek\Checkout\Infrastructure\WordPress\Gateway\GatewayBootstrapper;
 use Monek\Checkout\Infrastructure\WordPress\Status\OrderStatusRegistrar;
 use Monek\Checkout\Infrastructure\WordPress\Webhook\WebhookRouteRegistrar;
@@ -122,6 +123,7 @@ if (! function_exists('monek_bootstrap_plugin')) {
             new OrderStatusRegistrar(),
             new AdminStyleEnqueuer(),
             new WebhookRouteRegistrar(),
+            new ExpressVerificationRouteRegistrar(),
             new BlockCompatibilityDeclarer(),
             new BlockPaymentRegistrar()
         );

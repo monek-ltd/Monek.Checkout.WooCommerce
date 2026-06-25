@@ -7,6 +7,8 @@ use Automattic\WooCommerce\Blocks\Payments\PaymentResult;
 use Monek\Checkout\Application\Checkout\CheckoutRequestFactory;
 use Monek\Checkout\Application\Checkout\CurrencyFormatter;
 use Monek\Checkout\Application\Checkout\ExpressCheckoutHandler;
+use Monek\Checkout\Application\Checkout\ExpressPaymentVerifier;
+use Monek\Checkout\Application\Checkout\ExpressVerificationStore;
 use Monek\Checkout\Application\Checkout\PaymentPayloadBuilder;
 use Monek\Checkout\Application\Checkout\PaymentProcessor;
 use Monek\Checkout\Application\Checkout\StandardCheckoutHandler;
@@ -69,7 +71,12 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
         );
 
         $this->checkoutRequestFactory = new CheckoutRequestFactory();
-        $this->expressCheckoutHandler = new ExpressCheckoutHandler($this->logger);
+        $this->expressCheckoutHandler = new ExpressCheckoutHandler(
+            $this->logger,
+            new ExpressVerificationStore(),
+            new ExpressPaymentVerifier(),
+            $this->currencyFormatter
+        );
         $this->standardCheckoutHandler = new StandardCheckoutHandler($paymentProcessor, $this->logger);
 
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
@@ -230,6 +237,13 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
             echo wp_kses_post(wpautop(wptexturize($this->description)));
         }
 
+        if ($this->isLegacyCheckout()) {
+            echo '<p class="monek-notice" style="color:#c0392b;font-size: 1.1em;">'
+                . __('Monek Checkout requires the block-based checkout. Please switch to the WooCommerce block checkout page.', 'monek-checkout')
+                . '</p>';
+            return;
+        }
+
         echo '<div id="monek-checkout-wrapper" class="monek-checkout-wrapper" data-loading="true">';
 
         if ('yes' === $this->show_express) {
@@ -375,6 +389,8 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
             'countryNumeric' => $this->storeContext->getNumericCountryCode(),
             'orderDescription' => get_bloginfo('name'),
             'initialAmountMinor' => $this->get_initial_amount_minor(),
+            'expressVerifyUrl' => rest_url('monek/v1/express/authorise'),
+            'restNonce' => wp_create_nonce('wp_rest'),
             'debug' => ('yes' === $this->debug_mode),
             'strings' => [
                 'token_error' => __('There was a problem preparing your payment. Please try again.', 'monek-checkout'),
@@ -591,5 +607,29 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
         }
 
         return $default;
+    }
+
+    private function isLegacyCheckout(): bool
+    {
+        $currentPageId = get_the_ID();
+        if (!$currentPageId) {
+            return false;
+        }
+
+        $currentPage = get_post($currentPageId);
+        if (!$currentPage) {
+            return false;
+        }
+
+        // Check current page content
+        if (has_shortcode($currentPage->post_content, 'woocommerce_checkout')) {
+            return true;
+        }
+
+        if (!has_block('woocommerce/checkout', $currentPage)) {
+            return true;
+        }
+
+        return false;
     }
 }
