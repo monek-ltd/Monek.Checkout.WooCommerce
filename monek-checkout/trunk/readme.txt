@@ -68,6 +68,7 @@ Need help? Contact [Monek Support](https://monek.com/contact) or visit the [Word
 
 = 4.2.0 =
 * Enhanced the Express Checkout flow by introducing a verification token returned by the backend, allowing the plugin to validate and update the payment accordingly.
+* Fixed standard checkout payment validation error when switching shipping options.
 * The plugin detects which checkout solution is currently active and displays an error message if WooCommerce Blocks Checkout is not enabled.
 
 = 4.1.2 =

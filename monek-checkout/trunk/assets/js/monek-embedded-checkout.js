@@ -599,7 +599,11 @@
     }
 
     if (configuration.debug && windowObject.console?.log) {
-      windowObject.console.log('[monek] trigger() → token/session', { token, sessionId });
+      windowObject.console.log('[monek] trigger() → token/session', { 
+        hasToken: !!token, 
+        hasSessionId: !!sessionId,
+        hasExpiry: !!expiry,
+       });
     }
 
     return { token, sessionId, expiry };

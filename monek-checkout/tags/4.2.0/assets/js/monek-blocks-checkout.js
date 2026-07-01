@@ -17,7 +17,7 @@
   const supportedFeatures = resolveSupportedFeatures(settings);
   const shouldShowExpress = normalizeBoolean(settings.showExpress, true);
   const paymentMethodLabel = settings.title || 'Monek Checkout';
-  const paymentMethodDescription = settings.description || 'Pay securely with Monek.';
+  const paymentMethodDescription = settings.description;
   const paymentMethodLogo = settings.logoUrl || '';
 
   function normalizeBoolean(value, defaultValue) {
@@ -91,7 +91,6 @@
     useEffect(() => {
       if (!registerSetup) return () => {};
       const responseTypes = emitResponse?.responseTypes || { SUCCESS: 'SUCCESS', ERROR: 'ERROR' };
-
       const unsubscribe = registerSetup(async () => {
         const expressPaymentPayload = windowObject.__monekExpressPayload;
         if (expressPaymentPayload?.monek_reference) {
@@ -111,8 +110,15 @@
           if (!windowObject.monekCheckout?.trigger) {
             throw new Error('Payment initialisation not ready. Please try again.');
           }
+
           const { token, sessionId, expiry } = await windowObject.monekCheckout.trigger();
           const paymentReference = windowObject.monekCheckout?.getClientPaymentRef?.();
+
+          if (!token || !sessionId || !expiry) {
+            throw new Error('Payment initialisation data not ready! Please try again.');
+          }
+  
+          windowObject.console?.log?.('[monek] mode -> standard');
 
           return {
             type: responseTypes.SUCCESS,
@@ -238,37 +244,6 @@
         try { removeListeners(); } finally { listenersRegisteredRef.current = false; }
       };
     }, [onSubmit, onClose, setExpressPaymentError]);
-
-    useEffect(() => {
-      const register = eventRegistration?.onPaymentSetup;
-      if (!register) return () => {};
-
-      const responseTypes = emitResponse?.responseTypes || { SUCCESS: 'SUCCESS', ERROR: 'ERROR' };
-
-      const unsubscribe = register(async () => {
-        const paymentReference = windowObject.monekCheckout?.getClientPaymentRef?.();
-        if (!paymentReference) {
-          return { type: responseTypes.ERROR, message: 'Payment reference missing.' };
-        }
-        return {
-          type: responseTypes.SUCCESS,
-          meta: {
-            paymentMethodData: {
-              monek_reference: paymentReference,
-              monek_mode: 'express',
-            },
-          },
-        };
-      });
-
-      return () => {
-        try {
-          unsubscribe?.();
-        } catch (error) {
-          windowObject.console?.warn?.('[monek] Failed to remove express setup listener', error);
-        }
-      };
-    }, [eventRegistration?.onPaymentSetup, emitResponse?.responseTypes]);
 
     return createElement(
       'div',

@@ -271,7 +271,16 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
             $this->logRequestSnapshot($context);
 
             $checkoutRequest = $this->checkoutRequestFactory->createFromPaymentContext($context);
+            
             $isTargetGateway = $checkoutRequest->isForGateway($this->id) || $checkoutRequest->getMode() === 'express';
+
+            $this->logger->debug('Checkout request mode', [
+                'mode' => $checkoutRequest->getMode(),
+                'gateway_id' => $checkoutRequest->getGatewayId(),
+                'payment_ref' => $checkoutRequest->getPaymentReference(),
+                'is_express' => $checkoutRequest->isExpress()
+            ]);
+
             if (! $isTargetGateway) {
                 $this->logger->debug('Not handling gateway', [
                     'requested_gateway' => $checkoutRequest->getGatewayId(),
@@ -353,7 +362,7 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
             $sdkHandle,
             'https://checkout-js.monek.com/monek-checkout.iife.js',
             [],
-            null,
+            monek_get_plugin_version(),
             true
         );
     }
@@ -433,7 +442,7 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
 
     private function logRequestSnapshot(PaymentContext $context): void
     {
-        $rawBody = @file_get_contents('php://input');
+        $rawBody = json_decode(@file_get_contents('php://input'), true);
         $headers = function_exists('getallheaders') ? getallheaders() : [];
 
         $orderId = null;
@@ -441,11 +450,40 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
             $orderId = $context->order->get_id();
         }
 
+        $billingAddress = $rawBody['billing_address'] ?? [];
+        $shippingAddress = $rawBody['shipping_address'] ?? [];
+
+        $ipAddress = $_SERVER['HTTP_STACKCDN_CONNECTING_IP']
+            ?? $_SERVER['HTTP_X_FORWARDED_FOR']
+            ?? $_SERVER['HTTP_X_CAPTCHA_IP']
+            ?? $_SERVER['REMOTE_ADDR']
+            ?? 'unknown';
+
+        // Handle comma separated list of IPs in case of proxies
+        if (str_contains($ipAddress, ',')) {
+            $ipAddress = trim(explode(',', $ipAddress)[0]);
+        }
+
+        $safeHeaders = [
+            'Content-Type'      => $headers['Content-Type'] ?? null,
+            'Content-Length'    => $headers['Content-Length'] ?? null,
+            'Accept'            => $headers['Accept'] ?? null,
+            'Accept-Language'   => $headers['Accept-Language'] ?? null,
+            'Accept-Encoding'   => $headers['Accept-Encoding'] ?? null,
+            'User-Agent'        => $headers['User-Agent'] ?? null,
+            'X-WP-Nonce'        => $headers['X-WP-Nonce'] ?? null,
+            'X-Requested-With'  => $headers['X-Requested-With'] ?? null,
+            'Origin'            => $headers['Origin'] ?? null,
+            'Referer'           => $headers['Referer'] ?? null,
+        ];
+
         $this->logger->debug('Request snapshot', [
             'payment_method' => $context->payment_method ?? null,
             'order_id' => $orderId,
-            'headers' => $headers,
-            'raw_body' => $rawBody,
+            'headers' => $safeHeaders,
+            'ip_address' => $ipAddress,
+            'billing_address' => $billingAddress,
+            'shipping_address' => $shippingAddress,
         ]);
     }
 
