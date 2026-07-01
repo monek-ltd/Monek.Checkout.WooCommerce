@@ -106,8 +106,8 @@ final class MonekBlocksIntegration extends AbstractPaymentMethodType
 
         return [
             'title' => $gateway ? $gateway->get_title() : __('Monek Checkout', 'monek-checkout'),
-            'description' => $gateway ? $gateway->get_description() : __('Secure payment powered by Monek.', 'monek-checkout'),
-            'logoUrl' => MONEK_PLUGIN_URL . 'img/Monek-Logo100x12.png',
+            // 'description' => $gateway ? $gateway->get_description() : __('Secure payment powered by Monek.', 'monek-checkout'),
+            // 'logoUrl' => MONEK_PLUGIN_URL . 'img/Monek-Logo100x12.png',
             'supports' => ['products'],
             'errorMessage' => __('We were unable to prepare your payment. Please try again.', 'monek-checkout'),
             'gatewayId' => $this->name,
