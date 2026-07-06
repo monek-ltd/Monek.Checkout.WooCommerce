@@ -443,9 +443,10 @@
       completion: {
         mode: 'none',
         onSuccess: (context) => {
-          const token = state.checkoutComponent?.getCardTokenId?.() || state.expressComponent?.getCardTokenId?.() || null;
-          const sessionId = state.checkoutComponent?.getSessionId?.() || state.expressComponent?.getSessionId?.() || null;
-          const expiry = state.checkoutComponent?.getCardExpiry?.() || state.expressComponent?.getCardExpiry?.() || null;
+          const activeComponent = isExpress ? state.expressComponent : state.checkoutComponent;
+          const token = activeComponent?.getCardTokenId?.() ?? null;
+          const sessionId = activeComponent?.getSessionId?.() ?? null;
+          const expiry = activeComponent?.getCardExpiry?.() ?? null;
 
           const detail = { status: 'success', ctx: context, token, sessionId, expiry };
           state.expressResult = detail;
@@ -594,7 +595,7 @@
     const sessionId = state.checkoutComponent.getSessionId?.() || state.checkoutComponent.getSessionId;
     const expiry = state.checkoutComponent.getCardExpiry?.() || state.checkoutComponent.getCardExpiry;
 
-    if (!token || !sessionId) {
+    if (!token || !sessionId || !expiry) {
       throw new Error('Card details not ready.');
     }
 
