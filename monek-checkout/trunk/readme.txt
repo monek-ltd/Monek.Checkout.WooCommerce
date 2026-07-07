@@ -4,9 +4,11 @@ Tags: credit card, payments, monek, woocommerce
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 4.2.0
+Stable tag: 4.2.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
+
+Securely accept card payments and Apple Pay in WooCommerce Checkout Blocks via Monek's hosted payment fields.
 
 == Important: WooCommerce Block Checkout Required ==
 
@@ -65,6 +67,9 @@ No. Version 4.x requires WooCommerce Checkout Blocks and no longer supports the 
 Need help? Contact [Monek Support](https://monek.com/contact) or visit the [WordPress.org support forum](https://wordpress.org/support/plugin/monek-checkout/).
 
 == Changelog ==
+
+= 4.2.1 =
+* Fixes an issue where Apple Pay orders showed a different payment method in order confirmations, emails, and the admin order screen.
 
 = 4.2.0 =
 * Enhanced the Express Checkout flow by introducing a verification token returned by the backend, allowing the plugin to validate and update the payment accordingly.

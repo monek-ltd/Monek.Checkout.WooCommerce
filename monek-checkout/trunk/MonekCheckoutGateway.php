@@ -28,6 +28,9 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
     private const DEFAULT_CUSTOM_INPUT_BACKGROUND = '#ffffff';
     private const DEFAULT_CUSTOM_ACCENT = '#1460f2';
 
+    const ID = 'monek-checkout';
+    const EXPRESS_ID = 'monek-express';
+
     private Logger $logger;
     private CheckoutRequestFactory $checkoutRequestFactory;
     private ExpressCheckoutHandler $expressCheckoutHandler;
@@ -42,7 +45,7 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
 
     public function __construct()
     {
-        $this->id = 'monek-checkout';
+        $this->id = self::ID;
         $this->method_title = __('Monek Checkout', 'monek-checkout');
         $this->method_description = __('Accept payments using the embedded Monek checkout experience.', 'monek-checkout');
         $this->has_fields = false;
