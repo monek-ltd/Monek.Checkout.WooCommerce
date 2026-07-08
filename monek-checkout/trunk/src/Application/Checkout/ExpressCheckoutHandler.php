@@ -3,6 +3,7 @@
 namespace Monek\Checkout\Application\Checkout;
 
 use Automattic\WooCommerce\Blocks\Payments\PaymentResult;
+use Monek\Checkout\Infrastructure\WordPress\Gateway\MonekCheckoutGateway;
 use Monek\Checkout\Domain\Checkout\CheckoutRequest;
 use Monek\Checkout\Infrastructure\Logging\Logger;
 use WC_Order;
@@ -42,9 +43,12 @@ class ExpressCheckoutHandler
             ]);
         }
 
+        $order->set_payment_method(MonekCheckoutGateway::EXPRESS_ID);
+        // This needs to be set dynamically when Google Pay is supported
+        $order->set_payment_method_title('Apple Pay'); 
         $order->update_meta_data('_monek_session', $request->getSessionIdentifier());
         $order->update_meta_data('_monek_payment_reference', $paymentReference);
-        $order->add_order_note(sprintf('Express payment reference set: %s', $paymentReference));
+        $order->add_order_note(sprintf('Express payment (Apple Pay) reference set: %s', $paymentReference));
         $order->payment_complete();
         $order->save();
 
