@@ -29,7 +29,12 @@
     expressResult: null,
     clientPaymentReference: null,
     completionResolver: null,
+    contextProvider: null,
   };
+
+  function setContextProvider(provider) {
+    state.contextProvider = provider || null;
+  }
 
   const HEX_COLOR_REGEX = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
 
@@ -305,6 +310,13 @@
   }
 
   function getOrderTotalMinor() {
+    if (typeof state.contextProvider?.getAmountMinor === 'function') {
+      const amount = Number(state.contextProvider.getAmountMinor());
+      if (Number.isFinite(amount)) {
+        return amount;
+      }
+    }
+
     const { cart } = getBlocksStores();
     const totals = cart?.getCartTotals?.();
     return totals?.total_price || 0;
@@ -324,6 +336,13 @@
   }
 
   function buildCardholderDetails() {
+    if (typeof state.contextProvider?.getCardholder === 'function') {
+      const provided = state.contextProvider.getCardholder();
+      if (provided) {
+        return provided;
+      }
+    }
+
     const propsCustomer = readCustomerFromPropsContext() || {};
     const billing = propsCustomer.billing || {};
 
@@ -621,5 +640,7 @@
     clearError,
     getClientPaymentRef: getClientPaymentReference,
     waitForCompletionOnce,
+    setContextProvider,
+    toIso3166Numeric,
   };
 })(window, document, window.jQuery);
