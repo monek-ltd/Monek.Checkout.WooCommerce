@@ -588,6 +588,21 @@
           const checkout = sdk.createComponent('checkout', buildComponentOptions(false));
           await checkout.mount(selectors.checkout);
           state.checkoutComponent = checkout;
+
+          // On mount the SDK auto-intercepts submit events on the nearest hosting <form>.
+          // On the classic/legacy checkout the SDK surface lives inside WooCommerce's
+          // checkout form, so that listener would fire a second, uncontrolled submission
+          // and let WooCommerce POST to the server before the SDK's 3DS flow finished
+          // We always drive submission manually via trigger(), so disable auto-interception here.
+          // triggerSubmission() lazily recreates the submit controller
+          // on demand without re-attaching a submit listener.
+          if (typeof checkout.disableIntercept === 'function') {
+            try {
+              checkout.disableIntercept();
+            } catch (error) {
+              windowObject.console?.warn?.('[monek] disableIntercept failed', error);
+            }
+          }
         }
 
         clearLoadingState();
@@ -609,7 +624,14 @@
       throw new Error('Checkout component not ready.');
     }
 
-    await state.checkoutComponent.triggerSubmission();
+    // triggerSubmission() resolves only after the SDK has completed tokenisation AND the
+    // 3DS authentication flow. Await it and reject on any non-success status so we never
+    // post to the server before 3DS has finished (or after it was cancelled/declined).
+    const submissionResult = await state.checkoutComponent.triggerSubmission();
+    if (submissionResult && typeof submissionResult === 'object' && submissionResult.status && submissionResult.status !== 'success') {
+      throw new Error(submissionResult.message || 'Card authentication was not completed. Please try again.');
+    }
+
     const token = state.checkoutComponent.getCardTokenId?.() || state.checkoutComponent.getCardTokenId;
     const sessionId = state.checkoutComponent.getSessionId?.() || state.checkoutComponent.getSessionId;
     const expiry = state.checkoutComponent.getCardExpiry?.() || state.checkoutComponent.getCardExpiry;

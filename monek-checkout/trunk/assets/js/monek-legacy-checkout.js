@@ -180,9 +180,12 @@
   }
 
   function bindClassicCheckout($form) {
-    // WooCommerce fires `checkout_place_order` right before its AJAX submit; a false
-    // return aborts it. We block, fetch tokens asynchronously, then re-submit.
-    jQueryInstance(documentObject.body).on('checkout_place_order', function onPlaceOrder() {
+    // WooCommerce fires `checkout_place_order` via `$form.triggerHandler(...)` on the
+    // checkout form itself. `triggerHandler` does NOT bubble the DOM, so the handler
+    // must be bound to the form element (not document.body) or it never runs and the
+    // still-empty hidden inputs get posted. A false return aborts the submit; we then
+    // fetch tokens asynchronously and re-submit.
+    $form.on('checkout_place_order', function onPlaceOrder() {
       if (!isMonekSelected()) {
         return true;
       }
