@@ -85,6 +85,9 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
         add_action('woocommerce_rest_checkout_process_payment_with_context', [$this, 'blocks_process_payment'], 10, 2);
+        // Express wallets (Apple Pay) on the classic checkout. registerExpressPaymentMethod()
+        // is a Blocks-only API, so on the classic checkout we need to render the wallet ourselves above the form.
+        add_action('woocommerce_before_checkout_form', [$this, 'render_express_checkout'], 5);
     }
 
     public function init_form_fields(): void
@@ -245,18 +248,39 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
             echo wp_kses_post(wpautop(wptexturize($this->description)));
         }
 
-        // Express Checkout / Apple Pay is Blocks-only; payment_fields() only runs on
-        // the classic (legacy / Order Pay) checkout, so we render the card form alone.
+        // payment_fields() only runs on the classic (legacy / Order Pay) checkout and renders
+        // the card form. The express wallet (Apple Pay) is rendered separately above the form
+        // via render_express_checkout(); it drives this same form through monek_mode=express.
         $amountMinor = $this->get_context_amount_minor();
 
         echo '<div id="monek-checkout-wrapper" class="monek-checkout-wrapper" data-loading="true" data-monek-amount-minor="' . esc_attr((string) $amountMinor) . '">';
         echo '<div id="monek-checkout-container" class="monek-sdk-surface" aria-live="polite"></div>';
         echo '<div id="monek-checkout-messages" class="monek-checkout-messages" role="alert" aria-live="polite"></div>';
 
+        echo '<input type="hidden" name="monek_mode" id="monek_mode" value="standard" />';
+
         foreach (['monek_token', 'monek_session', 'monek_expiry', 'monek_reference'] as $field) {
             echo '<input type="hidden" name="' . esc_attr($field) . '" id="' . esc_attr($field) . '" value="" />';
         }
 
+        echo '</div>';
+    }
+    
+    // Render the express wallet (Apple Pay) above the classic checkout form.
+    public function render_express_checkout(): void
+    {
+        if (! $this->is_available()) {
+            return;
+        }
+
+        if ('yes' !== $this->show_express) {
+            return;
+        }
+
+        echo '<div class="monek-express-wrapper">';
+        echo '<form id="monek-express-form" class="monek-express-form" novalidate>';
+        echo '<div id="monek-express-container" class="monek-sdk-surface" aria-live="polite"></div>';
+        echo '</form>';
         echo '</div>';
     }
 
@@ -270,7 +294,7 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
         }
 
         $paymentData = [
-            'monek_mode' => 'standard',
+            'monek_mode' => isset($_POST['monek_mode']) ? wc_clean(wp_unslash($_POST['monek_mode'])) : 'standard',
             'monek_token' => isset($_POST['monek_token']) ? wc_clean(wp_unslash($_POST['monek_token'])) : '',
             'monek_session' => isset($_POST['monek_session']) ? wc_clean(wp_unslash($_POST['monek_session'])) : '',
             'monek_expiry' => isset($_POST['monek_expiry']) ? wc_clean(wp_unslash($_POST['monek_expiry'])) : '',
@@ -279,7 +303,9 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
 
         $checkoutRequest = $this->checkoutRequestFactory->createFromArray($this->id, $paymentData);
 
-        $result = $this->standardCheckoutHandler->process($checkoutRequest, $order);
+        $result = $checkoutRequest->isExpress()
+            ? $this->expressCheckoutHandler->process($checkoutRequest, $order)
+            : $this->standardCheckoutHandler->process($checkoutRequest, $order);
 
         if (! $result['success']) {
             $message = $result['message'] ?: __('Payment failed. Please try again.', 'monek-checkout');

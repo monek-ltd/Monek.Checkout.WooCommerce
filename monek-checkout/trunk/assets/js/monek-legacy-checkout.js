@@ -14,10 +14,13 @@
   const selectors = {
     wrapper: '#monek-checkout-wrapper',
     container: '#monek-checkout-container',
+    express: '#monek-express-container',
+    expressForm: '#monek-express-form',
     paymentMethodInput: 'input[name="payment_method"]:checked',
     checkoutForm: 'form.woocommerce-checkout',
     payForm: 'form#order_review',
     hidden: {
+      mode: 'monek_mode',
       token: 'monek_token',
       session: 'monek_session',
       expiry: 'monek_expiry',
@@ -27,6 +30,11 @@
 
   // Guard so our re-submit of the classic checkout form is allowed straight through.
   let tokensReady = false;
+  // Guards for the express (Apple Pay) wallet re-submit.
+  let expressReady = false;
+  let expressSubmitting = false;
+  // Cached reference to the classic checkout form so the express flow can submit it.
+  let classicForm = null;
 
   function log(...args) {
     if (configuration.debug && windowObject.console?.log) {
@@ -180,12 +188,18 @@
   }
 
   function bindClassicCheckout($form) {
-    // WooCommerce fires `checkout_place_order` via `$form.triggerHandler(...)` on the
-    // checkout form itself. `triggerHandler` does NOT bubble the DOM, so the handler
-    // must be bound to the form element (not document.body) or it never runs and the
-    // still-empty hidden inputs get posted. A false return aborts the submit; we then
-    // fetch tokens asynchronously and re-submit.
+    classicForm = $form;
+
+    // WooCommerce fires checkout_place_order via $form.triggerHandler() on the checkout form itself. 
+    // A false return aborts the submit, we then fetch tokens asynchronously and re-submit.
     $form.on('checkout_place_order', function onPlaceOrder() {
+      // Express (Apple Pay) has already authorised and populated the hidden fields;
+      // let the submit through without running the card tokenisation flow.
+      if (expressReady) {
+        expressReady = false;
+        return true;
+      }
+
       if (!isMonekSelected()) {
         return true;
       }
@@ -251,9 +265,128 @@
     }
   }
 
+  function joinAddressLines(lines) {
+    if (Array.isArray(lines)) {
+      return lines.filter(Boolean).join(' ').trim();
+    }
+
+    return lines ? String(lines) : '';
+  }
+
+  function setCheckoutFieldValue(id, value) {
+    const element = documentObject.getElementById(id);
+    if (!element) {
+      return;
+    }
+
+    // Set the value only (no change event) so WooCommerce doesn't kick off an update_checkout AJAX refresh
+    element.value = value == null ? '' : String(value);
+  }
+
+  function applyApplePayContactToCheckout(applePayContext) {
+    const billing = applePayContext.billingContact || {};
+    const shipping = applePayContext.shippingContact || {};
+
+    const addressSource = (joinAddressLines(shipping.addressLines) || shipping.postalCode)
+      ? shipping
+      : billing;
+
+    setCheckoutFieldValue('billing_first_name', billing.givenName || shipping.givenName || '');
+    setCheckoutFieldValue('billing_last_name', billing.familyName || shipping.familyName || '');
+    setCheckoutFieldValue('billing_email', applePayContext.payerEmail || shipping.emailAddress || '');
+    setCheckoutFieldValue('billing_phone', applePayContext.payerPhone || shipping.phoneNumber || '');
+    setCheckoutFieldValue('billing_address_1', joinAddressLines(addressSource.addressLines));
+    setCheckoutFieldValue('billing_city', addressSource.locality || '');
+    setCheckoutFieldValue('billing_state', addressSource.administrativeArea || '');
+    setCheckoutFieldValue('billing_postcode', addressSource.postalCode || '');
+    setCheckoutFieldValue('billing_country', addressSource.countryCode || '');
+
+    const shipToDifferent = documentObject.getElementById('ship-to-different-address-checkbox');
+    if (shipToDifferent) {
+      shipToDifferent.checked = false;
+    }
+  }
+
+  function selectMonekPaymentMethod() {
+    const radio = documentObject.querySelector('input[name="payment_method"][value="' + GATEWAY_ID + '"]');
+    if (radio && !radio.checked) {
+      // Set the checked property directly (no change event) so we don't trigger an update_checkout refresh
+      radio.checked = true;
+    }
+  }
+
+  function onExpressSuccess(event) {
+    if (expressSubmitting) {
+      return;
+    }
+
+    const reference = api.getClientPaymentRef?.();
+    if (!reference) {
+      api.displayError(configuration.strings?.token_error);
+      return;
+    }
+
+    if (!classicForm || !classicForm.length) {
+      api.displayError(configuration.strings?.token_error);
+      return;
+    }
+
+    const applePayContext = event?.detail?.ctx?.applePay || {};
+
+    api.clearError();
+    applyApplePayContactToCheckout(applePayContext);
+    selectMonekPaymentMethod();
+
+    setHiddenValue(selectors.hidden.mode, 'express');
+    setHiddenValue(selectors.hidden.reference, reference);
+
+    expressSubmitting = true;
+    expressReady = true;
+
+    log('submitting express order');
+    classicForm.trigger('submit');
+  }
+
+  function onExpressCancelled() {
+    expressSubmitting = false;
+    expressReady = false;
+  }
+
+  function onExpressFailed() {
+    expressSubmitting = false;
+    expressReady = false;
+    api.displayError(configuration.strings?.express_error
+      || 'Payment failed. Please try another payment method.');
+  }
+
+  function setupExpressCheckout() {
+    // The container is only rendered by the gateway when express is enabled, so its
+    // absence means there is nothing to do on this page.
+    const container = documentObject.querySelector(selectors.express);
+    if (!container) {
+      return;
+    }
+
+    const expressForm = documentObject.querySelector(selectors.expressForm);
+    if (expressForm) {
+      // The SDK requires its mount target inside a <form>, but this dedicated form must
+      // never submit — the wallet drives the real checkout form via onExpressSuccess.
+      expressForm.addEventListener('submit', (submitEvent) => submitEvent.preventDefault());
+    }
+
+    windowObject.addEventListener('monek:express:success', onExpressSuccess);
+    windowObject.addEventListener('monek:express:cancel', onExpressCancelled);
+    windowObject.addEventListener('monek:express:error', onExpressFailed);
+
+    Promise.resolve(api.mountExpress(selectors.express)).catch((error) => {
+      windowObject.console?.warn?.('[monek][legacy] express mount failed', error);
+    });
+  }
+
   jQueryInstance(function onReady() {
     bindSubmitInterception();
     refreshMount();
+    setupExpressCheckout();
 
     jQueryInstance(documentObject.body).on('updated_checkout payment_method_selected', refreshMount);
     jQueryInstance(documentObject).on('change', 'input[name="payment_method"]', refreshMount);

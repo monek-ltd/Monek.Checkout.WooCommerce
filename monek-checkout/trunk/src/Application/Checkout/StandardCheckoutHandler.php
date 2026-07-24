@@ -71,13 +71,13 @@ class StandardCheckoutHandler
             $request->getPaymentReference()
         );
 
+        if ($response['message']) {
+            $order->add_order_note('Monek transaction response message: ' . $response['message']);
+        }
+
         if (! $response['success']) {
             $message = $response['message'] ?: __('Payment failed. Please try again.', 'monek-checkout');
             throw new \Exception($message);
-        }
-
-        if ($response['auth_code']) {
-            $order->add_order_note('Monek auth code: ' . $response['auth_code']);
         }
 
         $order->update_meta_data('_monek_token', $request->getToken());

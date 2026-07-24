@@ -72,11 +72,17 @@ class WebhookRouteRegistrar
 
         $targetStatus = 'payment-confirmed';
 
+        $transactionId = $this->extractTransactionId($body);
+
         if ($order->get_status() !== $targetStatus) {
             $order->update_status(
                 $targetStatus,
                 sprintf('Webhook set status to %s (ref: %s).', $targetStatus, $paymentReference)
             );
+
+            if ($transactionId !== '') {
+                $order->add_order_note(sprintf('Monek Transaction ID: %s', $transactionId));
+            }
         } else {
             $order->add_order_note(sprintf('Webhook ping received (already %s). Ref: %s', $targetStatus, $paymentReference));
         }
@@ -95,6 +101,27 @@ class WebhookRouteRegistrar
             'order_id' => $orderId,
             'status' => $order->get_status(),
         ], 200);
+    }
+
+    private function extractTransactionId(array $body): string
+    {
+        if (isset($body['crossReference'])) {
+            return (string) $body['crossReference'];
+        }
+
+        if (isset($body['Data']['CrossReference'])) {
+            return (string) $body['Data']['CrossReference'];
+        }
+
+        if (isset($body['TxId'])) {
+            return (string) $body['TxId'];
+        }
+
+        if (isset($body['txId'])) {
+            return (string) $body['txId'];
+        }
+
+        return '';
     }
 
     private function extractPaymentReference(array $body): string
