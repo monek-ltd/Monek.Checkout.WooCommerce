@@ -3,6 +3,7 @@
 2026-07-21 version 4.3.0
 * Added - Support for the classic (non-Blocks) shortcode checkout and the Order Pay page; the embedded Monek card form now renders and completes payments on both. Express Checkout / Apple Pay remains Blocks-only.
 * Fixed - Expired or missing payment sessions now show a clear "The session has expired. Please refresh the page and try again.".
+* Fixed - On the Order Pay page a failed payment no longer leaves the form frozen behind the WooCommerce loading overlay.
 
 2026-07-08 version 4.2.1
 * Fixed - Apple Pay orders showed a different payment method in order confirmations, emails, and the admin order screen.

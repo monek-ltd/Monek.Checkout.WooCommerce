@@ -42,6 +42,29 @@
     }
   }
 
+  // The Order Pay page's "Pay" button submit blocks the form with jQuery blockUI
+  function unblockPayForm() {
+    if (typeof jQueryInstance !== 'function' || typeof jQueryInstance.fn?.unblock !== 'function') {
+      return;
+    }
+
+    try {
+      jQueryInstance(selectors.payForm).unblock();
+      jQueryInstance(selectors.checkoutForm).unblock();
+      jQueryInstance(selectors.wrapper).unblock();
+      // Fallback: unblock the element behind any lingering block overlay.
+      jQueryInstance('.blockUI.blockOverlay').each(function unblockParent() {
+        try {
+          jQueryInstance(this).parent().unblock();
+        } catch (error) {
+          /* no-op */
+        }
+      });
+    } catch (error) {
+      windowObject.console?.warn?.('[monek][legacy] failed to unblock form', error);
+    }
+  }
+
   function fieldValue(id) {
     const element = documentObject.getElementById(id);
     return element ? element.value || '' : null;
@@ -247,7 +270,13 @@
           payForm.submit();
         })
         .catch((error) => {
+          tokensReady = false;
           api.displayError(error?.message);
+          // Remove the jQuery blockUI overlay WooCommerce puts over the pay form on submit
+          // so the frozen page becomes usable again.
+          unblockPayForm();
+          api.dismissChallengeOverlay?.();
+          windowObject.setTimeout(unblockPayForm, 0);
         });
     });
   }

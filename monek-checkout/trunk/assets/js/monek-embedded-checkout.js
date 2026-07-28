@@ -188,6 +188,26 @@
     }
   }
 
+  function dismissChallengeOverlay() {
+    try {
+      const frame = documentObject.querySelector('iframe[name="monek-3ds-frame"]');
+      if (!frame) {
+        return;
+      }
+
+      let node = frame;
+      while (node.parentElement && node.parentElement !== documentObject.body) {
+        node = node.parentElement;
+      }
+
+      if (node.parentElement === documentObject.body) {
+        node.remove();
+      }
+    } catch (error) {
+      windowObject.console?.warn?.('[monek] failed to dismiss challenge overlay', error);
+    }
+  }
+
   function isContainerMounted(selector) {
     const container = documentObject.querySelector(selector);
     return !!(container && documentObject.contains(container) && container.childElementCount > 0);
@@ -638,7 +658,14 @@
         return true;
       })
       .catch((error) => {
-        displayError(error?.message || 'There was a problem preparing your payment. Please try again.');
+        // Always clear the loading state so the wrapper never stays greyed out 
+        clearLoadingState();
+
+        if (isSessionExpiredError(error)) {
+          displayError(sessionExpiredMessage());
+        } else {
+          displayError(error?.message || 'There was a problem preparing your payment. Please try again.');
+        }
         return false;
       })
       .finally(() => {
@@ -694,6 +721,7 @@
   windowObject.monekCheckout = {
     mount: mountComponents,
     unmount: unmountComponents,
+    dismissChallengeOverlay,
     setExpressStyle,
     mountExpress,
     unmountExpress,
