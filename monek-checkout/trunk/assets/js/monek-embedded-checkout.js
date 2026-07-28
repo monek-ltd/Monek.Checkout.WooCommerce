@@ -299,6 +299,35 @@
     }
   }
 
+  function sessionExpiredMessage() {
+    return configuration.strings?.session_expired
+      || 'The session has expired. Please refresh the page and try again.';
+  }
+
+  // The SDK throws low level errors when the session does not exist or has expired.
+  function isSessionExpiredError(error) {
+    const status = Number(error?.status ?? error?.statusCode ?? error?.response?.status);
+    if (status === 401 || status === 404) {
+      return true;
+    }
+
+    const message = String(error?.message || error || '').toLowerCase();
+    if (!message) {
+      return false;
+    }
+
+    return (
+      message.includes('401')
+      || message.includes('404')
+      || message.includes('session has expired')
+      || message.includes('session expired')
+      || message.includes('does not exist')
+      || message.includes('session is null')
+      || (message.includes('tokenise') && message.includes('fail'))
+      || (message.includes('tokenize') && message.includes('fail'))
+    );
+  }
+
   function selectFromBlocks(storeNamespace) {
     return windowObject.wp?.data?.select?.(storeNamespace);
   }
@@ -627,8 +656,19 @@
     // triggerSubmission() resolves only after the SDK has completed tokenisation AND the
     // 3DS authentication flow. Await it and reject on any non-success status so we never
     // post to the server before 3DS has finished (or after it was cancelled/declined).
-    const submissionResult = await state.checkoutComponent.triggerSubmission();
+    let submissionResult;
+    try {
+      submissionResult = await state.checkoutComponent.triggerSubmission();
+    } catch (error) {
+      if (isSessionExpiredError(error)) {
+        throw new Error(sessionExpiredMessage());
+      }
+      throw error;
+    }
     if (submissionResult && typeof submissionResult === 'object' && submissionResult.status && submissionResult.status !== 'success') {
+      if (isSessionExpiredError(submissionResult)) {
+        throw new Error(sessionExpiredMessage());
+      }
       throw new Error(submissionResult.message || 'Card authentication was not completed. Please try again.');
     }
 

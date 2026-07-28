@@ -494,6 +494,7 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
             'debug' => ('yes' === $this->debug_mode),
             'strings' => [
                 'token_error' => __('There was a problem preparing your payment. Please try again.', 'monek-checkout'),
+                'session_expired' => __('The session has expired. Please refresh the page and try again.', 'monek-checkout'),
             ],
         ];
 
@@ -826,3 +827,9 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
         return false;
     }
 }
+
+
+// 4.3.0  Legacy Checkout - 3 POST session calls
+//                        - It is using the last one (not a big issue here)
+//        Blocks - 2 session create requests (for each payment option)
+// It is now displaying a "The session has expired. Please refresh the page and try again." message if the session has been removed or expired   
