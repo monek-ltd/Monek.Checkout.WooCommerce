@@ -101,8 +101,6 @@ For the necessary information, such as the keys and webhook url, visit [Monek Co
 
 ## Checkout Page Requirement (Important)
 
-From version 4.x onward, Monek Checkout requires the WooCommerce **Checkout block**. The legacy shortcode `[woocommerce_checkout]` is not supported and may prevent the embedded payment form from loading correctly.
-
 ### How to check if your site still uses `[woocommerce_checkout]`
 1. In WordPress admin, go to **Pages**.
 2. Edit your checkout page.
