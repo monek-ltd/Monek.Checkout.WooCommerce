@@ -60,7 +60,7 @@ Key features:
 No. The webhook and signing secret are optional. Without a signing secret, webhooks are automatically trusted, and the order can still move to **Payment Confirmed** when the event is received.
 
 = Can I keep using the classic WooCommerce checkout? =
-No. Version 4.x requires WooCommerce Checkout Blocks and no longer supports the legacy shortcode-based checkout. Update WooCommerce to the latest version and enable Blocks to take advantage of the improved experience.
+Yes. Version 4.3.x now includes support for WooCommerce Legacy Checkout. We recommend to update WooCommerce to the latest version and enable Blocks to take advantage of the improved experience.
 
 == Support ==
 
@@ -70,6 +70,7 @@ Need help? Contact [Monek Support](https://monek.com/contact) or visit the [Word
 
 = 4.3.0 =
 * Adds support for the classic (non-Blocks) shortcode checkout and the Order Pay page. The embedded Monek card form now renders and completes payments on both. Express Checkout / Apple Pay remains Blocks-only.
+* Fixes expired or missing payment sessions and now show a clear "The session has expired. Please refresh the page and try again.".
 
 = 4.2.1 =
 * Fixes an issue where Apple Pay orders showed a different payment method in order confirmations, emails, and the admin order screen.
