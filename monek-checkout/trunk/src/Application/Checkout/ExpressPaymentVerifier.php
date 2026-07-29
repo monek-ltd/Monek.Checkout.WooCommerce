@@ -64,8 +64,6 @@ class ExpressPaymentVerifier
         $expectedSignature = $this->base64UrlEncode(
             hash_hmac('sha256', $signingInput, $secret, true)
         );
-
-        // NEED TO CHECK THIS
         
         $providedSignature = trim($signatureSegment);
         if (! hash_equals($expectedSignature, $providedSignature)) {

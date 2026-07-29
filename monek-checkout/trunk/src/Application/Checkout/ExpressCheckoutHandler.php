@@ -29,6 +29,47 @@ class ExpressCheckoutHandler
 
     public function handle(CheckoutRequest $request, WC_Order $order, PaymentResult $result): void
     {
+        $redirectUrl = $this->capture($request, $order);
+
+        $result->set_status('success');
+        $result->set_redirect_url($redirectUrl);
+    }
+
+    /**
+     * Legacy (non-Blocks) entry point. Runs the same verify + order-completion core as
+     * {@see handle()} but returns a plain array for WooCommerce's classic
+     * process_payment() flow instead of mutating a Blocks PaymentResult.
+     *
+     * @return array{success:bool,message:?string,redirect:?string}
+     */
+    public function process(CheckoutRequest $request, WC_Order $order): array
+    {
+        try {
+            $redirectUrl = $this->capture($request, $order);
+
+            return [
+                'success' => true,
+                'message' => null,
+                'redirect' => $redirectUrl,
+            ];
+        } catch (\Throwable $exception) {
+            return [
+                'success' => false,
+                'message' => $exception->getMessage(),
+                'redirect' => null,
+            ];
+        }
+    }
+
+    /**
+     * Shared verify + order-completion core. Single source of truth for the express
+     * order meta and payment_complete().
+     *
+     * @return string The order-received redirect URL.
+     * @throws \Exception When the payment reference is missing or verification fails.
+     */
+    private function capture(CheckoutRequest $request, WC_Order $order): string
+    {
         $paymentReference = $request->getPaymentReference();
         if ($paymentReference === '') {
             $this->logger->error('Express checkout missing payment reference');
@@ -59,8 +100,7 @@ class ExpressCheckoutHandler
             'redirect' => $redirectUrl,
         ]);
 
-        $result->set_status('success');
-        $result->set_redirect_url($redirectUrl);
+        return $redirectUrl;
     }
 
     private function assertVerified(string $paymentReference, WC_Order $order): void
