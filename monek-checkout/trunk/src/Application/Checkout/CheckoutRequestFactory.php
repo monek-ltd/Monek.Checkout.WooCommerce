@@ -28,6 +28,30 @@ class CheckoutRequestFactory
         );
     }
 
+    /**
+     * Build a CheckoutRequest from a flat associative array, e.g. sanitised
+     * $_POST fields on the legacy (classic / Order Pay) checkout flow.
+     *
+     * @param array<string,mixed> $data
+     */
+    public function createFromArray(string $gatewayId, array $data): CheckoutRequest
+    {
+        $mode = isset($data['monek_mode']) ? (string) $data['monek_mode'] : 'standard';
+        $token = isset($data['monek_token']) ? (string) $data['monek_token'] : '';
+        $sessionIdentifier = isset($data['monek_session']) ? (string) $data['monek_session'] : '';
+        $expiry = isset($data['monek_expiry']) ? (string) $data['monek_expiry'] : '';
+        $paymentReference = isset($data['monek_reference']) ? (string) $data['monek_reference'] : '';
+
+        return new CheckoutRequest(
+            $this->cleanTextValue($gatewayId),
+            $mode,
+            $token,
+            $sessionIdentifier,
+            $expiry,
+            $paymentReference
+        );
+    }
+
     private function sanitisePaymentData($rawPaymentData): array
     {
         if (! is_array($rawPaymentData)) {

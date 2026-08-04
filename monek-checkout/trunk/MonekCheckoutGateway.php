@@ -48,7 +48,7 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
         $this->id = self::ID;
         $this->method_title = __('Monek Checkout', 'monek-checkout');
         $this->method_description = __('Accept payments using the embedded Monek checkout experience.', 'monek-checkout');
-        $this->has_fields = false;
+        $this->has_fields = true;
         $this->supports = ['products'];
 
         $this->init_form_fields();
@@ -85,6 +85,9 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
         add_action('woocommerce_rest_checkout_process_payment_with_context', [$this, 'blocks_process_payment'], 10, 2);
+        // Express wallets (Apple Pay) on the classic checkout. registerExpressPaymentMethod()
+        // is a Blocks-only API, so on the classic checkout we need to render the wallet ourselves above the form.
+        add_action('woocommerce_before_checkout_form', [$this, 'render_express_checkout'], 5);
     }
 
     public function init_form_fields(): void
@@ -209,7 +212,7 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
 
     public function enqueue_scripts(): void
     {
-        if (! is_checkout() || is_order_received_page()) {
+        if ((! is_checkout() && ! is_checkout_pay_page()) || is_order_received_page()) {
             return;
         }
 
@@ -224,6 +227,11 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
 
         wp_enqueue_script('monek-embedded-checkout');
         wp_enqueue_style('monek-embedded-checkout');
+
+        if ($this->isLegacyCheckout() || is_checkout_pay_page()) {
+            $this->registerLegacyScript();
+            wp_enqueue_script('monek-legacy-checkout');
+        }
 
         if ('yes' === $this->debug_mode) {
             wp_add_inline_script(
@@ -240,22 +248,79 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
             echo wp_kses_post(wpautop(wptexturize($this->description)));
         }
 
-        if ($this->isLegacyCheckout()) {
-            echo '<p class="monek-notice" style="color:#c0392b;font-size: 1.1em;">'
-                . __('Monek Checkout requires the block-based checkout. Please switch to the WooCommerce block checkout page.', 'monek-checkout')
-                . '</p>';
+        // payment_fields() only runs on the classic (legacy / Order Pay) checkout and renders
+        // the card form. The express wallet (Apple Pay) is rendered separately above the form
+        // via render_express_checkout(); it drives this same form through monek_mode=express.
+        $amountMinor = $this->get_context_amount_minor();
+
+        echo '<div id="monek-checkout-wrapper" class="monek-checkout-wrapper" data-loading="true" data-monek-amount-minor="' . esc_attr((string) $amountMinor) . '">';
+        echo '<div id="monek-checkout-container" class="monek-sdk-surface" aria-live="polite"></div>';
+        echo '<div id="monek-checkout-messages" class="monek-checkout-messages" role="alert" aria-live="polite"></div>';
+
+        echo '<input type="hidden" name="monek_mode" id="monek_mode" value="standard" />';
+
+        foreach (['monek_token', 'monek_session', 'monek_expiry', 'monek_reference'] as $field) {
+            echo '<input type="hidden" name="' . esc_attr($field) . '" id="' . esc_attr($field) . '" value="" />';
+        }
+
+        echo '</div>';
+    }
+    
+    // Render the express wallet (Apple Pay) above the classic checkout form.
+    public function render_express_checkout(): void
+    {
+        if (! $this->is_available()) {
             return;
         }
 
-        echo '<div id="monek-checkout-wrapper" class="monek-checkout-wrapper" data-loading="true">';
-
-        if ('yes' === $this->show_express) {
-            echo '<div id="monek-express-container" class="monek-sdk-surface" aria-live="polite"></div>';
+        if ('yes' !== $this->show_express) {
+            return;
         }
 
-        echo '<div id="monek-checkout-container" class="monek-sdk-surface" aria-live="polite"></div>';
-        echo '<div id="monek-checkout-messages" class="monek-checkout-messages" role="alert" aria-live="polite"></div>';
+        echo '<div class="monek-express-wrapper">';
+        echo '<form id="monek-express-form" class="monek-express-form" novalidate>';
+        echo '<div id="monek-express-container" class="monek-sdk-surface" aria-live="polite"></div>';
+        echo '</form>';
         echo '</div>';
+    }
+
+    public function process_payment($order_id): array
+    {
+        $order = wc_get_order($order_id);
+
+        if (! $order) {
+            wc_add_notice(__('Unable to load order for payment.', 'monek-checkout'), 'error');
+            return ['result' => 'fail'];
+        }
+
+        $paymentData = [
+            'monek_mode' => isset($_POST['monek_mode']) ? wc_clean(wp_unslash($_POST['monek_mode'])) : 'standard',
+            'monek_token' => isset($_POST['monek_token']) ? wc_clean(wp_unslash($_POST['monek_token'])) : '',
+            'monek_session' => isset($_POST['monek_session']) ? wc_clean(wp_unslash($_POST['monek_session'])) : '',
+            'monek_expiry' => isset($_POST['monek_expiry']) ? wc_clean(wp_unslash($_POST['monek_expiry'])) : '',
+            'monek_reference' => isset($_POST['monek_reference']) ? wc_clean(wp_unslash($_POST['monek_reference'])) : '',
+        ];
+
+        $checkoutRequest = $this->checkoutRequestFactory->createFromArray($this->id, $paymentData);
+
+        $result = $checkoutRequest->isExpress()
+            ? $this->expressCheckoutHandler->process($checkoutRequest, $order)
+            : $this->standardCheckoutHandler->process($checkoutRequest, $order);
+
+        if (! $result['success']) {
+            $message = $result['message'] ?: __('Payment failed. Please try again.', 'monek-checkout');
+            wc_add_notice($message, 'error');
+            $this->logger->error('Legacy process_payment failed', [
+                'order_id' => $order_id,
+                'message' => $message,
+            ]);
+            return ['result' => 'fail'];
+        }
+
+        return [
+            'result' => 'success',
+            'redirect' => $result['redirect'] ?: $order->get_checkout_order_received_url(),
+        ];
     }
 
     public function blocks_process_payment($context, $result): void
@@ -325,6 +390,16 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
         return $this->currencyFormatter->toMinorUnits($total, get_woocommerce_currency());
     }
 
+    public function get_context_amount_minor(): int
+    {
+        $payPageOrder = $this->resolvePayPageOrder();
+        if ($payPageOrder) {
+            return $this->currencyFormatter->toMinorUnits((float) $payPageOrder->get_total(), $payPageOrder->get_currency());
+        }
+
+        return $this->get_initial_amount_minor();
+    }
+
     public function get_currency_numeric_code(string $currency): string
     {
         return $this->currencyFormatter->getNumericCurrencyCode($currency);
@@ -391,23 +466,41 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
             true
         );
 
+        $currency = get_woocommerce_currency();
+        $amountMinor = $this->get_initial_amount_minor();
+        $billingSnapshot = null;
+
+        $payPageOrder = $this->resolvePayPageOrder();
+        if ($payPageOrder) {
+            $currency = $payPageOrder->get_currency();
+            $amountMinor = $this->currencyFormatter->toMinorUnits((float) $payPageOrder->get_total(), $currency);
+            $billingSnapshot = $this->buildBillingSnapshot($payPageOrder);
+        }
+
         $settings = [
             'gatewayId' => $this->id,
             'publishableKey' => $this->publishable_key,
             'showExpress' => ('yes' === $this->show_express),
-            'currency' => get_woocommerce_currency(),
-            'currencyNumeric' => $this->currencyFormatter->getNumericCurrencyCode(get_woocommerce_currency()),
+            'currency' => $currency,
+            'currencyNumeric' => $this->currencyFormatter->getNumericCurrencyCode($currency),
             'currencyDecimals' => wc_get_price_decimals(),
             'countryNumeric' => $this->storeContext->getNumericCountryCode(),
             'orderDescription' => get_bloginfo('name'),
-            'initialAmountMinor' => $this->get_initial_amount_minor(),
+            'initialAmountMinor' => $amountMinor,
+            'amountMinor' => $amountMinor,
+            'nonce' => wp_create_nonce('monek_legacy_checkout'),
             'expressVerifyUrl' => rest_url('monek/v1/express/authorise'),
             'restNonce' => wp_create_nonce('wp_rest'),
             'debug' => ('yes' === $this->debug_mode),
             'strings' => [
                 'token_error' => __('There was a problem preparing your payment. Please try again.', 'monek-checkout'),
+                'session_expired' => __('The session has expired. Please refresh the page and try again.', 'monek-checkout'),
             ],
         ];
+
+        if ($billingSnapshot) {
+            $settings['billing'] = $billingSnapshot;
+        }
 
         $stylingConfiguration = $this->getStylingConfiguration();
         $settings['themeMode'] = $stylingConfiguration['themeMode'];
@@ -422,6 +515,66 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
         }
 
         wp_localize_script($scriptHandle, 'monekCheckoutConfig', $settings);
+    }
+
+    private function registerLegacyScript(): void
+    {
+        $scriptHandle = 'monek-legacy-checkout';
+        if (wp_script_is($scriptHandle, 'registered')) {
+            return;
+        }
+
+        $scriptPath = MONEK_PLUGIN_DIR . 'assets/js/monek-legacy-checkout.js';
+        $scriptUrl = MONEK_PLUGIN_URL . 'assets/js/monek-legacy-checkout.js';
+        $scriptVersion = file_exists($scriptPath) ? filemtime($scriptPath) : monek_get_plugin_version();
+
+        wp_register_script(
+            $scriptHandle,
+            $scriptUrl,
+            ['jquery', 'monek-embedded-checkout'],
+            $scriptVersion,
+            true
+        );
+    }
+
+    private function resolvePayPageOrder(): ?WC_Order
+    {
+        if (! function_exists('is_checkout_pay_page') || ! is_checkout_pay_page()) {
+            return null;
+        }
+
+        $orderId = absint(get_query_var('order-pay'));
+        if (! $orderId) {
+            global $wp;
+            $orderId = isset($wp->query_vars['order-pay']) ? absint($wp->query_vars['order-pay']) : 0;
+        }
+
+        if (! $orderId) {
+            return null;
+        }
+
+        $order = wc_get_order($orderId);
+
+        return $order instanceof WC_Order ? $order : null;
+    }
+
+    /**
+     * @return array<string,string>
+     */
+    private function buildBillingSnapshot(WC_Order $order): array
+    {
+        return [
+            'first_name' => $order->get_billing_first_name(),
+            'last_name' => $order->get_billing_last_name(),
+            'email' => $order->get_billing_email(),
+            'phone' => $order->get_billing_phone(),
+            'address_1' => $order->get_billing_address_1(),
+            'address_2' => $order->get_billing_address_2(),
+            'city' => $order->get_billing_city(),
+            'postcode' => $order->get_billing_postcode(),
+            'country' => $order->get_billing_country(),
+            'state' => $order->get_billing_state(),
+        ];
     }
 
     private function registerStyles(): void
@@ -674,3 +827,9 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
         return false;
     }
 }
+
+
+// 4.3.0  Legacy Checkout - 3 POST session calls
+//                        - It is using the last one (not a big issue here)
+//        Blocks - 2 session create requests (for each payment option)
+// It is now displaying a "The session has expired. Please refresh the page and try again." message if the session has been removed or expired   

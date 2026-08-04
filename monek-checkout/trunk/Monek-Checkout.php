@@ -4,7 +4,7 @@
  * Description: Embedded checkout experience for WooCommerce powered by Monek.
  * Author: Monek Ltd
  * Author URI: https://www.monek.com
- * Version: 4.2.1
+ * Version: 4.3.0
  * Text Domain: monek-checkout
  * Requires Plugins: woocommerce
  * Requires at least: 6.0

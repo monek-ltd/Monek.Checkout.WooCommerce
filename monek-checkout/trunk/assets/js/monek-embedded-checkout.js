@@ -29,7 +29,12 @@
     expressResult: null,
     clientPaymentReference: null,
     completionResolver: null,
+    contextProvider: null,
   };
+
+  function setContextProvider(provider) {
+    state.contextProvider = provider || null;
+  }
 
   const HEX_COLOR_REGEX = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
 
@@ -183,6 +188,26 @@
     }
   }
 
+  function dismissChallengeOverlay() {
+    try {
+      const frame = documentObject.querySelector('iframe[name="monek-3ds-frame"]');
+      if (!frame) {
+        return;
+      }
+
+      let node = frame;
+      while (node.parentElement && node.parentElement !== documentObject.body) {
+        node = node.parentElement;
+      }
+
+      if (node.parentElement === documentObject.body) {
+        node.remove();
+      }
+    } catch (error) {
+      windowObject.console?.warn?.('[monek] failed to dismiss challenge overlay', error);
+    }
+  }
+
   function isContainerMounted(selector) {
     const container = documentObject.querySelector(selector);
     return !!(container && documentObject.contains(container) && container.childElementCount > 0);
@@ -294,6 +319,35 @@
     }
   }
 
+  function sessionExpiredMessage() {
+    return configuration.strings?.session_expired
+      || 'The session has expired. Please refresh the page and try again.';
+  }
+
+  // The SDK throws low level errors when the session does not exist or has expired.
+  function isSessionExpiredError(error) {
+    const status = Number(error?.status ?? error?.statusCode ?? error?.response?.status);
+    if (status === 401 || status === 404) {
+      return true;
+    }
+
+    const message = String(error?.message || error || '').toLowerCase();
+    if (!message) {
+      return false;
+    }
+
+    return (
+      message.includes('401')
+      || message.includes('404')
+      || message.includes('session has expired')
+      || message.includes('session expired')
+      || message.includes('does not exist')
+      || message.includes('session is null')
+      || (message.includes('tokenise') && message.includes('fail'))
+      || (message.includes('tokenize') && message.includes('fail'))
+    );
+  }
+
   function selectFromBlocks(storeNamespace) {
     return windowObject.wp?.data?.select?.(storeNamespace);
   }
@@ -305,6 +359,13 @@
   }
 
   function getOrderTotalMinor() {
+    if (typeof state.contextProvider?.getAmountMinor === 'function') {
+      const amount = Number(state.contextProvider.getAmountMinor());
+      if (Number.isFinite(amount)) {
+        return amount;
+      }
+    }
+
     const { cart } = getBlocksStores();
     const totals = cart?.getCartTotals?.();
     return totals?.total_price || 0;
@@ -324,6 +385,13 @@
   }
 
   function buildCardholderDetails() {
+    if (typeof state.contextProvider?.getCardholder === 'function') {
+      const provided = state.contextProvider.getCardholder();
+      if (provided) {
+        return provided;
+      }
+    }
+
     const propsCustomer = readCustomerFromPropsContext() || {};
     const billing = propsCustomer.billing || {};
 
@@ -569,13 +637,35 @@
           const checkout = sdk.createComponent('checkout', buildComponentOptions(false));
           await checkout.mount(selectors.checkout);
           state.checkoutComponent = checkout;
+
+          // On mount the SDK auto-intercepts submit events on the nearest hosting <form>.
+          // On the classic/legacy checkout the SDK surface lives inside WooCommerce's
+          // checkout form, so that listener would fire a second, uncontrolled submission
+          // and let WooCommerce POST to the server before the SDK's 3DS flow finished
+          // We always drive submission manually via trigger(), so disable auto-interception here.
+          // triggerSubmission() lazily recreates the submit controller
+          // on demand without re-attaching a submit listener.
+          if (typeof checkout.disableIntercept === 'function') {
+            try {
+              checkout.disableIntercept();
+            } catch (error) {
+              windowObject.console?.warn?.('[monek] disableIntercept failed', error);
+            }
+          }
         }
 
         clearLoadingState();
         return true;
       })
       .catch((error) => {
-        displayError(error?.message || 'There was a problem preparing your payment. Please try again.');
+        // Always clear the loading state so the wrapper never stays greyed out 
+        clearLoadingState();
+
+        if (isSessionExpiredError(error)) {
+          displayError(sessionExpiredMessage());
+        } else {
+          displayError(error?.message || 'There was a problem preparing your payment. Please try again.');
+        }
         return false;
       })
       .finally(() => {
@@ -590,7 +680,25 @@
       throw new Error('Checkout component not ready.');
     }
 
-    await state.checkoutComponent.triggerSubmission();
+    // triggerSubmission() resolves only after the SDK has completed tokenisation AND the
+    // 3DS authentication flow. Await it and reject on any non-success status so we never
+    // post to the server before 3DS has finished (or after it was cancelled/declined).
+    let submissionResult;
+    try {
+      submissionResult = await state.checkoutComponent.triggerSubmission();
+    } catch (error) {
+      if (isSessionExpiredError(error)) {
+        throw new Error(sessionExpiredMessage());
+      }
+      throw error;
+    }
+    if (submissionResult && typeof submissionResult === 'object' && submissionResult.status && submissionResult.status !== 'success') {
+      if (isSessionExpiredError(submissionResult)) {
+        throw new Error(sessionExpiredMessage());
+      }
+      throw new Error(submissionResult.message || 'Card authentication was not completed. Please try again.');
+    }
+
     const token = state.checkoutComponent.getCardTokenId?.() || state.checkoutComponent.getCardTokenId;
     const sessionId = state.checkoutComponent.getSessionId?.() || state.checkoutComponent.getSessionId;
     const expiry = state.checkoutComponent.getCardExpiry?.() || state.checkoutComponent.getCardExpiry;
@@ -613,6 +721,7 @@
   windowObject.monekCheckout = {
     mount: mountComponents,
     unmount: unmountComponents,
+    dismissChallengeOverlay,
     setExpressStyle,
     mountExpress,
     unmountExpress,
@@ -621,5 +730,7 @@
     clearError,
     getClientPaymentRef: getClientPaymentReference,
     waitForCompletionOnce,
+    setContextProvider,
+    toIso3166Numeric,
   };
 })(window, document, window.jQuery);
