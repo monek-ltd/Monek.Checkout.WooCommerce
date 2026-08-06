@@ -99,20 +99,6 @@ Save changes to apply the configuration.
 
 For the necessary information, such as the keys and webhook url, visit [Monek Contact Page](https://monek.com/contact) to create them. Ensure that all information entered is accurate to enable seamless payment processing on your WooCommerce store.
 
-## Checkout Page Requirement (Important)
-
-### How to check if your site still uses `[woocommerce_checkout]`
-1. In WordPress admin, go to **Pages**.
-2. Edit your checkout page.
-3. If you can see `[woocommerce_checkout]` in the page content, the page is still using the legacy shortcode.
-
-### How to fix it
-1. Remove the `[woocommerce_checkout]` shortcode from the checkout page.
-2. Add the WooCommerce **Checkout** block.
-3. Update the page.
-4. Clear any site/CDN/cache plugin caches and reload checkout.
-
-
 ## Support and Assistance
 
 Please feel free to contact Monek Support for any assistance or inquiries related to the Monek Checkout plugin. Our team is available to help you with installation, configuration, and troubleshooting to ensure a seamless payment processing experience for your online store.
