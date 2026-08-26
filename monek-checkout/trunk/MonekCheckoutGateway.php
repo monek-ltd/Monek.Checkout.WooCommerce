@@ -212,11 +212,12 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
 
     public function enqueue_scripts(): void
     {
-        if ((! is_checkout() && ! is_checkout_pay_page()) || is_order_received_page()) {
+        if (is_admin() || is_order_received_page()) {
             return;
         }
 
-        if (! $this->is_available()) {
+        $is_available = $this->is_available();
+        if (! $is_available) {
             return;
         }
 
