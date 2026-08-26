@@ -77,7 +77,42 @@
     }
   }
 
+  // Seed amount with the page-load value, then keep it fresh via the event listener below.
+  // WooCommerce fires 'updated_checkout' whenever the shopper changes shipping method/address
+  // and the order review totals are refreshed via AJAX, so this is the signal we need to
+  // re-read the (possibly changed) order total and avoid sending a stale amount to 3DS.
+  let liveAmountMinor = (() => {
+    const parsed = Number(configuration.amountMinor);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  })();
+
+  // Mirrors CurrencyFormatter::toMinorUnits() so the live-refreshed amount is scaled using the
+  // same (currency-aware) number of decimal places as the server, instead of assuming 2.
+  function toMinorUnits(amountMajor) {
+    const decimals = Number(configuration.currencyDecimals);
+    const exponent = Number.isFinite(decimals) ? decimals : 2;
+    return Math.round(amountMajor * (10 ** exponent));
+  }
+
+  if (typeof jQueryInstance === 'function') {
+    jQueryInstance(documentObject.body).on('updated_checkout', function onUpdatedCheckout() {
+      const totalElement = documentObject.querySelector('.order-total .woocommerce-Price-amount bdi');
+      if (totalElement) {
+        const text = totalElement.textContent.replace(/[^0-9.]/g, '');
+        const parsed = Number(text);
+        if (Number.isFinite(parsed)) {
+          liveAmountMinor = toMinorUnits(parsed);
+          log('amount refreshed from updated_checkout', liveAmountMinor);
+        }
+      }
+    });
+  }
+
   function getAmountMinor() {
+    if (liveAmountMinor !== undefined && Number.isFinite(liveAmountMinor)) {
+      return liveAmountMinor;
+    }
+
     const configured = configuration.amountMinor;
     if (configured !== undefined && configured !== null && configured !== '') {
       const parsed = Number(configured);

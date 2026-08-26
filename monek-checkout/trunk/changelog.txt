@@ -1,5 +1,10 @@
 *** Monek Checkout Changelog ***
 
+2026-08-26 version 4.3.1
+* Tested - Compatibility with WordPress 7.1.
+* Fixed - Apple Pay (Express Checkout) payments from the Cart block showed "Payment Declined" even though the transaction succeeded, because the Cart block's payment configuration was missing the express verification URL and nonces.
+* Fixed - Ensured the correct amount value in minor units is sent for 3DS card authentication when shipping options are updated on the legacy checkout page.
+
 2026-07-30 version 4.3.0
 * Added - Support for the classic (non-Blocks) shortcode checkout and the Order Pay page; the embedded Monek card form now renders and completes payments on both. Express Checkout / Apple Pay remains Blocks-only.
 * Fixed - Expired or missing payment sessions now show a clear "The session has expired. Please refresh the page and try again.".
