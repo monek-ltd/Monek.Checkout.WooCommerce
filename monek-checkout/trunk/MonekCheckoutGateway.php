@@ -23,10 +23,10 @@ if (! defined('ABSPATH')) {
 
 class MonekCheckoutGateway extends \WC_Payment_Gateway
 {
-    private const DEFAULT_CUSTOM_BACKGROUND = '#ffffff';
-    private const DEFAULT_CUSTOM_TEXT = '#1a1a1a';
-    private const DEFAULT_CUSTOM_INPUT_BACKGROUND = '#ffffff';
-    private const DEFAULT_CUSTOM_ACCENT = '#1460f2';
+    private const string DEFAULT_CUSTOM_BACKGROUND = '#ffffff';
+    private const string DEFAULT_CUSTOM_TEXT = '#1a1a1a';
+    private const string DEFAULT_CUSTOM_INPUT_BACKGROUND = '#ffffff';
+    private const string DEFAULT_CUSTOM_ACCENT = '#1460f2';
 
     const ID = 'monek-checkout';
     const EXPRESS_ID = 'monek-express';
@@ -794,6 +794,8 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
         }
 
         $fieldTitle = $this->form_fields[$key]['title'] ?? $key;
+
+        /* translators: %s: name of the field whose colour is invalid */
         $this->add_error(sprintf(__('The colour provided for "%s" is not a valid hex colour.', 'monek-checkout'), $fieldTitle));
 
         $stored = $this->get_option($key);

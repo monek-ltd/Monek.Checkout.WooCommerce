@@ -14,7 +14,7 @@ use function wp_kses_post;
 
 class SettingsNoticePresenter
 {
-    private const SETTINGS_OPTION_KEY = 'woocommerce_monek-checkout_settings';
+    private const string SETTINGS_OPTION_KEY = 'woocommerce_monek-checkout_settings';
 
     public function maybeDisplayNotice(): void
     {

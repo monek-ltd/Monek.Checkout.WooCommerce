@@ -24,8 +24,8 @@ namespace Monek\Checkout\Application\Checkout;
  */
 class ExpressPaymentVerifier
 {
-    private const ALLOWED_ALGORITHM = 'HS256';
-    private const EXPIRY_LEEWAY_SECONDS = 60;
+    private const string ALLOWED_ALGORITHM = 'HS256';
+    private const int EXPIRY_LEEWAY_SECONDS = 60;
 
     /**
      * @param array{paymentReference?:string,sessionId?:string} $expectations

@@ -6,7 +6,7 @@ use WP_Error;
 
 class ToolsPage
 {
-    private const PAGE_SLUG = 'monek-tools';
+    private const string PAGE_SLUG = 'monek-tools';
 
     public function register(): void
     {
@@ -26,7 +26,7 @@ class ToolsPage
     public function render(): void
     {
         if (! current_user_can('manage_woocommerce')) {
-            wp_die(__('You do not have permission to access this page.', 'monek-checkout'));
+            wp_die(esc_html__('You do not have permission to access this page.', 'monek-checkout'));
         }
 
         $webhookStatus    = $this->evaluateWebhook();
@@ -70,12 +70,18 @@ class ToolsPage
             <ul>
                 <li>
                     <a class="button" href="<?php echo esc_url($links['monek']); ?>">
-                        <?php echo esc_html(sprintf(__('Open %s', 'monek-checkout'), "monek-$today")); ?>
+                        <?php
+                        /* translators: %s: log file name */
+                        echo esc_html(sprintf(__('Open %s', 'monek-checkout'), "monek-$today"));
+                        ?>
                     </a>
                 </li>
                 <li>
                     <a class="button" href="<?php echo esc_url($links['monek-webhook']); ?>">
-                        <?php echo esc_html(sprintf(__('Open %s', 'monek-checkout'), "monek-webhook-$today")); ?>
+                        <?php
+                        /* translators: %s: log file name */
+                        echo esc_html(sprintf(__('Open %s', 'monek-checkout'), "monek-webhook-$today"));
+                        ?>
                     </a>
                 </li>
             </ul>
@@ -176,6 +182,7 @@ class ToolsPage
             return [
                 'status'  => 'success',
                 'message' => __('The webhook endpoint responded as expected (signature required).', 'monek-checkout'),
+                /* translators: %d: HTTP status code */
                 'details' => sprintf(__('Response: HTTP %d', 'monek-checkout'), $statusCode),
             ];
         }
@@ -184,6 +191,7 @@ class ToolsPage
             return [
                 'status'  => 'success',
                 'message' => __('The webhook endpoint is reachable.', 'monek-checkout'),
+                /* translators: 1: HTTP status code, 2: response body */
                 'details' => sprintf(__('Response: HTTP %1$d %2$s', 'monek-checkout'), $statusCode, $this->truncateDetails($body)),
             ];
         }
@@ -191,6 +199,7 @@ class ToolsPage
         return [
             'status'  => 'warning',
             'message' => __('The webhook endpoint responded with an unexpected status code.', 'monek-checkout'),
+            /* translators: 1: HTTP status code, 2: response body */
             'details' => sprintf(__('Response: HTTP %1$d %2$s', 'monek-checkout'), $statusCode, $this->truncateDetails($body)),
         ];
     }
@@ -256,6 +265,7 @@ class ToolsPage
 
         $statusCode = (int) wp_remote_retrieve_response_code($response);
         $body       = (string) wp_remote_retrieve_body($response);
+        /* translators: 1: HTTP status code, 2: response body */
         $details    = sprintf(__('Response: HTTP %1$d %2$s', 'monek-checkout'), $statusCode, $this->truncateDetails($body));
 
         if ($statusCode === 401 || $statusCode === 403) {

@@ -7,8 +7,8 @@ class ApplePayFileInstaller
 {
     private Logger $logger;
    
-    public const APPLE_PAY_FILE_NAME = 'apple-developer-merchantid-domain-association';
-    private const APPLE_PAY_FILE_URL = 'https://cdn.monek.com/apple-pay/' . self::APPLE_PAY_FILE_NAME;
+    public const string APPLE_PAY_FILE_NAME = 'apple-developer-merchantid-domain-association';
+    private const string APPLE_PAY_FILE_URL = 'https://cdn.monek.com/apple-pay/' . self::APPLE_PAY_FILE_NAME;
 
     public function __construct( ?Logger $logger = null )
     {
@@ -34,19 +34,25 @@ class ApplePayFileInstaller
             return false;
         }
 
+        if ( ! function_exists( 'WP_Filesystem' ) ) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+        }
+        WP_Filesystem();
+        global $wp_filesystem;
+
         if (!file_exists($dir)) {
             if (!wp_mkdir_p($dir)) {
                 $this->logger->error('[Monek] Failed to create .well-known directory');
 
-                @unlink( $tmp_file );
+                wp_delete_file( $tmp_file );
                 return false;
             }
         }
 
         $target_file = $dir . self::APPLE_PAY_FILE_NAME;
 
-        rename( $tmp_file, $target_file );
-        @chmod( $target_file, 0644 );
+        $wp_filesystem->move( $tmp_file, $target_file, true );
+        $wp_filesystem->chmod( $target_file, 0644 );
 
         $this->logger->info('[Monek Checkout] Apple Pay domain file installed successfully' );
         return true;

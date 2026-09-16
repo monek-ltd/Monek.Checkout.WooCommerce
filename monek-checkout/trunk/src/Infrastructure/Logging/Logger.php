@@ -6,7 +6,7 @@ use WC_Logger;
 
 class Logger
 {
-    private const SOURCE = 'monek';
+    private const string SOURCE = 'monek';
 
     public function log(string $level, string $message, array $context = []): void
     {

@@ -14,8 +14,8 @@ namespace Monek\Checkout\Application\Checkout;
  */
 class ExpressVerificationStore
 {
-    private const TRANSIENT_PREFIX = 'monek_express_verified_';
-    private const DEFAULT_TTL_SECONDS = 900;
+    private const string TRANSIENT_PREFIX = 'monek_express_verified_';
+    private const int DEFAULT_TTL_SECONDS = 900;
 
     public function remember(string $paymentReference, array $claims, int $ttlSeconds = self::DEFAULT_TTL_SECONDS): bool
     {

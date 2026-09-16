@@ -14,6 +14,12 @@ final class MonekBlocksIntegration extends AbstractPaymentMethodType
 
     public function initialize()
     {
+        if (! function_exists('get_option')) {
+            $this->settings = [];
+
+            return;
+        }
+
         $this->settings = get_option('woocommerce_' . $this->name . '_settings', []);
     }
 
@@ -36,6 +42,11 @@ final class MonekBlocksIntegration extends AbstractPaymentMethodType
 
     public function get_payment_method_script_handles(): array
     {
+        if (! function_exists('wp_register_script') || ! function_exists('wp_script_is')
+            || ! function_exists('wp_register_style') || ! function_exists('wp_style_is')) {
+            return [];
+        }
+
         $sdkHandle = 'monek-checkout-sdk';
         if (! wp_script_is($sdkHandle, 'registered')) {
             wp_register_script($sdkHandle, 'https://checkout-js.monek.com/monek-checkout.iife.js', [], null, true);
@@ -100,9 +111,16 @@ final class MonekBlocksIntegration extends AbstractPaymentMethodType
         $publishable = $gateway ? $gateway->get_option('publishable_key') : '';
         $showExpress = $gateway ? ($gateway->get_option('show_express', 'yes') === 'yes') : true;
         $debug = $gateway ? ($gateway->get_option('debug', 'no') === 'yes') : false;
+        $currency = function_exists('get_woocommerce_currency')
+            ? get_woocommerce_currency()
+            : (function_exists('get_option') ? get_option('woocommerce_currency') : 'GBP');
+        $currencyDecimals = function_exists('wc_get_price_decimals') ? wc_get_price_decimals() : 2;
         $stylingConfiguration = $gateway && method_exists($gateway, 'getStylingConfiguration')
             ? $gateway->getStylingConfiguration()
             : $this->get_default_styling_configuration();
+
+        $legacyNonce = function_exists('wp_create_nonce') ? wp_create_nonce('monek_legacy_checkout') : '';
+        $restNonce = function_exists('wp_create_nonce') ? wp_create_nonce('wp_rest') : '';
 
         return [
             'title' => $gateway ? $gateway->get_title() : __('Monek Checkout', 'monek-checkout'),
@@ -113,15 +131,17 @@ final class MonekBlocksIntegration extends AbstractPaymentMethodType
             'gatewayId' => $this->name,
             'publishableKey' => $publishable ?: '',
             'showExpress' => $showExpress,
-            'currency' => get_woocommerce_currency(),
+            'currency' => $currency,
             'currencyNumeric' => '826',
-            'currencyDecimals' => wc_get_price_decimals(),
+            'currencyDecimals' => $currencyDecimals,
             'countryNumeric' => '826',
-            'orderDescription' => get_bloginfo('name'),
+            'orderDescription' => function_exists('get_bloginfo')
+                ? get_bloginfo('name')
+                : (function_exists('get_option') ? get_option('blogname') : ''),
             'initialAmountMinor' => 0,
-            'nonce' => wp_create_nonce('monek_legacy_checkout'),
-            'expressVerifyUrl' => rest_url('monek/v1/express/authorise'),
-            'restNonce' => wp_create_nonce('wp_rest'),
+            'nonce' => $legacyNonce,
+            'expressVerifyUrl' => function_exists('rest_url') ? rest_url('monek/v1/express/authorise') : '',
+            'restNonce' => $restNonce,
             'debugTimestamp' => time(),
             'pluginVersion' => monek_get_plugin_version(),
             'debug' => $debug,
