@@ -4,8 +4,8 @@ namespace Monek\Checkout\Application\Checkout;
 
 class StoreContext
 {
-    private const DEFAULT_COUNTRY_CODE = '826';
-    private const PARTIAL_ORIGIN_ID = 'a6c921f4-8e00-4b11-99f4-';
+    private const string DEFAULT_COUNTRY_CODE = '826';
+    private const string PARTIAL_ORIGIN_ID = 'a6c921f4-8e00-4b11-99f4-';
 
     public function getNumericCountryCode(): string
     {

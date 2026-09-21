@@ -4,7 +4,7 @@ namespace Monek\Checkout;
 
 final class Autoloader
 {
-    private const NAMESPACE_PREFIX = 'Monek\\Checkout\\';
+    private const string NAMESPACE_PREFIX = 'Monek\\Checkout\\';
 
     public static function register(): void
     {

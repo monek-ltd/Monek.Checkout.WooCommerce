@@ -73,7 +73,7 @@ class ExpressCheckoutHandler
         $paymentReference = $request->getPaymentReference();
         if ($paymentReference === '') {
             $this->logger->error('Express checkout missing payment reference');
-            throw new \Exception(__('Missing payment reference.', 'monek-checkout'));
+            throw new \Exception(esc_html__('Missing payment reference.', 'monek-checkout'));
         }
 
         if ($this->isVerificationRequired()) {
@@ -108,7 +108,7 @@ class ExpressCheckoutHandler
         $claims = $this->verificationStore->consume($paymentReference);
         if ($claims === null) {
             $this->logger->error('Express checkout not verified', ['reference' => $paymentReference]);
-            throw new \Exception(__('Payment could not be verified. Please try again.', 'monek-checkout'));
+            throw new \Exception(esc_html__('Payment could not be verified. Please try again.', 'monek-checkout'));
         }
     
         $this->assertAmountMatches($claims, $order, $paymentReference);
@@ -138,7 +138,7 @@ class ExpressCheckoutHandler
                 'verified_minor' => $expectedMinor,
                 'order_minor' => $orderMinor,
             ]);
-            throw new \Exception(__('Payment amount did not match the order. Please try again.', 'monek-checkout'));
+            throw new \Exception(esc_html__('Payment amount did not match the order. Please try again.', 'monek-checkout'));
         }
 
         $expectedCurrency = $this->verifier->readCurrencyCode($claims);
@@ -153,7 +153,7 @@ class ExpressCheckoutHandler
                 'verified_currency' => $expectedCurrency,
                 'order_currency' => $orderCurrency,
             ]);
-            throw new \Exception(__('Payment currency did not match the order. Please try again.', 'monek-checkout'));
+            throw new \Exception(esc_html__('Payment currency did not match the order. Please try again.', 'monek-checkout'));
         }
     }
 

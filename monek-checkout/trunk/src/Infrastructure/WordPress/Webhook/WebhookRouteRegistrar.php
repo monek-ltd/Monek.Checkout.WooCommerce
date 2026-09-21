@@ -8,7 +8,7 @@ use WP_REST_Server;
 
 class WebhookRouteRegistrar
 {
-    private const SIGNATURE_TOLERANCE_SECONDS = 300;
+    private const int SIGNATURE_TOLERANCE_SECONDS = 300;
 
     public function register(): void
     {

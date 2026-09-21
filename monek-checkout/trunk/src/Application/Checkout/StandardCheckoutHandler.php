@@ -77,7 +77,7 @@ class StandardCheckoutHandler
 
         if (! $response['success']) {
             $message = $response['message'] ?: __('Payment failed. Please try again.', 'monek-checkout');
-            throw new \Exception($message);
+            throw new \Exception(esc_html($message));
         }
 
         $order->update_meta_data('_monek_token', $request->getToken());
@@ -105,7 +105,7 @@ class StandardCheckoutHandler
             || $request->getExpiry() === ''
             || $request->getPaymentReference() === ''
         ) {
-            throw new \Exception(__('Missing payment data. Please try again.', 'monek-checkout'));
+            throw new \Exception(esc_html__('Missing payment data. Please try again.', 'monek-checkout'));
         }
     }
 }

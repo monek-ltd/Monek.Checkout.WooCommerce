@@ -1,5 +1,5 @@
 === Monek Checkout ===
-Contributors: humberstone83, mariusmonek
+Contributors: mariusmonek
 Tags: credit card, payments, monek, woocommerce
 Requires at least: 6.0
 Tested up to: 7.1

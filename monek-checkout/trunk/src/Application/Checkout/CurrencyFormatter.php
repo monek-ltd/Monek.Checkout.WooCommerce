@@ -4,7 +4,7 @@ namespace Monek\Checkout\Application\Checkout;
 
 class CurrencyFormatter
 {
-    private const DEFAULT_NUMERIC_CODE = '826';
+    private const string DEFAULT_NUMERIC_CODE = '826';
 
     public function toMinorUnits($amount, string $currencyCode): int
     {
