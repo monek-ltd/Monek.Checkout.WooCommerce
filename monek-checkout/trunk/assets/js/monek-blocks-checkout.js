@@ -252,6 +252,13 @@
     );
   }
 
+  // Minimum fields WooCommerce Blocks needs to consider a billing/shipping address valid.
+  const REQUIRED_ADDRESS_FIELDS = ['address_1', 'city', 'postcode', 'country'];
+
+  function hasMinimumAddressFields(address) {
+    return REQUIRED_ADDRESS_FIELDS.every((field) => !!address?.[field]);
+  }
+
   function registerExpressSdkListeners(onSubmit, onClose, setExpressPaymentError) {
     async function handleSuccess() {
       const ref = windowObject.monekCheckout?.getClientPaymentRef?.();
@@ -267,6 +274,13 @@
       const paymentResponseData = await windowObject.monekCheckout.waitForCompletionOnce();
       const ctx = paymentResponseData?.ctx?.applePay || {};
 
+      // The SDK resolves the billing contact (falling back to the shipping contact, and
+      // declining the payment before any backend call if neither has a usable address)
+      // before completion, so ctx.billingContact should always be populated here.
+      if (!ctx.billingContact) {
+        windowObject.console?.warn?.('[monek] Apple Pay did not return a usable billing address; order placement may fail Blocks validation.');
+      }
+
       const billingAddressFromApplePay = {
         first_name: ctx.billingContact?.givenName ?? "",
         last_name: ctx.billingContact?.familyName ?? "",
@@ -275,7 +289,7 @@
         city: ctx.billingContact?.locality ?? "",
         state: ctx.billingContact?.administrativeArea ?? "",
         postcode: ctx.billingContact?.postalCode ?? "",
-        country: ctx.billingContact?.countryCode ?? "GB",
+        country: ctx.billingContact?.countryCode ?? "",
         phone: ctx.payerPhone ?? "",
       };
 
@@ -286,19 +300,30 @@
         city: ctx.shippingContact?.locality ?? "",
         state: ctx.shippingContact?.administrativeArea ?? "",
         postcode: ctx.shippingContact?.postalCode ?? "",
-        country: ctx.shippingContact?.countryCode ?? "GB",
+        country: ctx.shippingContact?.countryCode ?? "",
         phone: ctx.shippingContact?.phoneNumber ?? "",
       };
+
+      // If the wallet didn't return a separate shipping address, use the (already resolved)
+      // billing address so Blocks has a complete shipping address too.
+      const billingAddress = billingAddressFromApplePay;
+      const shippingAddress = hasMinimumAddressFields(shippingAddressFromApplePay)
+        ? shippingAddressFromApplePay
+        : billingAddress;
+
+      if (!hasMinimumAddressFields(billingAddress)) {
+        windowObject.console?.warn?.('[monek] Billing address is incomplete; order placement may fail Blocks validation even though the Apple Pay payment has already been authorised.', billingAddress);
+      }
 
       try {
         const cartDispatch = windowObject.wp?.data?.dispatch?.('wc/store/cart');
 
         if (cartDispatch?.setBillingAddress) {
-          cartDispatch.setBillingAddress(billingAddressFromApplePay);
+          await cartDispatch.setBillingAddress(billingAddress);
         }
 
         if (cartDispatch?.setShippingAddress) {
-          cartDispatch.setShippingAddress(shippingAddressFromApplePay);
+          await cartDispatch.setShippingAddress(shippingAddress);
         }
 
         const paymentDispatch = windowObject.wp?.data?.dispatch?.('wc/store/payment');
@@ -307,7 +332,7 @@
           paymentDispatch.__internalSetPaymentMethodData(expressPaymentPayload);
         }
 
-        console.log('[monek] payment data set:', expressPaymentPayload);
+        windowObject.console?.log?.('[monek] payment data set:', expressPaymentPayload);
       } catch (err) {
         windowObject.console?.warn?.('[monek] failed to set payment method data', err);
       }

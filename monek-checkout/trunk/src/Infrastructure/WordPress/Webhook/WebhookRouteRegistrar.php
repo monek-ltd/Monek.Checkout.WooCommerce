@@ -10,6 +10,13 @@ class WebhookRouteRegistrar
 {
     private const int SIGNATURE_TOLERANCE_SECONDS = 300;
 
+    // Number of times to retry the order lookup if the webhook arrives before
+    // WooCommerce has finished saving the payment reference on the order
+    private const int ORDER_LOOKUP_MAX_ATTEMPTS = 5;
+
+    // Delay in ms between order lookup retries
+    private const int ORDER_LOOKUP_RETRY_DELAY_MICROSECONDS = 250000;
+
     public function register(): void
     {
         $this->log('rest_api_init fired');
@@ -49,7 +56,7 @@ class WebhookRouteRegistrar
             return new WP_REST_Response(['ok' => false, 'error' => 'missing_reference'], 400);
         }
 
-        $orderId = $this->locateOrderByPaymentReference($paymentReference);
+        $orderId = $this->locateOrderByPaymentReferenceWithRetry($paymentReference);
         if (! $orderId) {
             $this->log('webhook: order not found', ['reference' => $paymentReference], 'warning');
             return new WP_REST_Response([
@@ -139,6 +146,35 @@ class WebhookRouteRegistrar
         }
 
         return '';
+    }
+
+    /**
+     * Looks up the order by payment reference, retrying with a short delay in
+     * case the webhook arrives before checkout finalisation has saved the
+     * reference on the order (a race between WooCommerce order creation and
+     * the async webhook delivery).
+     */
+    private function locateOrderByPaymentReferenceWithRetry(string $paymentReference): ?int
+    {
+        for ($attempt = 1; $attempt <= self::ORDER_LOOKUP_MAX_ATTEMPTS; $attempt++) {
+            $orderId = $this->locateOrderByPaymentReference($paymentReference);
+            if ($orderId) {
+                if ($attempt > 1) {
+                    $this->log('webhook: order found after retry', [
+                        'reference' => $paymentReference,
+                        'attempt' => $attempt,
+                    ]);
+                }
+
+                return $orderId;
+            }
+
+            if ($attempt < self::ORDER_LOOKUP_MAX_ATTEMPTS) {
+                usleep(self::ORDER_LOOKUP_RETRY_DELAY_MICROSECONDS);
+            }
+        }
+
+        return null;
     }
 
     private function locateOrderByPaymentReference(string $paymentReference): ?int
