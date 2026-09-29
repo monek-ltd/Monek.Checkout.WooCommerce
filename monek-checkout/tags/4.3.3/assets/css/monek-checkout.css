@@ -1,0 +1,114 @@
+.monek-checkout-wrapper {
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    padding: 16px;
+    background: #fff;
+    display: grid;
+    gap: 12px;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+}
+
+.monek-checkout-wrapper > * {
+    min-width: 0;
+}
+
+.monek-checkout-logo {
+    max-width: 140px;
+    height: auto;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.monek-express-wrapper {
+    display: grid;
+    gap: 8px;
+    text-align: left;
+}
+
+.monek-checkout-wrapper[data-loading='true'] {
+    opacity: 0.65;
+    pointer-events: none;
+}
+
+.monek-checkout-messages {
+    color: #d63638;
+    font-weight: 600;
+    margin: 0;
+    min-height: 1em;
+}
+
+.monek-checkout-description {
+    margin: 0;
+    color: #50575e;
+    font-size: 0.9rem;
+}
+
+.monek-sdk-surface {
+    min-height: 52px;
+    background: #f6f7f7;
+    border-radius: 4px;
+    padding: 12px;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.monek-sdk-surface iframe {
+    display: block;
+    width: 100% !important;
+    max-width: 100%;
+    min-width: 0;
+    border: 0;
+}
+
+.monek-checkout-wrapper .monek-sdk-surface + .monek-sdk-surface {
+    margin-top: 4px;
+}
+
+.monek-checkout-wrapper input[type='hidden'] {
+    display: none;
+}
+
+@media (max-width: 600px) {
+    .monek-checkout-wrapper {
+        padding: 12px 8px;
+    }
+
+    .monek-sdk-surface {
+        padding: 8px 4px;
+    }
+
+    /*
+     * The Monek hosted-fields iframe is given a fixed inline height when it is
+     * initialised. On mobile, iOS bumps the input font-size to 16px (to stop
+     * zoom-on-focus), which makes the iframe content taller than that height,
+     * clipping the expiry/CVC row. A min-height floor reveals the full form
+     * without affecting desktop (where the inline height still applies).
+     * Scoped to the card container so the short Express button is unaffected.
+     */
+    #monek-checkout-container iframe {
+        min-height: 180px;
+    }
+}
+
+@media (max-width: 360px) {
+    .monek-checkout-wrapper {
+        padding: 10px 6px;
+    }
+
+    .monek-sdk-surface {
+        padding: 6px 2px;
+    }
+
+    /*
+     * Below 360px the hosted-fields layout stacks expiry and CVC into a single
+     * column, adding another input row and increasing the height further.
+     */
+    #monek-checkout-container iframe {
+        min-height: 240px;
+    }
+}
