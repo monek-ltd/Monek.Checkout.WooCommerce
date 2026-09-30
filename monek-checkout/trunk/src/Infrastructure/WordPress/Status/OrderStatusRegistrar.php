@@ -4,7 +4,7 @@ namespace Monek\Checkout\Infrastructure\WordPress\Status;
 
 class OrderStatusRegistrar
 {
-    private const string STATUS_KEY = 'wc-payment-confirmed';
+    private const STATUS_KEY = 'wc-payment-confirmed';
 
     public function register(): void
     {

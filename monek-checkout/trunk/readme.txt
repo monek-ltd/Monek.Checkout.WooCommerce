@@ -3,7 +3,7 @@ Contributors: mariusmonek
 Tags: credit card, payments, monek, woocommerce
 Requires at least: 6.0
 Tested up to: 7.1
-Requires PHP: 7.4
+Requires PHP: 8.3
 Stable tag: 4.3.3
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -67,6 +67,9 @@ Yes. Version 4.3.x now includes support for WooCommerce Legacy Checkout. We reco
 Need help? Contact [Monek Support](https://monek.com/contact) or visit the [WordPress.org support forum](https://wordpress.org/support/plugin/monek-checkout/).
 
 == Changelog ==
+
+= 4.3.4 =
+* Restore PHP 8.2 compatibility.
 
 = 4.3.3 =
 * Fixed WP flagged errors.

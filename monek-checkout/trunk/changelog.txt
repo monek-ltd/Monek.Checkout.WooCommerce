@@ -1,5 +1,8 @@
 *** Monek Checkout Changelog ***
 
+2026-09-30 version 4.3.4
+* Fixed - Restore PHP 8.2 compatibility.
+
 2026-09-29 version 4.3.3
 * Fixed - WP flagged errors.
 * Added - Address validation and error handling for Apple Pay payments. 

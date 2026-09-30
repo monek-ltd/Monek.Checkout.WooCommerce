@@ -8,14 +8,14 @@ use WP_REST_Server;
 
 class WebhookRouteRegistrar
 {
-    private const int SIGNATURE_TOLERANCE_SECONDS = 300;
+    private const SIGNATURE_TOLERANCE_SECONDS = 300;
 
     // Number of times to retry the order lookup if the webhook arrives before
     // WooCommerce has finished saving the payment reference on the order
-    private const int ORDER_LOOKUP_MAX_ATTEMPTS = 5;
+    private const ORDER_LOOKUP_MAX_ATTEMPTS = 5;
 
     // Delay in ms between order lookup retries
-    private const int ORDER_LOOKUP_RETRY_DELAY_MICROSECONDS = 250000;
+    private const ORDER_LOOKUP_RETRY_DELAY_MICROSECONDS = 250000;
 
     public function register(): void
     {

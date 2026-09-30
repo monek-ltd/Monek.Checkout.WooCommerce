@@ -7,8 +7,8 @@ class ApplePayFileInstaller
 {
     private Logger $logger;
    
-    public const string APPLE_PAY_FILE_NAME = 'apple-developer-merchantid-domain-association';
-    private const string APPLE_PAY_FILE_URL = 'https://cdn.monek.com/apple-pay/' . self::APPLE_PAY_FILE_NAME;
+    public const APPLE_PAY_FILE_NAME = 'apple-developer-merchantid-domain-association';
+    private const APPLE_PAY_FILE_URL = 'https://cdn.monek.com/apple-pay/' . self::APPLE_PAY_FILE_NAME;
 
     public function __construct( ?Logger $logger = null )
     {
