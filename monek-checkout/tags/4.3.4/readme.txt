@@ -1,0 +1,114 @@
+=== Monek Checkout ===
+Contributors: mariusmonek
+Tags: credit card, payments, monek, woocommerce
+Requires at least: 6.0
+Tested up to: 7.1
+Requires PHP: 8.3
+Stable tag: 4.3.3
+License: GPLv3
+License URI: https://www.gnu.org/licenses/gpl-3.0.html
+
+Securely accept card payments and Apple Pay in WooCommerce via Monek's hosted payment fields.
+
+== Checkout compatibility ==
+
+This plugin works with both the **WooCommerce Block-based Checkout** and the classic (`[woocommerce_checkout]` shortcode) checkout, including the Order Pay page. The embedded Monek card form renders and completes payments on all of them.
+Express Checkout / Apple Pay is available on the **WooCommerce Block-based Checkout** only. On the classic checkout the standard embedded card form is shown.
+
+== Description ==
+
+Monek Checkout connects your WooCommerce store to Monek’s secure payment platform. Version 4.0 introduced the WooCommerce Checkout Blocks experience, and version 4.3 restores support for the classic shortcode checkout and the Order Pay page so every checkout flow can take Monek payments.
+The plugin mounts Monek’s hosted payment fields directly inside your checkout — Blocks or classic — with optional express wallets on the Blocks checkout. Customers stay on your site while their card details are captured securely. Merchants benefit from a guided setup that walks them through collecting API keys, enabling Apple Pay, and optionally confirming payments via webhook.
+
+Key features:
+* Secure embedded payment fields rendered inside WooCommerce Checkout Blocks.
+* Optional Apple Pay and other express wallets when configured in Monek Merchant Portal.
+* Payment Confirmed order status triggered by verified webhooks for added assurance.
+* Simple configuration steps designed for non-technical store owners.
+
+== Installation ==
+
+1. Install the plugin from **Plugins → Add New** by searching for "Monek Checkout" (or upload the ZIP from GitHub).
+2. Activate the plugin.
+3. Visit **WooCommerce → Settings → Payments** and click **Monek**.
+4. Enable the payment method and save. Continue with the configuration steps below to enter your credentials.
+
+== Configuration ==
+
+=== 1. Gather your API credentials from Monek Merchant Portal ===
+1. Sign in to the [Monek Merchant Portal](https://portal.monek.com/) and navigate to **Settings** -> **Integrations** page.
+2. Under the WooCommerce Integration tab, create a new integration. Provide a display name and your domain (e.g. `example.com`). The domain name is required for Express Checkout and can be disabled later from the WooCommerce plugin settings if needed.
+3. As a final step, copy the **access (public) key**, **secret key** and **webhook url key** before closing the pop-up window.
+
+=== 2. Add the credentials in WooCommerce ===
+1. In WordPress, go to **WooCommerce → Settings → Payments** and select **Monek**.
+2. Enter the **access key**, **secret key** and **webhook url key** values.
+3. Save your changes.
+
+=== 3. (Optional) Use Apple Pay ===
+1. Your website domain is listed against the access key you created in Monek Merchant Portal.
+2. You can disable Apple Pay at any time by unticking **Express Checkout** from the plugin settings.
+3. Test checkout from a supported Apple device or browser. The Apple Pay button will appear automatically once Apple confirms the domain.
+
+=== 4. (Optional) Use a webhook for Payment Confirmed ===
+1. Webhook confirms payment, and the plugin updates the order status to **Payment Confirmed**. Use this status to track orders that have securely completed the Monek payment flow.
+2. If you prefer to manage order status updates manually, you can remove the **Webhook URL Key** from the plugin settings.
+
+== Frequently Asked Questions ==
+
+= Do I have to set up a webhook? =
+No. The webhook and signing secret are optional. Without a signing secret, webhooks are automatically trusted, and the order can still move to **Payment Confirmed** when the event is received.
+
+= Can I keep using the classic WooCommerce checkout? =
+Yes. Version 4.3.x now includes support for WooCommerce Legacy Checkout. We recommend to update WooCommerce to the latest version and enable Blocks to take advantage of the improved experience.
+
+== Support ==
+
+Need help? Contact [Monek Support](https://monek.com/contact) or visit the [WordPress.org support forum](https://wordpress.org/support/plugin/monek-checkout/).
+
+== Changelog ==
+
+= 4.3.4 =
+* Restore PHP 8.2 compatibility.
+
+= 4.3.3 =
+* Fixed WP flagged errors.
+* Added address validation and error handling for Apple Pay payments. 
+* A more robust webhook handler against race conditions when matching orders.
+
+= 4.3.1 =
+* Tested compatibility with WordPress 7.1.
+* Apple Pay (Express Checkout) payments from the Cart block showed "Payment Declined" even though the transaction succeeded, because the Cart block's payment configuration was missing the express verification URL and nonces.
+* Ensured the correct amount value in minor units is sent for 3DS card authentication when shipping options are updated on the legacy checkout page.
+
+= 4.3.0 =
+* Adds support for the classic (non-Blocks) shortcode checkout and the Order Pay page. The embedded Monek card form now renders and completes payments on both. Express Checkout / Apple Pay remains Blocks-only.
+* Fixes expired or missing payment sessions and now show a clear "The session has expired. Please refresh the page and try again.".
+
+= 4.2.1 =
+* Fixes an issue where Apple Pay orders showed a different payment method in order confirmations, emails, and the admin order screen.
+
+= 4.2.0 =
+* Enhanced the Express Checkout flow by introducing a verification token returned by the backend, allowing the plugin to validate and update the payment accordingly.
+* Fixed standard checkout payment validation error when switching shipping options.
+* The plugin detects which checkout solution is currently active and displays an error message if WooCommerce Blocks Checkout is not enabled.
+
+= 4.1.2 =
+* Fixed the block checkout payment surface staying greyed out when switching away from Monek and back; the embedded SDK now tears down and re-mounts cleanly.
+* Fixed the embedded card form being clipped/half-hidden on mobile; checkout surfaces now scale to the viewport width.
+* Added a teardown API (`unmount`/`unmountExpress`) and `onCheckoutFail` handling so gateway errors surface in the checkout.
+
+= 4.1.1 =
+* Fixed deprecated dynamic property assignments for PHP 8.2+ compatibility.
+* Fixed gateway ID resolution to use proper PaymentContext getter methods.
+* Security: added nonce verification to Apple Pay notice dismissal AJAX handler.
+* Security: description output now uses wp_kses_post to prevent stored XSS.
+* Security: webhook endpoint now rejects requests when no signing secret is configured.
+
+= 4.1.0 =
+*Breaking change release requiring WooCommerce Checkout Blocks.*
+
+* Introduced the new checkout experience powered by WooCommerce Checkout Blocks.
+* Added clear steps for collecting access keys and webhook url from Monek Merchant Portal.
+* Documented Apple Pay domain setup and the option to disable it.
+* Added the Payment Confirmed status to help merchants track securely verified payments.
