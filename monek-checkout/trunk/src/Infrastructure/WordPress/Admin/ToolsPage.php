@@ -6,7 +6,7 @@ use WP_Error;
 
 class ToolsPage
 {
-    private const string PAGE_SLUG = 'monek-tools';
+    private const PAGE_SLUG = 'monek-tools';
 
     public function register(): void
     {
