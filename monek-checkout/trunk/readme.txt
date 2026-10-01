@@ -4,7 +4,7 @@ Tags: credit card, payments, monek, woocommerce
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.3
-Stable tag: 4.3.3
+Stable tag: 4.3.4
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -14,6 +14,9 @@ Securely accept card payments and Apple Pay in WooCommerce via Monek's hosted pa
 
 This plugin works with both the **WooCommerce Block-based Checkout** and the classic (`[woocommerce_checkout]` shortcode) checkout, including the Order Pay page. The embedded Monek card form renders and completes payments on all of them.
 Express Checkout / Apple Pay is available on the **WooCommerce Block-based Checkout** only. On the classic checkout the standard embedded card form is shown.
+
+PHP 8.2 reaches end of life on **31 December 2026**. We recommend that users update their hosting environment to **PHP 8.3 or later** before the end of 2026.
+Future versions of the Monek Checkout plugin will include changes that require PHP 8.3 or later. Updating your PHP version in advance will help ensure continued compatibility with future plugin releases.
 
 == Description ==
 
