@@ -64,7 +64,7 @@ class PaymentPayloadBuilder
             'idempotencyToken' => $this->storeContext->generateIdempotencyToken((int) $order->get_id()),
             'source' => 'EmbeddedCheckout',
             'url' => home_url(),
-            'basketDescription' => $this->createBasketDetails($order),
+            'basketDescription' => $this->buildBasketFromOrder($order),
             'paymentReference' => $paymentReference,
             'originId' => $this->storeContext->buildOriginId(),
             'sourceIpAddress' => $_SERVER['REMOTE_ADDR'] ?? null,
@@ -88,7 +88,7 @@ class PaymentPayloadBuilder
         return $digits;
     }
 
-    private function createBasketDetails(WC_Order $order): string
+    public function buildBasketFromOrder(WC_Order $order): string
     {
         $items = [];
 
@@ -103,28 +103,73 @@ class PaymentPayloadBuilder
             $line_total   = (float) $item->get_total();
             $line_tax     = (float) $item->get_total_tax();
 
-            // Avoid division by zero
-            $unit_price = $quantity > 0 ? $line_total / $quantity : 0;
-
-            // Tax rate calculation (approx)
-            $tax_rate = 0;
-            if ( $line_total > 0 && $line_tax > 0 ) {
-                $tax_rate = round( ( $line_tax / $line_total ) * 100, 2 );
-            }
-
-            $items[] = [
-                'sku'            => $product->get_sku() ?: (string) $product->get_id(),
-                'commodityCode'  => '',
-                'description'    => $item->get_name(),
-                'quantity'       => (int) $quantity,
-                'unitPrice'      => round( $unit_price, 2 ),
-                'unitOfMeasure'  => '',
-                'total'          => round( $line_total, 2 ),
-                'taxRate'        => $tax_rate,
-                'taxAmount'      => round( $line_tax, 2 ),
-            ];
+            $items[] = $this->buildBasketItem(
+                $product->get_sku() ?: (string) $product->get_id(),
+                $item->get_name(),
+                (int) $quantity,
+                $line_total,
+                $line_tax
+            );
         }
 
+        return $this->assembleBasket($items);
+    }
+
+    /**
+     * Builds the basket structure from the WooCommerce cart. This is used for express payment flow that is initiated before a WooCommerce order exists.
+     */
+    public function buildBasketFromCart(\WC_Cart $cart): string
+    {
+        $items = [];
+
+        foreach ( $cart->get_cart() as $cartItem ) {
+            $product = $cartItem['data'] ?? null;
+            if ( ! $product ) {
+                continue;
+            }
+
+            $quantity   = (int) ($cartItem['quantity'] ?? 0);
+            $line_total = (float) ($cartItem['line_total'] ?? 0);
+            $line_tax   = (float) ($cartItem['line_tax'] ?? 0);
+
+            $items[] = $this->buildBasketItem(
+                $product->get_sku() ?: (string) $product->get_id(),
+                $product->get_name(),
+                $quantity,
+                $line_total,
+                $line_tax
+            );
+        }
+
+        return $this->assembleBasket($items);
+    }
+
+    private function buildBasketItem(string $sku, string $description, int $quantity, float $lineTotal, float $lineTax): array
+    {
+        // Avoid division by zero
+        $unitPrice = $quantity > 0 ? $lineTotal / $quantity : 0;
+
+        // Tax rate calculation (approx)
+        $taxRate = 0;
+        if ( $lineTotal > 0 && $lineTax > 0 ) {
+            $taxRate = round( ( $lineTax / $lineTotal ) * 100, 2 );
+        }
+
+        return [
+            'sku'            => $sku,
+            'commodityCode'  => '',
+            'description'    => $description,
+            'quantity'       => $quantity,
+            'unitPrice'      => round( $unitPrice, 2 ),
+            'unitOfMeasure'  => '',
+            'total'          => round( $lineTotal, 2 ),
+            'taxRate'        => $taxRate,
+            'taxAmount'      => round( $lineTax, 2 ),
+        ];
+    }
+
+    private function assembleBasket(array $items): string
+    {
         $basket = [
             'taxType'   => 0,
             'items'     => $items,

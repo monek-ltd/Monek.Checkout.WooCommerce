@@ -37,6 +37,7 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
     private StandardCheckoutHandler $standardCheckoutHandler;
     private CurrencyFormatter $currencyFormatter;
     private StoreContext $storeContext;
+    private PaymentPayloadBuilder $paymentPayloadBuilder;
     private string $publishable_key;
     private string $secret_key;
     private string $show_express;
@@ -66,6 +67,7 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
         $this->currencyFormatter = new CurrencyFormatter();
         $this->storeContext = new StoreContext();
         $paymentPayloadBuilder = new PaymentPayloadBuilder($this->currencyFormatter, $this->storeContext);
+        $this->paymentPayloadBuilder = $paymentPayloadBuilder;
         $paymentProcessor = new PaymentProcessor(
             (string) $this->publishable_key,
             (string) $this->secret_key,
@@ -439,7 +441,7 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
 
         wp_register_script(
             $sdkHandle,
-            'https://checkout-js.monek.com/monek-checkout.iife.js',
+            MONEK_CHECKOUT_SDK_URL,
             [],
             monek_get_plugin_version(),
             true
@@ -478,6 +480,8 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
             $billingSnapshot = $this->buildBillingSnapshot($payPageOrder);
         }
 
+        $basketDescription = $this->buildBasketDescription($payPageOrder);
+
         $settings = [
             'gatewayId' => $this->id,
             'publishableKey' => $this->publishable_key,
@@ -501,6 +505,10 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
 
         if ($billingSnapshot) {
             $settings['billing'] = $billingSnapshot;
+        }
+
+        if ($basketDescription) {
+            $settings['basketDescription'] = $basketDescription;
         }
 
         $stylingConfiguration = $this->getStylingConfiguration();
@@ -576,6 +584,23 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
             'country' => $order->get_billing_country(),
             'state' => $order->get_billing_state(),
         ];
+    }
+
+    /**
+     * Builds a base64 encoded basket description for the SDK.
+     * Get the basket description based on the current order or cart (for ApplePay).
+     */
+    private function buildBasketDescription(?WC_Order $payPageOrder): ?string
+    {
+        if ($payPageOrder) {
+            return $this->paymentPayloadBuilder->buildBasketFromOrder($payPageOrder);
+        }
+
+        if (function_exists('WC') && WC()->cart && ! WC()->cart->is_empty()) {
+            return $this->paymentPayloadBuilder->buildBasketFromCart(WC()->cart);
+        }
+
+        return null;
     }
 
     private function registerStyles(): void

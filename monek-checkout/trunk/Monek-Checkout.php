@@ -45,6 +45,10 @@ if (! defined('MONEK_PLUGIN_URL')) {
     define('MONEK_PLUGIN_URL', plugin_dir_url(__FILE__));
 }
 
+if (! defined('MONEK_CHECKOUT_SDK_URL')) {
+    define('MONEK_CHECKOUT_SDK_URL', 'https://checkout-js.monek.com/monek-checkout.iife.js');
+}
+
 require_once MONEK_PLUGIN_DIR . 'src/Autoloader.php';
 Autoloader::register();
 

@@ -3,6 +3,9 @@
 namespace Monek\Checkout\Infrastructure\WordPress\Blocks;
 
 use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType;
+use Monek\Checkout\Application\Checkout\CurrencyFormatter;
+use Monek\Checkout\Application\Checkout\PaymentPayloadBuilder;
+use Monek\Checkout\Application\Checkout\StoreContext;
 
 if (! defined('ABSPATH')) {
     exit;
@@ -49,7 +52,7 @@ final class MonekBlocksIntegration extends AbstractPaymentMethodType
 
         $sdkHandle = 'monek-checkout-sdk';
         if (! wp_script_is($sdkHandle, 'registered')) {
-            wp_register_script($sdkHandle, 'https://checkout-js.monek.com/monek-checkout.iife.js', [], null, true);
+            wp_register_script($sdkHandle, MONEK_CHECKOUT_SDK_URL, [], null, true);
         }
 
         $checkoutHandle = 'monek-embedded-checkout';
@@ -122,7 +125,9 @@ final class MonekBlocksIntegration extends AbstractPaymentMethodType
         $legacyNonce = function_exists('wp_create_nonce') ? wp_create_nonce('monek_legacy_checkout') : '';
         $restNonce = function_exists('wp_create_nonce') ? wp_create_nonce('wp_rest') : '';
 
-        return [
+        $basketDescription = $this->get_basket_description();
+
+        $data = [
             'title' => $gateway ? $gateway->get_title() : __('Monek Checkout', 'monek-checkout'),
             // 'description' => $gateway ? $gateway->get_description() : __('Secure payment powered by Monek.', 'monek-checkout'),
             // 'logoUrl' => MONEK_PLUGIN_URL . 'img/Monek-Logo100x12.png',
@@ -154,6 +159,27 @@ final class MonekBlocksIntegration extends AbstractPaymentMethodType
             'styling' => $stylingConfiguration['styling'] ?? null,
             'customTheme' => $stylingConfiguration['customTheme'] ?? null,
         ];
+
+        if ($basketDescription) {
+            $data['basketDescription'] = $basketDescription;
+        }
+
+        return $data;
+    }
+
+    /**
+     * Builds a base64 encoded basket details from the WooCommerce cart.
+     * The express payment has no associated WooCommerce order to get basket details from.
+     */
+    private function get_basket_description(): ?string
+    {
+        if (! function_exists('WC') || ! WC()->cart || WC()->cart->is_empty()) {
+            return null;
+        }
+
+        $paymentPayloadBuilder = new PaymentPayloadBuilder(new CurrencyFormatter(), new StoreContext());
+
+        return $paymentPayloadBuilder->buildBasketFromCart(WC()->cart);
     }
 
     private function get_default_styling_configuration(): array
