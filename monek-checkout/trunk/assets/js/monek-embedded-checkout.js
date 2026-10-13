@@ -491,7 +491,7 @@
 
     const callbacks = {
       getAmount: () => ({ minor: getOrderTotalMinor(), currency: configuration.currencyNumeric || '826' }),
-      getDescription: () => configuration.orderDescription || 'Order',
+      getDescription: () => configuration.basketDescription || configuration.orderDescription || 'Order',
       getCardholderDetails: buildCardholderDetails,
       onPaymentAuthorised: verifyExpressPayment,
     };
