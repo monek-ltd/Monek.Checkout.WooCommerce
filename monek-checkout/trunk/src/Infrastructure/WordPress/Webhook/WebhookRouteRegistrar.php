@@ -52,8 +52,8 @@ class WebhookRouteRegistrar
 
         $paymentReference = $this->extractPaymentReference($body);
         if ($paymentReference === '') {
-            $this->log('webhook: missing paymentReference', ['body' => $body], 'warning');
-            return new WP_REST_Response(['ok' => false, 'error' => 'missing_reference'], 400);
+            $this->log('webhook: missing paymentReference - event ignored', ['body' => $body], 'warning');
+            return new WP_REST_Response(['ok' => true, 'status' => 'ignored'], 200);
         }
 
         $orderId = $this->locateOrderByPaymentReferenceWithRetry($paymentReference);

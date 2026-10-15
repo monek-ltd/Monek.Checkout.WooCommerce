@@ -82,7 +82,7 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
             new ExpressPaymentVerifier(),
             $this->currencyFormatter
         );
-        $this->standardCheckoutHandler = new StandardCheckoutHandler($paymentProcessor, $this->logger);
+        $this->standardCheckoutHandler = new StandardCheckoutHandler($paymentProcessor, $this->logger, $this->storeContext);
 
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
@@ -484,6 +484,7 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
 
         $settings = [
             'gatewayId' => $this->id,
+            'pluginVersion' => monek_get_plugin_version(),
             'publishableKey' => $this->publishable_key,
             'showExpress' => ('yes' === $this->show_express),
             'currency' => $currency,
