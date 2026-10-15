@@ -61,7 +61,7 @@ class PaymentPayloadBuilder
                 return $value !== null && $value !== '';
             }),
             'storeCardDetails' => false,
-            'idempotencyToken' => $this->storeContext->generateIdempotencyToken((int) $order->get_id()),
+            'idempotencyToken' => $this->storeContext->resolveIdempotencyToken($order),
             'source' => 'EmbeddedCheckout',
             'url' => home_url(),
             'basketDescription' => $this->buildBasketFromOrder($order),

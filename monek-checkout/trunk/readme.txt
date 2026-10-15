@@ -4,7 +4,7 @@ Tags: credit card, payments, monek, woocommerce
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.3
-Stable tag: 4.3.4
+Stable tag: 4.3.5
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -70,6 +70,12 @@ Yes. Version 4.3.x now includes support for WooCommerce Legacy Checkout. We reco
 Need help? Contact [Monek Support](https://monek.com/contact) or visit the [WordPress.org support forum](https://wordpress.org/support/plugin/monek-checkout/).
 
 == Changelog ==
+
+= 4.3.5 =
+* Fixed: Include basket product descriptions in payment requests for express checkout payments.
+* Security: generate an idempotency token per order and reuse it for any subsequent requests if the payment was successful.
+* Ensure the webhook handler ignores payment events that are not associated with WooCommerce.
+* Include the WooCommerce order ID in the payment reference.
 
 = 4.3.4 =
 * Restore PHP 8.2 compatibility.

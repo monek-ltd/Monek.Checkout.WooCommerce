@@ -11,11 +11,13 @@ class StandardCheckoutHandler
 {
     private PaymentProcessor $paymentProcessor;
     private Logger $logger;
+    private StoreContext $storeContext;
 
-    public function __construct(PaymentProcessor $paymentProcessor, Logger $logger)
+    public function __construct(PaymentProcessor $paymentProcessor, Logger $logger, StoreContext $storeContext)
     {
         $this->paymentProcessor = $paymentProcessor;
         $this->logger = $logger;
+        $this->storeContext = $storeContext;
     }
 
     public function handle(CheckoutRequest $request, WC_Order $order, PaymentResult $result): void
@@ -63,12 +65,15 @@ class StandardCheckoutHandler
     {
         $this->assertRequiredDataPresent($request);
 
+        // Generate a WooCommerce style payment ref using the order ID, or fall back to the payment reference provided.
+        $wooCommerceOrderReference = $order->get_id() ? 'WOO-ORDER-' . $order->get_id() : $request->getPaymentReference();
+
         $response = $this->paymentProcessor->process(
             $order,
             $request->getToken(),
             $request->getSessionIdentifier(),
             $request->getExpiry(),
-            $request->getPaymentReference()
+            $wooCommerceOrderReference
         );
 
         if ($response['message']) {
@@ -76,6 +81,7 @@ class StandardCheckoutHandler
         }
 
         if (! $response['success']) {
+            $this->storeContext->clearIdempotencyToken($order);
             $message = $response['message'] ?: __('Payment failed. Please try again.', 'monek-checkout');
             throw new \Exception(esc_html($message));
         }
@@ -83,7 +89,7 @@ class StandardCheckoutHandler
         $order->update_meta_data('_monek_token', $request->getToken());
         $order->update_meta_data('_monek_session', $request->getSessionIdentifier());
         $order->update_meta_data('_monek_result', $response['raw'] ? wp_json_encode($response['raw']) : '');
-        $order->update_meta_data('_monek_payment_reference', $request->getPaymentReference());
+        $order->update_meta_data('_monek_payment_reference', $wooCommerceOrderReference);
         $order->payment_complete();
         $order->save();
 
