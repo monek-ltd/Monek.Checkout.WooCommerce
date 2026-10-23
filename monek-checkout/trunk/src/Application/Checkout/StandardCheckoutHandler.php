@@ -80,6 +80,9 @@ class StandardCheckoutHandler
             $order->add_order_note('Monek transaction response message: ' . $response['message']);
         }
 
+        $order->update_meta_data('_monek_payment_reference', $wooCommerceOrderReference);
+        $order->update_meta_data('_monek_transaction_id', $response['transactionId'] ?? '');
+
         if (! $response['success']) {
             $this->storeContext->clearIdempotencyToken($order);
             $message = $response['message'] ?: __('Payment failed. Please try again.', 'monek-checkout');
@@ -89,7 +92,6 @@ class StandardCheckoutHandler
         $order->update_meta_data('_monek_token', $request->getToken());
         $order->update_meta_data('_monek_session', $request->getSessionIdentifier());
         $order->update_meta_data('_monek_result', $response['raw'] ? wp_json_encode($response['raw']) : '');
-        $order->update_meta_data('_monek_payment_reference', $wooCommerceOrderReference);
         $order->payment_complete();
         $order->save();
 

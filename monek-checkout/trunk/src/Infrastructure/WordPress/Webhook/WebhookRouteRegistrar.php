@@ -2,6 +2,7 @@
 
 namespace Monek\Checkout\Infrastructure\WordPress\Webhook;
 
+use Monek\Checkout\Application\Checkout\CurrencyFormatter;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
@@ -50,11 +51,15 @@ class WebhookRouteRegistrar
             return new WP_REST_Response(['ok' => false, 'error' => 'invalid_json'], 400);
         }
 
+
+        // There is no payment reference for reversal
         $paymentReference = $this->extractPaymentReference($body);
         if ($paymentReference === '') {
             $this->log('webhook: missing paymentReference - event ignored', ['body' => $body], 'warning');
             return new WP_REST_Response(['ok' => true, 'status' => 'ignored'], 200);
         }
+
+        
 
         $orderId = $this->locateOrderByPaymentReferenceWithRetry($paymentReference);
         if (! $orderId) {
@@ -77,37 +82,176 @@ class WebhookRouteRegistrar
 
         $order->update_meta_data('_monek_last_webhook', wp_json_encode($body));
 
-        $targetStatus = 'payment-confirmed';
+        $eventResponse = $this->handleSvixEventType($order, $body, $paymentReference);
+        if ($eventResponse !== null) {
+            return $eventResponse;
+        }
+
+        // No EventType or ResponseCode: fail closed, leave the status alone
+        $order->add_order_note(sprintf(
+            'Webhook received but no event type or response code found; order status left unchanged. Ref: %s. Manual review may be required.',
+            $paymentReference
+        ));
+        $order->save();
+
+        $this->log('webhook: unreadable event - status unchanged', [
+            'reference' => $paymentReference,
+            'order_id' => $orderId,
+        ], 'warning');
+
+        // 200 so svix does not retry indefinitely
+        return new WP_REST_Response([
+            'ok' => true,
+            'status' => 'unchanged',
+            'reason' => 'unreadable_event',
+            'reference' => $paymentReference,
+            'order_id' => $orderId,
+        ], 200);
+    }
+
+    // Maps a Svix event type to a WooCommerce order status.
+    // Returns null when the payload carries neither an event type nor a response code. 
+    private function handleSvixEventType($order, array $body, string $paymentReference): ?WP_REST_Response
+    {
+        $eventType = $this->extractEventType($body);
+        if ($eventType === '') {
+            // No EventType: fall back to Data.ResponseCode ("00" = approved, anything else = declined)
+            $responseCode = $this->extractResponseCode($body);
+            if ($responseCode === '') {
+                return null;
+            }
+
+            $eventType = $this->inferOperation($body) . ($responseCode === '00' ? '.success' : '.decline');
+        }
+
+        $parts = explode('.', $eventType, 2);
+        $operation = $parts[0];
+        $result = $parts[1] ?? '';
+
+        $targetStatus = null;
+        // Statuses a failed/referred sale must never overwrite
+        $protectedStatuses = ['payment-confirmed', 'processing', 'completed', 'refunded', 'cancelled'];
+
+        if ($operation === 'sale' && $result === 'success') {
+            // Guard against late/out-of-order deliveries reviving a refunded or cancelled order
+            $targetStatus = in_array($order->get_status(), ['refunded', 'cancelled'], true) ? null : 'payment-confirmed';
+        } elseif ($operation === 'sale' && ($result === 'decline' || $result === 'error')) {
+            $targetStatus = in_array($order->get_status(), $protectedStatuses, true) ? null : 'failed';
+        } elseif ($operation === 'sale' && $result === 'refer') {
+            $targetStatus = in_array($order->get_status(), $protectedStatuses, true) ? null : 'on-hold';
+        } elseif ($operation === 'refund' && $result === 'success') {
+            $targetStatus = $this->isFullRefund($order, $body) ? 'refunded' : null;
+        } elseif ($operation === 'reversal' && $result === 'success') {
+            $targetStatus = 'cancelled';
+        }
 
         $transactionId = $this->extractTransactionId($body);
+        $message = $this->extractMessage($body);
 
-        if ($order->get_status() !== $targetStatus) {
+        if ($targetStatus === null) {
+            $order->add_order_note(sprintf(
+                'Monek webhook %s received; order status left unchanged (%s). Ref: %s.%s',
+                $eventType,
+                $order->get_status(),
+                $paymentReference,
+                $message !== '' ? ' Message: ' . $message : ''
+            ));
+            $status = 'unchanged';
+        } elseif ($order->get_status() === $targetStatus) {
+            $order->add_order_note(sprintf('Monek webhook %s received (already %s). Ref: %s', $eventType, $targetStatus, $paymentReference));
+            $status = 'unchanged';
+        } else {
             $order->update_status(
                 $targetStatus,
-                sprintf('Webhook set status to %s (ref: %s).', $targetStatus, $paymentReference)
+                sprintf(
+                    'Monek webhook %s set status to %s (ref: %s).%s',
+                    $eventType,
+                    $targetStatus,
+                    $paymentReference,
+                    $message !== '' ? ' Message: ' . $message : ''
+                )
             );
 
             if ($transactionId !== '') {
                 $order->add_order_note(sprintf('Monek Transaction ID: %s', $transactionId));
             }
-        } else {
-            $order->add_order_note(sprintf('Webhook ping received (already %s). Ref: %s', $targetStatus, $paymentReference));
+            $status = 'updated';
         }
 
         $order->save();
 
-        $this->log('webhook: status updated', [
+        $this->log('webhook: svix event handled', [
             'reference' => $paymentReference,
-            'order_id' => $orderId,
-            'status' => $order->get_status(),
+            'order_id' => $order->get_id(),
+            'event_type' => $eventType,
+            'result' => $status,
+            'order_status' => $order->get_status(),
         ]);
 
+        // Always 200 so svix does not retry non-confirming events
         return new WP_REST_Response([
             'ok' => true,
+            'status' => $status,
+            'event_type' => $eventType,
             'reference' => $paymentReference,
-            'order_id' => $orderId,
-            'status' => $order->get_status(),
+            'order_id' => $order->get_id(),
+            'order_status' => $order->get_status(),
+            'message' => $message
         ], 200);
+    }
+
+    private function extractEventType(array $body): string
+    {
+        foreach (['EventType', 'eventType', 'type'] as $key) {
+            if (isset($body[$key]) && is_scalar($body[$key]) && trim((string) $body[$key]) !== '') {
+                return strtolower(trim((string) $body[$key]));
+            }
+        }
+
+        return '';
+    }
+
+    // Infers sale/refund/reversal from MessageType
+    private function inferOperation(array $body): string
+    {
+        $messageType = $body['Data']['MessageType'] ?? $body['messageType'] ?? '';
+        $messageType = is_scalar($messageType) ? strtoupper((string) $messageType) : '';
+
+        if (strpos($messageType, 'REFUND') !== false) {
+            return 'refund';
+        }
+
+        if (strpos($messageType, 'REVERSAL') !== false || strpos($messageType, 'VOID') !== false) {
+            return 'reversal';
+        }
+
+        return 'sale';
+    }
+
+    private function isFullRefund($order, array $body): bool
+    {
+        $amount = $body['Data']['Amount'] ?? $body['amount'] ?? null;
+        if (! is_scalar($amount) || ! is_numeric($amount)) {
+            return false;
+        }
+
+        $orderMinor = (new CurrencyFormatter())->toMinorUnits($order->get_total(), (string) $order->get_currency());
+
+        return (int) $amount >= $orderMinor;
+    }
+
+    private function extractResponseCode(array $body): string
+    {
+        $code = $body['Data']['ResponseCode'] ?? $body['responseCode'] ?? '';
+
+        return is_scalar($code) ? trim((string) $code) : '';
+    }
+
+    private function extractMessage(array $body): string
+    {
+        $message = $body['Data']['Message'] ?? $body['message'] ?? '';
+
+        return is_scalar($message) ? trim((string) $message) : '';
     }
 
     private function extractTransactionId(array $body): string
@@ -143,6 +287,20 @@ class WebhookRouteRegistrar
 
         if (isset($body['reference'])) {
             return (string) $body['reference'];
+        }
+
+        return '';
+    }
+
+    // Just added
+    private function extractParentReference(array $body): string
+    {
+        if (isset($body['parentReference'])) {
+            return (string) $body['parentReference'];
+        }
+
+        if (isset($body['Data']['PaymentReference'])) {
+            return (string) $body['Data']['PaymentReference'];
         }
 
         return '';
