@@ -89,6 +89,8 @@ class StandardCheckoutHandler
             throw new \Exception(esc_html($message));
         }
 
+        $order->add_order_note(sprintf('Payment Reference: %s', $wooCommerceOrderReference));
+
         $order->update_meta_data('_monek_token', $request->getToken());
         $order->update_meta_data('_monek_session', $request->getSessionIdentifier());
         $order->update_meta_data('_monek_result', $response['raw'] ? wp_json_encode($response['raw']) : '');
