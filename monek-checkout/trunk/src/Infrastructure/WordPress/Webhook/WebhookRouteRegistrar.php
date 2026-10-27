@@ -21,6 +21,7 @@ class WebhookRouteRegistrar
     private const PAYMENT_REFERENCE_META_KEY = '_monek_payment_reference';
     private const TRANSACTION_ID_META_KEY = '_monek_transaction_id';
     private const LAST_SVIX_ID_META_KEY = '_monek_last_svix_id';
+    private const REFUND_AMOUNTS_META_KEY = '_monek_refund_amounts';
 
     public function register(): void
     {
@@ -141,6 +142,9 @@ class WebhookRouteRegistrar
         // Statuses a failed/referred sale must never overwrite
         $protectedStatuses = ['payment-confirmed', 'processing', 'completed', 'refunded', 'cancelled'];
 
+        $message = $this->extractMessage($body);
+        $transactionId = $this->extractPaymentValue($body, ['CrossReference', 'crossReference', 'TxId', 'txId']);
+
         if ($operation === 'sale' && $result === 'success') {
             // Guard against late/out-of-order deliveries reviving a refunded or cancelled order
             $targetStatus = in_array($order->get_status(), ['refunded', 'cancelled'], true) ? null : 'payment-confirmed';
@@ -149,13 +153,10 @@ class WebhookRouteRegistrar
         } elseif ($operation === 'sale' && $result === 'refer') {
             $targetStatus = in_array($order->get_status(), $protectedStatuses, true) ? null : 'on-hold';
         } elseif ($operation === 'refund' && $result === 'success') {
-            $targetStatus = $this->isFullRefund($order, $body) ? 'refunded' : null;
+            $targetStatus = $this->isFullRefund($order, $body, $transactionId) ? 'refunded' : null;
         } elseif ($operation === 'reversal' && $result === 'success') {
             $targetStatus = 'cancelled';
         }
-
-        $message = $this->extractMessage($body);
-        $transactionId = $this->extractPaymentValue($body, ['CrossReference', 'crossReference', 'TxId', 'txId']);
 
         if ($targetStatus === null) {
             $order->add_order_note(sprintf(
@@ -249,7 +250,7 @@ class WebhookRouteRegistrar
         return 'sale';
     }
 
-    private function isFullRefund($order, array $body): bool
+    private function isFullRefund($order, array $body, string $transactionId): bool
     {
         $amount = $body['Data']['Amount'] ?? $body['amount'] ?? null;
         if (! is_scalar($amount) || ! is_numeric($amount)) {
@@ -258,7 +259,43 @@ class WebhookRouteRegistrar
 
         $orderMinor = (new CurrencyFormatter())->toMinorUnits($order->get_total(), (string) $order->get_currency());
 
-        return (int) $amount >= $orderMinor;
+        $totalRefunded = $this->saveRefundAmount($order, (int) $amount, $transactionId);
+
+        $fullRefund = $totalRefunded >= $orderMinor;
+
+        if (! $fullRefund) {
+            $formatter = new CurrencyFormatter();
+            $currency = (string) $order->get_currency();
+            $eventMajor = $formatter->toMajorUnits((string) $amount, $currency);
+            $totalMajor = $formatter->toMajorUnits((string) $totalRefunded, $currency);
+
+            $order->add_order_note(sprintf(
+                'Partial refund of %s (total refunded: %s); Monek refund Transaction ID: %s',
+                $eventMajor,
+                $totalMajor,
+                $transactionId !== '' ? $transactionId : 'NONE'
+            ));
+        }
+
+        return $fullRefund;
+    }
+
+    // Stores the refund amount (minor units) in order meta and returns the total refunded
+    // Keyed by transaction ID so redelivered webhooks are not counted twice
+    private function saveRefundAmount($order, int $amountMinor, string $transactionId): int
+    {
+        $refunds = $order->get_meta(self::REFUND_AMOUNTS_META_KEY, true);
+        $refunds = is_array($refunds) ? $refunds : [];
+
+        if ($transactionId !== '') {
+            $refunds[$transactionId] = $amountMinor;
+        } else {
+            $refunds[] = $amountMinor;
+        }
+
+        $order->update_meta_data(self::REFUND_AMOUNTS_META_KEY, $refunds);
+
+        return (int) array_sum(array_map('intval', $refunds));
     }
 
     private function extractResponseCode(array $body): string
