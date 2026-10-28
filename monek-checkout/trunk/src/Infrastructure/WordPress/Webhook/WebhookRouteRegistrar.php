@@ -92,13 +92,14 @@ class WebhookRouteRegistrar
         return $this->handleSvixEventType($order, $body, $eventType);
     }
 
-    // Reversals reference the original transaction id; everything else references the payment reference
+    // Reversals and refunds reference the original transaction id (the payment reference can change on refund)
+    // Everything else references the payment reference
     private function resolveOrderId(array $body, string $eventType)
     {
-        // Event types look like "reversal.success"
-        $isReversal = strpos($eventType, 'reversal') === 0;
+        // Event types look like "reversal.success" or "refund.success"
+        $isParentLookup = strpos($eventType, 'reversal') === 0 || strpos($eventType, 'refund') === 0;
 
-        if ($isReversal) {
+        if ($isParentLookup) {
             $keys = ['ParentReference', 'parentReference', 'parent_reference'];
             $metaKey = self::TRANSACTION_ID_META_KEY;
             $missing = 'missing_parent_reference';
@@ -115,8 +116,8 @@ class WebhookRouteRegistrar
             return new WP_REST_Response(['ok' => true, 'status' => 'ignored', 'reason' => $missing], 200);
         }
 
-        // Only sales can race the checkout finalisation; a reversal's original transaction already exists
-        $orderId = $this->locateOrderByMetaKeyWithRetry($reference, $metaKey, $isReversal ? 1 : self::ORDER_LOOKUP_MAX_ATTEMPTS);
+        // Only sales can race the checkout finalisation; a reversal/refund's original transaction already exists
+        $orderId = $this->locateOrderByMetaKeyWithRetry($reference, $metaKey, $isParentLookup ? 1 : self::ORDER_LOOKUP_MAX_ATTEMPTS);
         if (! $orderId) {
             $this->log('webhook: order not found', ['reference' => $reference, 'event_type' => $eventType], 'warning');
 
@@ -131,7 +132,7 @@ class WebhookRouteRegistrar
         return $orderId;
     }
 
-    // Maps a Svix event type ("operation.result") to a WooCommerce order status.
+    // Maps a Svix event type "operation.result" to a WooCommerce order status
     private function handleSvixEventType($order, array $body, string $eventType): WP_REST_Response
     {
         $parts = explode('.', $eventType, 2);
