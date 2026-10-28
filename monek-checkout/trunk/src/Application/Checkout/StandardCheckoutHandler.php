@@ -83,13 +83,13 @@ class StandardCheckoutHandler
         $order->update_meta_data('_monek_payment_reference', $wooCommerceOrderReference);
         $order->update_meta_data('_monek_transaction_id', $response['transactionId'] ?? '');
 
+        $order->add_order_note(sprintf('Payment Reference: %s', $wooCommerceOrderReference));
+
         if (! $response['success']) {
             $this->storeContext->clearIdempotencyToken($order);
             $message = $response['message'] ?: __('Payment failed. Please try again.', 'monek-checkout');
             throw new \Exception(esc_html($message));
         }
-
-        $order->add_order_note(sprintf('Payment Reference: %s', $wooCommerceOrderReference));
 
         $order->update_meta_data('_monek_token', $request->getToken());
         $order->update_meta_data('_monek_session', $request->getSessionIdentifier());
