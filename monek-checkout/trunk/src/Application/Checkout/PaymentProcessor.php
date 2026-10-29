@@ -93,6 +93,7 @@ class PaymentProcessor
         $message = $decodedBody['Message'] ?? $decodedBody['message'] ?? null;
         $authCode = $decodedBody['AuthCode'] ?? $decodedBody['authCode'] ?? null;
         $errorCode = $decodedBody['ErrorCode'] ?? $decodedBody['errorCode'] ?? null;
+        $transactionId = $decodedBody['TransactionId'] ?? $decodedBody['transactionId'] ?? null;
 
         $isSuccessful = in_array((string) $result, ['Success'], true);
 
@@ -101,6 +102,7 @@ class PaymentProcessor
             'message' => $message ? (string) $message : null,
             'auth_code' => $authCode ? (string) $authCode : null,
             'error_code' => $errorCode ? (string) $errorCode : null,
+            'transactionId' => is_scalar($transactionId) ? (string) $transactionId : '',
             'raw' => is_array($decodedBody) ? $decodedBody : null,
         ];
     }

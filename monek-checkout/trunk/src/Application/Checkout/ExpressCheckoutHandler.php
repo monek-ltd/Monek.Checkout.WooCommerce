@@ -120,6 +120,12 @@ class ExpressCheckoutHandler
         } else {
             $order->add_order_note('Express payment verified.');
         }
+
+        $tokenTransactionId = $this->verifier->readTokenTransactionId($claims);
+        if ($tokenTransactionId !== '') {
+            $order->update_meta_data('_express_token_transaction_id', $tokenTransactionId);
+            $order->add_order_note(sprintf('Express token transaction verified (txn: %s).', $tokenTransactionId));
+        }
     }
 
     private function assertAmountMatches(array $claims, WC_Order $order, string $paymentReference): void

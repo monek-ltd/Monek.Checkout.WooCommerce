@@ -14,6 +14,27 @@ class CurrencyFormatter
         return (int) round($amountFloat * pow(10, $decimals));
     }
 
+    public function toMajorUnits(string $amount, string $currencyCode): string
+    {
+        $decimals = $this->getDecimals($currencyCode);
+
+        if ($decimals === 0) {
+            return $amount;
+        }
+
+        $amount = trim($amount);
+        $negative = str_starts_with($amount, '-');
+        $digits = ltrim($negative ? substr($amount, 1) : $amount, '0');
+        $digits = $digits === '' ? '0' : $digits;
+
+        $digits = str_pad($digits, $decimals + 1, '0', STR_PAD_LEFT);
+
+        $major = substr($digits, 0, -$decimals);
+        $fraction = substr($digits, -$decimals);
+
+        return ($negative ? '-' : '') . $major . '.' . $fraction;
+    }
+
     public function getNumericCurrencyCode(string $currencyCode): string
     {
         $defaultCodes = [

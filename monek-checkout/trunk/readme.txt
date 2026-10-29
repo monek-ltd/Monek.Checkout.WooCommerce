@@ -4,7 +4,7 @@ Tags: credit card, payments, monek, woocommerce
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.3
-Stable tag: 4.3.5
+Stable tag: 4.4.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -71,10 +71,11 @@ Need help? Contact [Monek Support](https://monek.com/contact) or visit the [Word
 
 == Changelog ==
 
-= 4.3.5 =
+= 4.4.0 =
 * Fixed: Include basket product descriptions in payment requests for express checkout payments.
 * Security: generate an idempotency token per order and reuse it for any subsequent requests if the payment was successful.
-* Ensure the webhook handler ignores payment events that are not associated with WooCommerce.
+* Fixed: Ensure the webhook handler ignores payment events that are not associated with WooCommerce.
+* The webhook handler updates the WooCommerce order status based on the event type.
 * Include the WooCommerce order ID in the payment reference.
 
 = 4.3.4 =

@@ -115,6 +115,11 @@ class ExpressPaymentVerifier
         return $this->readClaim($claims, ['transactionId', 'txn']);
     }
 
+    public function readTokenTransactionId(array $claims): string
+    {
+        return $this->readClaim($claims, ['tokenTransactionId']);
+    }
+
     public function readMinorAmount(array $claims): ?int
     {
         foreach (['minorAmount', 'amount'] as $key) {

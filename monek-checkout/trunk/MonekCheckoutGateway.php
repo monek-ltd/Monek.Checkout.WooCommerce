@@ -140,7 +140,7 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
             ],
             'svix_signing_secret' => [
                 'title' => __('Webhook URL key', 'monek-checkout'),
-                'type' => 'text',
+                'type' => 'password',
                 'description' => __('Paste the signing secret for your svix endpoint.', 'monek-checkout'),
                 'default' => '',
                 'desc_tip' => true,
