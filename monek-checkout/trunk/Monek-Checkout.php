@@ -114,7 +114,65 @@ add_action('wp_ajax_monek_dismiss_apple_pay_notice', function () {
     wp_send_json_success();
 });
 
+add_action('wp_ajax_monek_log_express_checkout', 'monek_log_express_checkout');
+add_action('wp_ajax_nopriv_monek_log_express_checkout', 'monek_log_express_checkout');
 
+function monek_log_express_checkout(): void
+{
+    check_ajax_referer('monek_log_express_checkout', 'nonce');
+
+    $flow = isset($_POST['flow']) && 'blocks' === $_POST['flow'] ? 'blocks' : 'legacy';
+    $status = isset($_POST['status']) ? absint($_POST['status']) : 0;
+    $responseJson = isset($_POST['response']) ? wp_unslash($_POST['response']) : '';
+
+    if (! is_string($responseJson) || strlen($responseJson) > 20000) {
+        wp_send_json_error(null, 400);
+    }
+
+    $response = json_decode($responseJson, true);
+    if (! is_array($response)) {
+        $response = [];
+    }
+
+    $text = static fn ($value): string => is_scalar($value)
+        ? substr(wp_strip_all_tags((string) $value), 0, 500)
+        : '';
+
+    // Log only whitelisted fields, the response body can contain customer data
+    if ('blocks' === $flow) {
+        $paymentResult = is_array($response['payment_result'] ?? null) ? $response['payment_result'] : [];
+        $outcome = $text($paymentResult['payment_status'] ?? '');
+        $summary = [
+            'payment_status' => $outcome,
+            'order_id' => absint($response['order_id'] ?? 0),
+            'redirect_url' => $text($paymentResult['redirect_url'] ?? ''),
+            'error_code' => $text($response['code'] ?? ''),
+            'error_message' => $text($response['message'] ?? ''),
+        ];
+        $level = 'success' === $outcome ? 'info' : ($status >= 400 || 'failure' === $outcome ? 'error' : 'warning');
+    } else {
+        $outcome = $text($response['result'] ?? '');
+        $summary = [
+            'result' => $outcome,
+            'redirect' => $text($response['redirect'] ?? ''),
+            'messages' => $text($response['messages'] ?? ''),
+        ];
+        $level = match ($outcome) {
+            'success' => 'info',
+            'failure' => 'error',
+            default => 'warning',
+        };
+    }
+
+    wc_get_logger()->log($level, sprintf('Express checkout order creation response (%s)', $flow), [
+        'source' => 'monek-express',
+        'flow' => $flow,
+        'http_status' => $status,
+        'checkout_response' => $summary,
+    ]);
+
+    wp_send_json_success();
+}
 
 if (! function_exists('monek_bootstrap_plugin')) {
     function monek_bootstrap_plugin(): void

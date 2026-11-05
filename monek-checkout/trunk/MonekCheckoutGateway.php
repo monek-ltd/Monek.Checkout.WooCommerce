@@ -545,6 +545,15 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
             $scriptVersion,
             true
         );
+
+        wp_localize_script(
+            $scriptHandle,
+            'monekConfiguration',
+            [
+                'ajaxUrl' => admin_url('admin-ajax.php'),
+                'logNonce' => wp_create_nonce('monek_log_express_checkout'),
+            ]
+        );
     }
 
     private function resolvePayPageOrder(): ?WC_Order

@@ -33,6 +33,7 @@
   // Guards for the express (Apple Pay) wallet re-submit.
   let expressReady = false;
   let expressSubmitting = false;
+  let expressLogPending = false;
   // Cached reference to the classic checkout form so the express flow can submit it.
   let classicForm = null;
 
@@ -406,6 +407,7 @@
 
     expressSubmitting = true;
     expressReady = true;
+    expressLogPending = true;
 
     log('submitting express order');
     classicForm.trigger('submit');
@@ -423,6 +425,27 @@
       || 'Payment failed. Please try another payment method.');
   }
 
+  function logExpressCheckoutResponse(xhr) {
+    const loggingConfiguration = windowObject.monekConfiguration;
+    if (!loggingConfiguration?.ajaxUrl || !loggingConfiguration?.logNonce) {
+      return;
+    }
+
+    jQueryInstance.ajax({
+      type: 'POST',
+      url: loggingConfiguration.ajaxUrl,
+      data: {
+        action: 'monek_log_express_checkout',
+        nonce: loggingConfiguration.logNonce,
+        flow: 'legacy',
+        status: xhr.status,
+        response: xhr.responseText || ''
+      }
+    }).fail(function (logXhr) {
+      log('failed to submit express checkout log', logXhr.status);
+    });
+  }
+
   function setupExpressCheckout() {
     // The container is only rendered by the gateway when express is enabled, so its
     // absence means there is nothing to do on this page.
@@ -430,6 +453,16 @@
     if (!container) {
       return;
     }
+
+    // Log the WooCommerce checkout response, but only for orders submitted via express
+    jQueryInstance(documentObject).ajaxComplete(function (event, xhr, settings) {
+      if (!expressLogPending || !settings.url?.includes('wc-ajax=checkout')) {
+        return;
+      }
+
+      expressLogPending = false;
+      logExpressCheckoutResponse(xhr);
+    });
 
     const expressForm = documentObject.querySelector(selectors.expressForm);
     if (expressForm) {

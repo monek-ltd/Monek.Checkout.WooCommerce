@@ -20,6 +20,60 @@
   const paymentMethodDescription = settings.description;
   const paymentMethodLogo = settings.logoUrl || '';
 
+  // Logs the outcome of an express order by observing the checkout data store; this
+  // deliberately does not wrap fetch so it cannot interfere with order placement.
+  function watchExpressCheckoutOutcome() {
+    const wpData = windowObject.wp?.data;
+    if (!wpData?.subscribe || !wpData?.select || !settings.logUrl || !settings.logNonce) {
+      return;
+    }
+
+    let sawProcessing = false;
+    let unsubscribe = null;
+    const timeout = windowObject.setTimeout(() => stop(), 120000);
+
+    function stop() {
+      windowObject.clearTimeout(timeout);
+      if (unsubscribe) unsubscribe();
+    }
+
+    function sendLog(hasError, checkoutStore) {
+      const redirectUrl = checkoutStore.getRedirectUrl?.() || '';
+      const body = new URLSearchParams({
+        action: 'monek_log_express_checkout',
+        nonce: settings.logNonce,
+        flow: 'blocks',
+        status: '0',
+        response: JSON.stringify({
+          order_id: checkoutStore.getOrderId?.() || 0,
+          payment_result: {
+            payment_status: hasError ? 'failure' : 'success',
+            redirect_url: redirectUrl,
+          },
+        }),
+      });
+      windowObject.fetch(settings.logUrl, { method: 'POST', body }).catch(() => {});
+    }
+
+    unsubscribe = wpData.subscribe(() => {
+      const checkoutStore = wpData.select('wc/store/checkout');
+      if (!checkoutStore) return;
+
+      if (checkoutStore.isProcessing?.()) {
+        sawProcessing = true;
+        return;
+      }
+
+      if (!sawProcessing) return;
+
+      const hasError = !!checkoutStore.hasError?.();
+      if (hasError || checkoutStore.isComplete?.()) {
+        stop();
+        sendLog(hasError, checkoutStore);
+      }
+    });
+  }
+
   function normalizeBoolean(value, defaultValue) {
     if (value === undefined || value === null) return defaultValue;
     if (typeof value === 'boolean') return value;
@@ -263,6 +317,8 @@
     async function handleSuccess() {
       const ref = windowObject.monekCheckout?.getClientPaymentRef?.();
       if (!ref) return;
+
+      watchExpressCheckoutOutcome();
 
       const expressPaymentPayload = {
         monek_reference: ref,
