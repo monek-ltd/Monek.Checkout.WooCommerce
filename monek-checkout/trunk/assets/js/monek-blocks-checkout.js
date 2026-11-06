@@ -259,6 +259,61 @@
     return REQUIRED_ADDRESS_FIELDS.every((field) => !!address?.[field]);
   }
 
+  // The wallet payment has already been taken by the time we get here, so the checkout
+  // submit that follows must not be blocked by state left over from the untouched form.
+  //
+  // 1. setBillingAddress/setShippingAddress only update the local store; the push to the
+  //    server is debounced. Submitting straight away sends the checkout request with the
+  //    totals for the old address, which the Store API rejects
+  //    (woocommerce_rest_checkout_total_mismatch). Push the addresses now and wait for the
+  //    recalculated cart.
+  // 2. The Checkout block registers hidden validation errors for address fields the shopper
+  //    has not touched. They clear when a field's value changes, so a field the wallet leaves
+  //    empty (typically the optional UK county) keeps its error and blocks the submit. Once
+  //    the server has accepted the addresses, drop the errors that were never shown; the
+  //    server validates the address again when the order is placed.
+  async function syncWalletAddressesBeforeSubmit(cartDispatch, billingAddress, shippingAddress) {
+    if (typeof cartDispatch?.updateCustomerData !== 'function') {
+      return;
+    }
+
+    try {
+      await cartDispatch.updateCustomerData(
+        { billing_address: billingAddress, shipping_address: shippingAddress },
+        false,
+      );
+    } catch (error) {
+      // The server refused the address. Leave the validation errors in place so the
+      // shopper is shown what needs correcting.
+      windowObject.console?.warn?.('[monek] wallet address was not accepted by the store', error);
+      return;
+    }
+
+    clearUntouchedAddressValidationErrors();
+  }
+
+  function clearUntouchedAddressValidationErrors() {
+    try {
+      const validationSelect = windowObject.wp?.data?.select?.('wc/store/validation');
+      const validationDispatch = windowObject.wp?.data?.dispatch?.('wc/store/validation');
+      const errors = validationSelect?.getValidationErrors?.();
+
+      if (!errors || typeof validationDispatch?.clearValidationErrors !== 'function') {
+        return;
+      }
+
+      const staleIds = Object.keys(errors).filter((id) => (
+        /^(billing|shipping)[_-]/.test(id) && errors[id]?.hidden === true
+      ));
+
+      if (staleIds.length) {
+        validationDispatch.clearValidationErrors(staleIds);
+      }
+    } catch (error) {
+      windowObject.console?.warn?.('[monek] failed to clear untouched address validation errors', error);
+    }
+  }
+
   function registerExpressSdkListeners(onSubmit, onClose, setExpressPaymentError) {
     async function handleSuccess() {
       const ref = windowObject.monekCheckout?.getClientPaymentRef?.();
@@ -325,6 +380,8 @@
         if (cartDispatch?.setShippingAddress) {
           await cartDispatch.setShippingAddress(shippingAddress);
         }
+
+        await syncWalletAddressesBeforeSubmit(cartDispatch, billingAddress, shippingAddress);
 
         const paymentDispatch = windowObject.wp?.data?.dispatch?.('wc/store/payment');
 
