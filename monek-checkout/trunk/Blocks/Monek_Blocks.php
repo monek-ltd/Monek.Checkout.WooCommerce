@@ -147,6 +147,8 @@ final class MonekBlocksIntegration extends AbstractPaymentMethodType
             'nonce' => $legacyNonce,
             'expressVerifyUrl' => function_exists('rest_url') ? rest_url('monek/v1/express/authorise') : '',
             'restNonce' => $restNonce,
+            'logUrl' => function_exists('admin_url') ? admin_url('admin-ajax.php') : '',
+            'logNonce' => function_exists('wp_create_nonce') ? wp_create_nonce('monek_log_express_checkout') : '',
             'debugTimestamp' => time(),
             'pluginVersion' => monek_get_plugin_version(),
             'debug' => $debug,
