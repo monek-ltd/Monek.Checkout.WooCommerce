@@ -144,7 +144,6 @@ function monek_log_express_checkout(): void
         $outcome = $text($paymentResult['payment_status'] ?? '');
         $summary = [
             'payment_status' => $outcome,
-            'order_id' => absint($response['order_id'] ?? 0),
             'redirect_url' => $text($paymentResult['redirect_url'] ?? ''),
             'error_code' => $text($response['code'] ?? ''),
             'error_message' => $text($response['message'] ?? ''),
@@ -164,12 +163,32 @@ function monek_log_express_checkout(): void
         };
     }
 
+    $paymentReference = isset($_POST['reference']) && is_string($_POST['reference'])
+        ? sanitize_text_field(wp_unslash($_POST['reference']))
+        : '';
+
     wc_get_logger()->log($level, sprintf('Express checkout order creation response (%s)', $flow), [
         'source' => 'monek-express',
         'flow' => $flow,
+        'payment_reference' => $paymentReference,
         'http_status' => $status,
         'checkout_response' => $summary,
     ]);
+
+    // The wallet payment is already authorised, so tell the shopper the order failed.
+    if ('legacy' === $flow && ($status >= 400 || 'success' !== $outcome)) {
+        $message = $paymentReference !== ''
+            ? sprintf(
+                /* translators: %s: payment reference */
+                __('Your payment was authorised but we could not complete your order. Please contact the store quoting reference %s.', 'monek-checkout'),
+                $paymentReference
+            )
+            : __('Your payment was authorised but we could not complete your order. Please contact the store.', 'monek-checkout');
+
+        ob_start();
+        wc_print_notice($message, 'error');
+        wp_send_json_success(['notice' => ob_get_clean()]);
+    }
 
     wp_send_json_success();
 }
