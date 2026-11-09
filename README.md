@@ -11,6 +11,14 @@ Contents:
 - Developer Information
 
 
+## ⚠️ Security Warning
+
+Legacy versions of the Monek WooCommerce plugin (**3.3.3–3.3.6** and **4.0.4–4.0.5**) contain security vulnerabilities and are no longer supported.
+
+**Do not download or use these versions.**
+
+Existing installations should upgrade to the latest supported release. New installations should use the latest version available from the official WordPress plugin repository.
+
 
 ## Installation Instructions for Monek Checkout
 There are 2 ways to install the Monek Checkout plugin for WooCommerce, either through the WordPress Plugin Directory or manually by downloading the plugin files from GitHub. Follow the instructions below to install the Monek Checkout plugin on your WooCommerce store.
