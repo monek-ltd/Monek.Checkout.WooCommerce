@@ -33,6 +33,7 @@
   // Guards for the express (Apple Pay) wallet re-submit.
   let expressReady = false;
   let expressSubmitting = false;
+  let expressLogPending = false;
   // Cached reference to the classic checkout form so the express flow can submit it.
   let classicForm = null;
 
@@ -343,17 +344,75 @@
       return;
     }
 
+    const stringValue = value == null ? '' : String(value);
+
+    // A select silently drops values that aren't among its options, which would leave the
+    // field empty for WooCommerce.
+    if (element.tagName === 'SELECT' && stringValue !== '' && !Array.from(element.options).some((option) => option.value === stringValue)) {
+      element.appendChild(new Option(stringValue, stringValue));
+    }
+
     // Set the value only (no change event) so WooCommerce doesn't kick off an update_checkout AJAX refresh
-    element.value = value == null ? '' : String(value);
+    element.value = stringValue;
+  }
+
+  function normaliseStateText(value) {
+    return String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]/gi, '')
+      .toLowerCase();
+  }
+
+  // Map Apple Pay's free-text state to one of WooCommerce's state codes for the country.
+  // Countries without a state list (e.g. GB) take free text, and an empty state is left empty.
+  function resolveStateCode(countryCode, administrativeArea) {
+    const area = String(administrativeArea || '').trim();
+    if (!area) {
+      return '';
+    }
+
+    let countries = windowObject.wc_country_select_params?.countries;
+    if (typeof countries === 'string') {
+      try {
+        countries = JSON.parse(countries);
+      } catch (error) {
+        countries = null;
+      }
+    }
+
+    const states = countries?.[String(countryCode || '').toUpperCase()];
+    if (!states || Array.isArray(states) || !Object.keys(states).length) {
+      return area;
+    }
+
+    const wanted = normaliseStateText(area);
+    const entries = Object.entries(states);
+    const match = entries.find(([code]) => normaliseStateText(code) === wanted)
+      || entries.find(([, name]) => normaliseStateText(name) === wanted)
+      || entries.find(([, name]) => normaliseStateText(name).includes(wanted) || wanted.includes(normaliseStateText(name)));
+
+    return match ? match[0] : '';
+  }
+
+  function hasMinimumAddress(contact) {
+    return Boolean(
+      joinAddressLines(contact.addressLines)
+      && String(contact.locality || '').trim()
+      && String(contact.postalCode || '').trim()
+      && String(contact.countryCode || '').trim()
+    );
   }
 
   function applyApplePayContactToCheckout(applePayContext) {
     const billing = applePayContext.billingContact || {};
     const shipping = applePayContext.shippingContact || {};
 
-    const addressSource = (joinAddressLines(shipping.addressLines) || shipping.postalCode)
+    // Same as Blocks: use the billing address, falling back to shipping if it is incomplete.
+    const addressSource = (!hasMinimumAddress(billing) && hasMinimumAddress(shipping))
       ? shipping
       : billing;
+    const countryCode = String(addressSource.countryCode || '').toUpperCase();
 
     setCheckoutFieldValue('billing_first_name', billing.givenName || shipping.givenName || '');
     setCheckoutFieldValue('billing_last_name', billing.familyName || shipping.familyName || '');
@@ -361,9 +420,9 @@
     setCheckoutFieldValue('billing_phone', applePayContext.payerPhone || shipping.phoneNumber || '');
     setCheckoutFieldValue('billing_address_1', joinAddressLines(addressSource.addressLines));
     setCheckoutFieldValue('billing_city', addressSource.locality || '');
-    setCheckoutFieldValue('billing_state', addressSource.administrativeArea || '');
+    setCheckoutFieldValue('billing_country', countryCode);
+    setCheckoutFieldValue('billing_state', resolveStateCode(countryCode, addressSource.administrativeArea));
     setCheckoutFieldValue('billing_postcode', addressSource.postalCode || '');
-    setCheckoutFieldValue('billing_country', addressSource.countryCode || '');
 
     const shipToDifferent = documentObject.getElementById('ship-to-different-address-checkbox');
     if (shipToDifferent) {
@@ -406,6 +465,7 @@
 
     expressSubmitting = true;
     expressReady = true;
+    expressLogPending = true;
 
     log('submitting express order');
     classicForm.trigger('submit');
@@ -423,6 +483,54 @@
       || 'Payment failed. Please try another payment method.');
   }
 
+  function logExpressCheckoutResponse(xhr) {
+    const loggingConfiguration = windowObject.monekConfiguration;
+    if (!loggingConfiguration?.ajaxUrl || !loggingConfiguration?.logNonce) {
+      return;
+    }
+
+    jQueryInstance.ajax({
+      type: 'POST',
+      url: loggingConfiguration.ajaxUrl,
+      data: {
+        action: 'monek_log_express_checkout',
+        nonce: loggingConfiguration.logNonce,
+        flow: 'legacy',
+        status: xhr.status,
+        reference: api.getClientPaymentRef?.() || '',
+        response: xhr.responseText || ''
+      }
+    }).done(function (result) {
+      showCheckoutNotice(result?.data?.notice);
+    }).fail(function (logXhr) {
+      log('failed to submit express checkout log', logXhr.status);
+    });
+  }
+
+  // The notice is rendered by PHP and shown above the checkout form, not inside the SDK iframe.
+  function showCheckoutNotice(noticeHtml) {
+    const form = classicForm?.length ? classicForm : jQueryInstance(selectors.checkoutForm);
+    if (!form.length || !noticeHtml) {
+      return;
+    }
+
+    form.find('.woocommerce-NoticeGroup-express').remove();
+    const group = jQueryInstance('<div class="woocommerce-NoticeGroup woocommerce-NoticeGroup-express"></div>').html(noticeHtml);
+
+    // Keep WooCommerce's own validation errors visible and show ours directly beneath them.
+    const wooNotices = form.find('.woocommerce-NoticeGroup-checkout').first();
+    if (wooNotices.length) {
+      wooNotices.after(group);
+    } else {
+      form.prepend(group);
+    }
+
+    const top = (wooNotices.length ? wooNotices : group).offset()?.top;
+    if (Number.isFinite(top)) {
+      jQueryInstance('html, body').animate({ scrollTop: Math.max(top - 100, 0) }, 300);
+    }
+  }
+
   function setupExpressCheckout() {
     // The container is only rendered by the gateway when express is enabled, so its
     // absence means there is nothing to do on this page.
@@ -430,6 +538,21 @@
     if (!container) {
       return;
     }
+
+    // Log the WooCommerce checkout response, but only for orders submitted via express
+    jQueryInstance(documentObject).ajaxComplete(function (event, xhr, settings) {
+      if (!expressLogPending || !settings.url?.includes('wc-ajax=checkout')) {
+        return;
+      }
+
+      expressLogPending = false;
+      logExpressCheckoutResponse(xhr);
+
+      if (xhr.status >= 400 || xhr.responseJSON?.result !== 'success') {
+        expressSubmitting = false;
+        expressReady = false;
+      }
+    });
 
     const expressForm = documentObject.querySelector(selectors.expressForm);
     if (expressForm) {

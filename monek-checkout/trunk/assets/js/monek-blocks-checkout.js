@@ -20,6 +20,61 @@
   const paymentMethodDescription = settings.description;
   const paymentMethodLogo = settings.logoUrl || '';
 
+  // Logs the outcome of an express order by observing the checkout data store; this
+  // deliberately does not wrap fetch so it cannot interfere with order placement.
+  function watchExpressCheckoutOutcome(paymentReference) {
+    const wpData = windowObject.wp?.data;
+    if (!wpData?.subscribe || !wpData?.select || !settings.logUrl || !settings.logNonce) {
+      return;
+    }
+
+    let sawProcessing = false;
+    let unsubscribe = null;
+    const timeout = windowObject.setTimeout(() => stop(), 120000);
+
+    function stop() {
+      windowObject.clearTimeout(timeout);
+      if (unsubscribe) unsubscribe();
+    }
+
+    function sendLog(hasError, checkoutStore) {
+      const redirectUrl = checkoutStore.getRedirectUrl?.() || '';
+      const body = new URLSearchParams({
+        action: 'monek_log_express_checkout',
+        nonce: settings.logNonce,
+        flow: 'blocks',
+        status: '0',
+        reference: paymentReference || '',
+        response: JSON.stringify({
+          order_id: checkoutStore.getOrderId?.() || 0,
+          payment_result: {
+            payment_status: hasError ? 'failure' : 'success',
+            redirect_url: redirectUrl,
+          },
+        }),
+      });
+      windowObject.fetch(settings.logUrl, { method: 'POST', body }).catch(() => {});
+    }
+
+    unsubscribe = wpData.subscribe(() => {
+      const checkoutStore = wpData.select('wc/store/checkout');
+      if (!checkoutStore) return;
+
+      if (checkoutStore.isProcessing?.()) {
+        sawProcessing = true;
+        return;
+      }
+
+      if (!sawProcessing) return;
+
+      const hasError = !!checkoutStore.hasError?.();
+      if (hasError || checkoutStore.isComplete?.()) {
+        stop();
+        sendLog(hasError, checkoutStore);
+      }
+    });
+  }
+
   function normalizeBoolean(value, defaultValue) {
     if (value === undefined || value === null) return defaultValue;
     if (typeof value === 'boolean') return value;
@@ -194,6 +249,89 @@
     );
   }
 
+  // The wallet payment has already been taken by the time we get here, so the checkout
+  // submit that follows must not be blocked by state left over from the untouched form.
+  //
+  // 1. setBillingAddress/setShippingAddress only update the local store; the push to the
+  //    server is debounced. Submitting straight away sends the checkout request with the
+  //    totals for the old address, which the Store API rejects
+  //    (woocommerce_rest_checkout_total_mismatch). Push the addresses now and wait for the
+  //    recalculated cart.
+  // 2. The Checkout block registers hidden validation errors for address fields the shopper
+  //    has not touched. They clear when a field's value changes, so an optional field the
+  //    wallet leaves empty (typically the UK county) keeps its error and blocks the submit.
+  //    Once the server has accepted the addresses, drop those never-shown errors; the server
+  //    validates the address again when the order is placed.
+  async function syncWalletAddressesBeforeSubmit(cartDispatch, billingAddress, shippingAddress) {
+    if (typeof cartDispatch?.updateCustomerData !== 'function') {
+      windowObject.console?.warn?.('[monek] updateCustomerData is unavailable; wallet addresses were not pushed to the store before submit.');
+      await clearUntouchedAddressValidationErrors(billingAddress, shippingAddress);
+      return;
+    }
+
+    try {
+      await cartDispatch.updateCustomerData(
+        { billing_address: billingAddress, shipping_address: shippingAddress },
+        false,
+      );
+    } catch (error) {
+      // The server refused the address. Leave the validation errors in place so the
+      // shopper is shown what needs correcting.
+      windowObject.console?.warn?.('[monek] wallet address was not accepted by the store', error);
+      return;
+    }
+
+    await clearUntouchedAddressValidationErrors(billingAddress, shippingAddress);
+  }
+
+  const OPTIONAL_ADDRESS_ERROR_IDS = /^(billing|shipping)[_-](state|address_2|company)$/;
+
+  function countryHasStateList(countryCode) {
+    const countryData = getSetting('countryData', {}) || {};
+    const states = countryData[String(countryCode || '').toUpperCase()]?.states;
+    return !!states && typeof states === 'object' && Object.keys(states).length > 0;
+  }
+
+  function clearOptionalAddressErrorsOnce(billingAddress, shippingAddress) {
+    try {
+      const validationSelect = windowObject.wp?.data?.select?.('wc/store/validation');
+      const validationDispatch = windowObject.wp?.data?.dispatch?.('wc/store/validation');
+      const errors = validationSelect?.getValidationErrors?.();
+
+      if (!errors || typeof validationDispatch?.clearValidationErrors !== 'function') {
+        return;
+      }
+
+      // Only optional-by-nature fields; genuinely required fields keep their errors. A state
+      // error is also dropped when it is already visible, but only for countries without a
+      // state list (e.g. GB), where the wallet legitimately has nothing to send.
+      const staleIds = Object.keys(errors).filter((id) => {
+        if (!OPTIONAL_ADDRESS_ERROR_IDS.test(id)) {
+          return false;
+        }
+        if (errors[id]?.hidden === true) {
+          return true;
+        }
+        const address = id.startsWith('shipping') ? shippingAddress : billingAddress;
+        return /state$/.test(id) && !address?.state && !countryHasStateList(address?.country);
+      });
+
+      if (staleIds.length) {
+        validationDispatch.clearValidationErrors(staleIds);
+      }
+    } catch (error) {
+      windowObject.console?.warn?.('[monek] failed to clear untouched address validation errors', error);
+    }
+  }
+
+  // The address fields re-run their validation after the store updates and can re-register
+  // the error a moment later, so clear again once the form has settled.
+  async function clearUntouchedAddressValidationErrors(billingAddress, shippingAddress) {
+    clearOptionalAddressErrorsOnce(billingAddress, shippingAddress);
+    await new Promise((resolve) => windowObject.setTimeout(resolve, 250));
+    clearOptionalAddressErrorsOnce(billingAddress, shippingAddress);
+  }
+
   function createExpressContentElement(props) {
     const {
       buttonAttributes,
@@ -252,6 +390,38 @@
     );
   }
 
+  function normaliseStateText(value) {
+    return String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]/gi, '')
+      .toLowerCase();
+  }
+
+  // Blocks rejects a state that isn't one of WooCommerce's codes for that country, even when
+  // the field is optional. Map Apple Pay's free-text value to a code, or send nothing.
+  function resolveStateCode(countryCode, administrativeArea) {
+    const area = String(administrativeArea || '').trim();
+    const country = String(countryCode || '').toUpperCase();
+    if (!area || !country) {
+      return '';
+    }
+
+    const countryData = getSetting('countryData', {}) || {};
+    const states = countryData[country]?.states;
+    if (!states || typeof states !== 'object' || !Object.keys(states).length) {
+      return '';
+    }
+
+    const wanted = normaliseStateText(area);
+    const entries = Object.entries(states);
+    const match = entries.find(([code]) => normaliseStateText(code) === wanted)
+      || entries.find(([, name]) => normaliseStateText(name) === wanted)
+      || entries.find(([, name]) => normaliseStateText(name).includes(wanted) || wanted.includes(normaliseStateText(name)));
+
+    return match ? match[0] : '';
+  }
+
   // Minimum fields WooCommerce Blocks needs to consider a billing/shipping address valid.
   const REQUIRED_ADDRESS_FIELDS = ['address_1', 'city', 'postcode', 'country'];
 
@@ -263,6 +433,8 @@
     async function handleSuccess() {
       const ref = windowObject.monekCheckout?.getClientPaymentRef?.();
       if (!ref) return;
+
+      watchExpressCheckoutOutcome(ref);
 
       const expressPaymentPayload = {
         monek_reference: ref,
@@ -287,7 +459,7 @@
         email: ctx.payerEmail ?? "",
         address_1: ctx.billingContact?.addressLines?.join(' ') ?? "",
         city: ctx.billingContact?.locality ?? "",
-        state: ctx.billingContact?.administrativeArea ?? "",
+        state: resolveStateCode(ctx.billingContact?.countryCode, ctx.billingContact?.administrativeArea),
         postcode: ctx.billingContact?.postalCode ?? "",
         country: ctx.billingContact?.countryCode ?? "",
         phone: ctx.payerPhone ?? "",
@@ -298,7 +470,7 @@
         last_name: ctx.shippingContact?.familyName ?? "",
         address_1: ctx.shippingContact?.addressLines?.join(' ') ?? "",
         city: ctx.shippingContact?.locality ?? "",
-        state: ctx.shippingContact?.administrativeArea ?? "",
+        state: resolveStateCode(ctx.shippingContact?.countryCode, ctx.shippingContact?.administrativeArea),
         postcode: ctx.shippingContact?.postalCode ?? "",
         country: ctx.shippingContact?.countryCode ?? "",
         phone: ctx.shippingContact?.phoneNumber ?? "",
@@ -325,6 +497,8 @@
         if (cartDispatch?.setShippingAddress) {
           await cartDispatch.setShippingAddress(shippingAddress);
         }
+
+        await syncWalletAddressesBeforeSubmit(cartDispatch, billingAddress, shippingAddress);
 
         const paymentDispatch = windowObject.wp?.data?.dispatch?.('wc/store/payment');
 

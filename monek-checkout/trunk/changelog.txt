@@ -1,5 +1,11 @@
 *** Monek Checkout Changelog ***
 
+2026-11-10 version 4.4.1
+* Added - Notice to the shopper when the order for ApplePay fails after the payment was authorised.
+* Added - Log the WooCommerce checkout response for orders submitted via express.
+* Fixed - Map Apple Pay's free-text state to one of WooCommerce's state codes for the country. Countries without a state list (e.g. GB) take free text.
+* Fixed - Prevent leaks of PII to unauthenticated visitors in order-pay page.
+
 2026-10-29 version 4.4.0
 * Fixed - Include basket product descriptions in payment requests for express checkout payments.
 * Security - Generate an idempotency token per order and reuse it for any subsequent requests if the payment was successful.

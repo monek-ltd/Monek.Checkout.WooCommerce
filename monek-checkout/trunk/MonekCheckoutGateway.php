@@ -545,6 +545,15 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
             $scriptVersion,
             true
         );
+
+        wp_localize_script(
+            $scriptHandle,
+            'monekConfiguration',
+            [
+                'ajaxUrl' => admin_url('admin-ajax.php'),
+                'logNonce' => wp_create_nonce('monek_log_express_checkout'),
+            ]
+        );
     }
 
     private function resolvePayPageOrder(): ?WC_Order
@@ -564,8 +573,21 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
         }
 
         $order = wc_get_order($orderId);
+        if (! $order instanceof WC_Order) {
+            return null;
+        }
 
-        return $order instanceof WC_Order ? $order : null;
+        // Mirror WooCommerce's own pay-page checks so no order data is exposed without a valid key.
+        $orderKey = isset($_GET['key']) ? wc_clean(wp_unslash($_GET['key'])) : '';
+        if (! is_string($orderKey) || '' === $orderKey || ! $order->key_is_valid($orderKey)) {
+            return null;
+        }
+
+        if (! current_user_can('pay_for_order', $order->get_id())) {
+            return null;
+        }
+
+        return $order;
     }
 
     /**

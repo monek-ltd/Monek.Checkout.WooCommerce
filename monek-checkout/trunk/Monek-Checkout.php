@@ -4,7 +4,7 @@
  * Description: Embedded checkout experience for WooCommerce powered by Monek.
  * Author: Monek Ltd
  * Author URI: https://www.monek.com
- * Version: 4.4.0
+ * Version: 4.4.1
  * Text Domain: monek-checkout
  * Requires Plugins: woocommerce
  * Requires at least: 6.0
@@ -114,7 +114,84 @@ add_action('wp_ajax_monek_dismiss_apple_pay_notice', function () {
     wp_send_json_success();
 });
 
+add_action('wp_ajax_monek_log_express_checkout', 'monek_log_express_checkout');
+add_action('wp_ajax_nopriv_monek_log_express_checkout', 'monek_log_express_checkout');
 
+function monek_log_express_checkout(): void
+{
+    check_ajax_referer('monek_log_express_checkout', 'nonce');
+
+    $flow = isset($_POST['flow']) && 'blocks' === $_POST['flow'] ? 'blocks' : 'legacy';
+    $status = isset($_POST['status']) ? absint($_POST['status']) : 0;
+    $responseJson = isset($_POST['response']) ? wp_unslash($_POST['response']) : '';
+
+    if (! is_string($responseJson) || strlen($responseJson) > 20000) {
+        wp_send_json_error(null, 400);
+    }
+
+    $response = json_decode($responseJson, true);
+    if (! is_array($response)) {
+        $response = [];
+    }
+
+    $text = static fn ($value): string => is_scalar($value)
+        ? substr(wp_strip_all_tags((string) $value), 0, 500)
+        : '';
+
+    // Log only whitelisted fields, the response body can contain customer data
+    if ('blocks' === $flow) {
+        $paymentResult = is_array($response['payment_result'] ?? null) ? $response['payment_result'] : [];
+        $outcome = $text($paymentResult['payment_status'] ?? '');
+        $summary = [
+            'payment_status' => $outcome,
+            'redirect_url' => $text($paymentResult['redirect_url'] ?? ''),
+            'error_code' => $text($response['code'] ?? ''),
+            'error_message' => $text($response['message'] ?? ''),
+        ];
+        $level = 'success' === $outcome ? 'info' : ($status >= 400 || 'failure' === $outcome ? 'error' : 'warning');
+    } else {
+        $outcome = $text($response['result'] ?? '');
+        $summary = [
+            'result' => $outcome,
+            'redirect' => $text($response['redirect'] ?? ''),
+            'messages' => $text($response['messages'] ?? ''),
+        ];
+        $level = match ($outcome) {
+            'success' => 'info',
+            'failure' => 'error',
+            default => 'warning',
+        };
+    }
+
+    $paymentReference = isset($_POST['reference']) && is_string($_POST['reference'])
+        ? sanitize_text_field(wp_unslash($_POST['reference']))
+        : '';
+
+    wc_get_logger()->log($level, sprintf('Express checkout order creation response (%s)', $flow), [
+        'source' => 'monek-express',
+        'flow' => $flow,
+        'payment_reference' => $paymentReference,
+        'http_status' => $status,
+        'checkout_response' => $summary,
+    ]);
+
+    // The wallet payment is already authorised, so tell the shopper the order failed.
+    if ('legacy' === $flow && ($status >= 400 || 'success' !== $outcome)) {
+        $message = $paymentReference !== ''
+            ? sprintf(
+                /* translators: %s: payment reference */
+                __('Your payment was authorised but we could not complete your order. Please contact the store quoting reference %s.', 'monek-checkout'),
+                $paymentReference
+            )
+            : __('Your payment was authorised but we could not complete your order. Please contact the store.', 'monek-checkout');
+
+        ob_start();
+        wc_print_notice($message, 'error');
+        wp_send_json_success(['notice' => ob_get_clean()]);
+    }
+
+    wp_send_json_success();
+}
 
 if (! function_exists('monek_bootstrap_plugin')) {
     function monek_bootstrap_plugin(): void

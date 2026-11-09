@@ -4,7 +4,7 @@ Tags: credit card, payments, monek, woocommerce
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.3
-Stable tag: 4.4.0
+Stable tag: 4.4.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -70,6 +70,12 @@ Yes. Version 4.3.x now includes support for WooCommerce Legacy Checkout. We reco
 Need help? Contact [Monek Support](https://monek.com/contact) or visit the [WordPress.org support forum](https://wordpress.org/support/plugin/monek-checkout/).
 
 == Changelog ==
+
+= 4.4.1 =
+* Added: Notice to the shopper when the order for ApplePay fails after the payment was authorised.
+* Added: Log the WooCommerce checkout response for orders submitted via express.
+* Fixed: Map Apple Pay's free-text state to one of WooCommerce's state codes for the country. Countries without a state list (e.g. GB) take free text.
+* Fixed: Prevent leaks of PII to unauthenticated visitors in order-pay page.
 
 = 4.4.0 =
 * Fixed: Include basket product descriptions in payment requests for express checkout payments.
