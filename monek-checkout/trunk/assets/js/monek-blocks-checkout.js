@@ -184,6 +184,7 @@
                 monek_expiry: expiry,
                 monek_reference: paymentReference,
                 monek_mode: 'standard',
+                monek_amount_minor: String(windowObject.monekCheckout?.getLastAmountMinor?.() ?? ''),
               },
             },
           };
@@ -514,7 +515,19 @@
       if (typeof onSubmit === 'function') onSubmit();
     }
 
+    // A cancelled or failed wallet attempt has used the express session; get a new one.
+    function refreshExpressSession() {
+      try {
+        Promise.resolve(windowObject.monekCheckout?.remountExpress?.('#monek-express-container')).catch((error) => {
+          windowObject.console?.warn?.('[monek] express remount failed:', error);
+        });
+      } catch (error) {
+        windowObject.console?.warn?.('[monek] express remount failed:', error);
+      }
+    }
+
     function handleCancel() {
+      refreshExpressSession();
       if (typeof setExpressPaymentError === 'function') {
         setExpressPaymentError('Payment cancelled.');
       }
@@ -522,6 +535,7 @@
     }
 
     function handleError() {
+      refreshExpressSession();
       if (typeof setExpressPaymentError === 'function') {
         setExpressPaymentError('Payment failed. Please try another method.');
       }

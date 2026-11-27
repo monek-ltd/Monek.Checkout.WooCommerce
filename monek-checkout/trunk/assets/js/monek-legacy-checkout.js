@@ -25,6 +25,7 @@
       session: 'monek_session',
       expiry: 'monek_expiry',
       reference: 'monek_reference',
+      amount: 'monek_amount_minor',
     },
   };
 
@@ -109,7 +110,26 @@
     });
   }
 
+  // The payment section is re-rendered by the server on every checkout refresh, so this
+  // attribute is the server-calculated total for what the shopper currently sees.
+  function readServerAmountMinor() {
+    const wrapper = documentObject.querySelector(selectors.wrapper)
+      || documentObject.querySelector('.monek-checkout-wrapper');
+    const attribute = wrapper?.getAttribute('data-monek-amount-minor');
+    if (attribute === null || attribute === undefined || attribute === '') {
+      return undefined;
+    }
+
+    const parsed = Number(attribute);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+
   function getAmountMinor() {
+    const serverAmountMinor = readServerAmountMinor();
+    if (serverAmountMinor !== undefined) {
+      return serverAmountMinor;
+    }
+
     if (liveAmountMinor !== undefined && Number.isFinite(liveAmountMinor)) {
       return liveAmountMinor;
     }
@@ -241,6 +261,7 @@
     setHiddenValue(selectors.hidden.session, sessionId);
     setHiddenValue(selectors.hidden.expiry, expiry);
     setHiddenValue(selectors.hidden.reference, reference);
+    setHiddenValue(selectors.hidden.amount, String(api.getLastAmountMinor?.() ?? ''));
 
     log('tokens written to hidden inputs');
     return true;
@@ -471,9 +492,33 @@
     classicForm.trigger('submit');
   }
 
+  // Gives the express wallet a new session, e.g. after a failed attempt or a changed total.
+  function refreshExpress() {
+    if (!documentObject.querySelector(selectors.express) || typeof api.remountExpress !== 'function') {
+      return;
+    }
+
+    Promise.resolve(api.remountExpress(selectors.express)).catch((error) => {
+      windowObject.console?.warn?.('[monek][legacy] express remount failed', error);
+    });
+  }
+
+  function refreshExpressIfTotalChanged() {
+    const mountedAmountMinor = api.getExpressAmountMinor?.();
+    if (mountedAmountMinor === null || mountedAmountMinor === undefined || expressSubmitting) {
+      return;
+    }
+
+    if (Number(getAmountMinor()) !== Number(mountedAmountMinor)) {
+      log('order total changed; remounting express');
+      refreshExpress();
+    }
+  }
+
   function onExpressCancelled() {
     expressSubmitting = false;
     expressReady = false;
+    refreshExpress();
   }
 
   function onExpressFailed() {
@@ -481,6 +526,7 @@
     expressReady = false;
     api.displayError(configuration.strings?.express_error
       || 'Payment failed. Please try another payment method.');
+    refreshExpress();
   }
 
   function logExpressCheckoutResponse(xhr) {
@@ -576,6 +622,7 @@
     setupExpressCheckout();
 
     jQueryInstance(documentObject.body).on('updated_checkout payment_method_selected', refreshMount);
+    jQueryInstance(documentObject.body).on('updated_checkout', refreshExpressIfTotalChanged);
     jQueryInstance(documentObject).on('change', 'input[name="payment_method"]', refreshMount);
   });
 })(window, document, window.jQuery);

@@ -10,6 +10,7 @@ class CheckoutRequest
     private string $sessionIdentifier;
     private string $expiry;
     private string $paymentReference;
+    private ?int $authenticatedAmountMinor;
 
     public function __construct(
         string $gatewayId,
@@ -17,7 +18,8 @@ class CheckoutRequest
         string $token,
         string $sessionIdentifier,
         string $expiry,
-        string $paymentReference
+        string $paymentReference,
+        ?int $authenticatedAmountMinor = null
     ) {
         $this->gatewayId = $gatewayId;
         $this->mode = $mode;
@@ -25,6 +27,7 @@ class CheckoutRequest
         $this->sessionIdentifier = $sessionIdentifier;
         $this->expiry = $expiry;
         $this->paymentReference = $paymentReference;
+        $this->authenticatedAmountMinor = $authenticatedAmountMinor;
     }
 
     public function isForGateway(string $gatewayId): bool
@@ -81,5 +84,14 @@ class CheckoutRequest
     public function getGatewayId(): string
     {
         return $this->gatewayId;
+    }
+
+    /**
+     * The amount (minor units) the browser gave the SDK for 3DS authentication, which is
+     * the amount Monek charges. Null when the browser did not report it.
+     */
+    public function getAuthenticatedAmountMinor(): ?int
+    {
+        return $this->authenticatedAmountMinor;
     }
 }

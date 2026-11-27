@@ -155,6 +155,7 @@ final class MonekBlocksIntegration extends AbstractPaymentMethodType
             'strings' => [
                 'token_error' => __('There was a problem preparing your payment. Please try again.', 'monek-checkout'),
                 'session_expired' => __('The session has expired. Please refresh the page and try again.', 'monek-checkout'),
+                'session_refreshed' => __('Your order was updated. Please re-enter your card details and try again.', 'monek-checkout'),
             ],
             'themeMode' => $stylingConfiguration['themeMode'],
             'theme' => $stylingConfiguration['theme'],

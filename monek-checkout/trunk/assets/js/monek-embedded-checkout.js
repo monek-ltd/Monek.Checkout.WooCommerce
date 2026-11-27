@@ -30,6 +30,12 @@
     clientPaymentReference: null,
     completionResolver: null,
     contextProvider: null,
+    // A session that has been through a submission keeps its 3DS transaction (and amount) on
+    // the Monek side, so it must not be reused for another attempt or a different total.
+    sessionUsed: false,
+    sessionAmountMinor: null,
+    lastAmountMinor: null,
+    expressAmountMinor: null,
   };
 
   function setContextProvider(provider) {
@@ -490,7 +496,12 @@
     const paymentReference = ensureClientPaymentReference();
 
     const callbacks = {
-      getAmount: () => ({ minor: getOrderTotalMinor(), currency: configuration.currencyNumeric || '826' }),
+      getAmount: () => {
+        const minor = getOrderTotalMinor();
+        // Remember what was handed to the SDK so the server can compare it with the order total.
+        state.lastAmountMinor = minor;
+        return { minor, currency: configuration.currencyNumeric || '826' };
+      },
       getDescription: () => configuration.basketDescription || configuration.orderDescription || 'Order',
       getCardholderDetails: buildCardholderDetails,
       onPaymentAuthorised: verifyExpressPayment,
@@ -603,6 +614,7 @@
       const express = sdk.createComponent('express', buildComponentOptions(true));
       await express.mount(selector);
       state.expressComponent = express;
+      state.expressAmountMinor = Number(getOrderTotalMinor());
       clearLoadingState();
 
       if (windowObject.console?.log) {
@@ -615,6 +627,16 @@
       }
       return false;
     }
+  }
+
+  // Tears the express component down and mounts it again so it gets a new session.
+  async function remountExpress(selector) {
+    unmountExpress();
+    return mountExpress(selector);
+  }
+
+  function getExpressAmountMinor() {
+    return state.expressAmountMinor;
   }
 
   async function mountComponents() {
@@ -637,6 +659,8 @@
           const checkout = sdk.createComponent('checkout', buildComponentOptions(false));
           await checkout.mount(selectors.checkout);
           state.checkoutComponent = checkout;
+          state.sessionUsed = false;
+          state.sessionAmountMinor = Number(getOrderTotalMinor());
 
           // On mount the SDK auto-intercepts submit events on the nearest hosting <form>.
           // On the classic/legacy checkout the SDK surface lives inside WooCommerce's
@@ -675,10 +699,47 @@
     return state.mountingPromise;
   }
 
+  // Gives the card form a new session before a submission when the current one has already
+  // been submitted, or was created for a different order total. refreshSession() swaps the
+  // session inside the mounted iframe, so the card details the shopper typed are kept.
+  async function ensureFreshSession() {
+    const currentAmountMinor = Number(getOrderTotalMinor());
+    const amountChanged = state.sessionAmountMinor !== null && currentAmountMinor !== state.sessionAmountMinor;
+
+    if (!state.sessionUsed && !amountChanged) {
+      return;
+    }
+
+    if (configuration.debug && windowObject.console?.log) {
+      windowObject.console.log('[monek] refreshing session before submission', {
+        sessionUsed: state.sessionUsed,
+        amountChanged,
+      });
+    }
+
+    try {
+      if (typeof state.checkoutComponent.refreshSession !== 'function') {
+        throw new Error('refreshSession is not available');
+      }
+      await state.checkoutComponent.refreshSession();
+      state.sessionUsed = false;
+      state.sessionAmountMinor = currentAmountMinor;
+    } catch (error) {
+      windowObject.console?.warn?.('[monek] session refresh failed; remounting the card form', error);
+      unmountComponents();
+      await mountComponents();
+      throw new Error(configuration.strings?.session_refreshed
+        || 'Your order was updated. Please re-enter your card details and try again.');
+    }
+  }
+
   async function trigger() {
     if (!state.checkoutComponent) {
       throw new Error('Checkout component not ready.');
     }
+
+    await ensureFreshSession();
+    state.sessionUsed = true;
 
     // triggerSubmission() resolves only after the SDK has completed tokenisation AND the
     // 3DS authentication flow. Await it and reject on any non-success status so we never
@@ -725,6 +786,9 @@
     setExpressStyle,
     mountExpress,
     unmountExpress,
+    remountExpress,
+    getExpressAmountMinor,
+    getLastAmountMinor: () => state.lastAmountMinor,
     trigger,
     displayError,
     clearError,
