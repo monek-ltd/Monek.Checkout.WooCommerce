@@ -4,7 +4,7 @@ Tags: credit card, payments, monek, woocommerce
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.3
-Stable tag: 4.4.1
+Stable tag: 4.4.2
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -70,6 +70,13 @@ Yes. Version 4.3.x now includes support for WooCommerce Legacy Checkout. We reco
 Need help? Contact [Monek Support](https://monek.com/contact) or visit the [WordPress.org support forum](https://wordpress.org/support/plugin/monek-checkout/).
 
 == Changelog ==
+
+= 4.4.2 =
+* Fixed: The card form now gets a new payment session before a retry, or when the order total changed after the checkout loaded, so an earlier amount is never reused.
+* Fixed: Express checkout gets a new payment session after a cancelled or failed attempt, and when the order total changes on the classic checkout.
+* Fixed: The classic checkout reads the order total calculated by the server rather than the text shown on the page.
+* Added: The payment is refused, with a message asking the shopper to review the order, when the amount authenticated in the browser differs from the order total.
+* Added: Log the order total and the authenticated amount for each card payment.
 
 = 4.4.1 =
 * Added: Notice to the shopper when the order for ApplePay fails after the payment was authorised.

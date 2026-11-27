@@ -82,7 +82,7 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
             new ExpressPaymentVerifier(),
             $this->currencyFormatter
         );
-        $this->standardCheckoutHandler = new StandardCheckoutHandler($paymentProcessor, $this->logger, $this->storeContext);
+        $this->standardCheckoutHandler = new StandardCheckoutHandler($paymentProcessor, $this->logger, $this->storeContext, $this->currencyFormatter);
 
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
@@ -262,7 +262,7 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
 
         echo '<input type="hidden" name="monek_mode" id="monek_mode" value="standard" />';
 
-        foreach (['monek_token', 'monek_session', 'monek_expiry', 'monek_reference'] as $field) {
+        foreach (['monek_token', 'monek_session', 'monek_expiry', 'monek_reference', 'monek_amount_minor'] as $field) {
             echo '<input type="hidden" name="' . esc_attr($field) . '" id="' . esc_attr($field) . '" value="" />';
         }
 
@@ -302,6 +302,7 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
             'monek_session' => isset($_POST['monek_session']) ? wc_clean(wp_unslash($_POST['monek_session'])) : '',
             'monek_expiry' => isset($_POST['monek_expiry']) ? wc_clean(wp_unslash($_POST['monek_expiry'])) : '',
             'monek_reference' => isset($_POST['monek_reference']) ? wc_clean(wp_unslash($_POST['monek_reference'])) : '',
+            'monek_amount_minor' => isset($_POST['monek_amount_minor']) ? wc_clean(wp_unslash($_POST['monek_amount_minor'])) : '',
         ];
 
         $checkoutRequest = $this->checkoutRequestFactory->createFromArray($this->id, $paymentData);
@@ -501,6 +502,7 @@ class MonekCheckoutGateway extends \WC_Payment_Gateway
             'strings' => [
                 'token_error' => __('There was a problem preparing your payment. Please try again.', 'monek-checkout'),
                 'session_expired' => __('The session has expired. Please refresh the page and try again.', 'monek-checkout'),
+                'session_refreshed' => __('Your order was updated. Please re-enter your card details and try again.', 'monek-checkout'),
             ],
         ];
 

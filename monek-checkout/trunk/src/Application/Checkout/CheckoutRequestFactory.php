@@ -24,7 +24,8 @@ class CheckoutRequestFactory
             $token,
             $sessionIdentifier,
             $expiry,
-            $paymentReference
+            $paymentReference,
+            $this->parseAmountMinor($paymentData['monek_amount_minor'] ?? null)
         );
     }
 
@@ -48,8 +49,22 @@ class CheckoutRequestFactory
             $token,
             $sessionIdentifier,
             $expiry,
-            $paymentReference
+            $paymentReference,
+            $this->parseAmountMinor($data['monek_amount_minor'] ?? null)
         );
+    }
+
+    private function parseAmountMinor($value): ?int
+    {
+        if (is_int($value)) {
+            return $value >= 0 ? $value : null;
+        }
+
+        if (is_string($value) && preg_match('/^\d{1,12}$/', trim($value))) {
+            return (int) trim($value);
+        }
+
+        return null;
     }
 
     private function sanitisePaymentData($rawPaymentData): array
